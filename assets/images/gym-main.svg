@@ -1,0 +1,80 @@
+<svg width="1400" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient background -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2d2d2d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gymGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#333;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1400" height="500" fill="url(#bgGrad)"/>
+  
+  <!-- Floor -->
+  <rect y="380" width="1400" height="120" fill="#1a1a1a"/>
+  <rect y="370" width="1400" height="10" fill="#FF6B35" opacity="0.3"/>
+  
+  <!-- Left wall with accent -->
+  <rect width="150" height="500" fill="#0a0a0a"/>
+  <rect width="150" height="500" fill="#FF6B35" opacity="0.05"/>
+  
+  <!-- Treadmills -->
+  <rect x="180" y="300" width="80" height="80" fill="#222" rx="4"/>
+  <rect x="190" y="310" width="60" height="60" fill="#333"/>
+  
+  <rect x="280" y="300" width="80" height="80" fill="#222" rx="4"/>
+  <rect x="290" y="310" width="60" height="60" fill="#333"/>
+  
+  <rect x="380" y="300" width="80" height="80" fill="#222" rx="4"/>
+  <rect x="390" y="310" width="60" height="60" fill="#333"/>
+  
+  <!-- Dumbbells section -->
+  <circle cx="550" cy="320" r="20" fill="#FF6B35"/>
+  <circle cx="550" cy="320" r="15" fill="#E55A2B"/>
+  
+  <circle cx="620" cy="320" r="20" fill="#FF6B35"/>
+  <circle cx="620" cy="320" r="15" fill="#E55A2B"/>
+  
+  <circle cx="690" cy="320" r="20" fill="#FF6B35"/>
+  <circle cx="690" cy="320" r="15" fill="#E55A2B"/>
+  
+  <!-- Rack -->
+  <rect x="530" y="360" width="180" height="20" fill="#555"/>
+  <rect x="535" y="325" width="10" height="40" fill="#777"/>
+  <rect x="560" y="325" width="10" height="40" fill="#777"/>
+  <rect x="585" y="325" width="10" height="40" fill="#777"/>
+  <rect x="610" y="325" width="10" height="40" fill="#777"/>
+  <rect x="690" y="325" width="10" height="40" fill="#777"/>
+  
+  <!-- Bench press area -->
+  <rect x="800" y="300" width="120" height="80" fill="#222" rx="4"/>
+  <rect x="810" y="310" width="100" height="60" fill="#333"/>
+  <rect x="815" y="305" width="90" height="8" fill="#FF6B35" opacity="0.6"/>
+  
+  <!-- Barbell rack -->
+  <rect x="1000" y="320" width="80" height="60" fill="#444"/>
+  <circle cx="1020" cy="310" r="8" fill="#FF6B35"/>
+  <circle cx="1050" cy="310" r="8" fill="#FF6B35"/>
+  
+  <!-- Wall accent panels -->
+  <rect x="1150" y="100" width="60" height="200" fill="#FF6B35" opacity="0.15"/>
+  <rect x="1150" y="100" width="60" height="200" fill="none" stroke="#FF6B35" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Lighting effect -->
+  <circle cx="200" cy="50" r="200" fill="#FF6B35" opacity="0.05"/>
+  <circle cx="1200" cy="150" r="150" fill="#FF6B35" opacity="0.08"/>
+  
+  <!-- Text overlay -->
+  <text x="700" y="200" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#FF6B35" text-anchor="middle" opacity="0.3">GYM</text>
+  
+  <!-- Right wall decoration -->
+  <rect x="1250" width="150" height="500" fill="#0a0a0a"/>
+  <circle cx="1260" cy="80" r="15" fill="#FF6B35" opacity="0.6"/>
+  <circle cx="1260" cy="150" r="15" fill="#FF6B35" opacity="0.4"/>
+  <circle cx="1260" cy="220" r="15" fill="#FF6B35" opacity="0.6"/>
+</svg>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horários de Aulas - FitHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <div class="navbar-logo">
+                    <a href="index.html">
+                        <h1>FitHub</h1>
+                    </a>
+                </div>
+                <ul class="navbar-menu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="schedules.html" class="nav-link active">Aulas</a></li>
+                    <li><a href="admin-staff.html" class="nav-link">Gestão</a></li>
+                    <li><a href="#" class="nav-link">Perfil</a></li>
+                    <li><a href="#" class="nav-link">Sair</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Page Title -->
+        <section class="page-header">
+            <div class="container">
+                <h1>Horários de Aulas</h1>
+                <p>Encontre a aula perfeita para si</p>
+            </div>
+        </section>
+
+        <!-- Filters Section -->
+        <section class="filters-section">
+            <div class="container">
+                <h2>Filtros</h2>
+                <form class="filters-form">
+                    <div class="filter-group">
+                        <label for="class-type">Tipo de Aula:</label>
+                        <select id="class-type" name="class-type">
+                            <option value="">Todos</option>
+                            <option value="yoga">Yoga</option>
+                            <option value="spinning">Spinning</option>
+                            <option value="hiit">HIIT</option>
+                            <option value="pilates">Pilates</option>
+                            <option value="zumba">Zumba</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="trainer">Treinador:</label>
+                        <select id="trainer" name="trainer">
+                            <option value="">Qualquer Treinador</option>
+                            <option value="trainer1">João Silva</option>
+                            <option value="trainer2">Maria Santos</option>
+                            <option value="trainer3">Carlos Mendes</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="day">Dia:</label>
+                        <select id="day" name="day">
+                            <option value="">Todos os Dias</option>
+                            <option value="monday">Segunda</option>
+                            <option value="tuesday">Terça</option>
+                            <option value="wednesday">Quarta</option>
+                            <option value="thursday">Quinta</option>
+                            <option value="friday">Sexta</option>
+                            <option value="saturday">Sábado</option>
+                            <option value="sunday">Domingo</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="time">Horário:</label>
+                        <select id="time" name="time">
+                            <option value="">Qualquer Horário</option>
+                            <option value="morning">Manhã (6:00 - 12:00)</option>
+                            <option value="afternoon">Tarde (12:00 - 18:00)</option>
+                            <option value="evening">Noite (18:00 - 23:00)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-secondary">Aplicar Filtros</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Classes Schedule -->
+        <section class="schedule-section">
+            <div class="container">
+                <h2>Aulas Disponíveis</h2>
+                <div class="schedule-grid">
+                    <!-- Class Card 1 -->
+                    <article class="class-card">
+                        <div class="class-header">
+                            <h3>Yoga Matinal</h3>
+                            <span class="class-type">Yoga</span>
+                        </div>
+                        <div class="class-info">
+                            <p><strong>Treinador:</strong> João Silva</p>
+                            <p><strong>Dia:</strong> Segunda, Quarta, Sexta</p>
+                            <p><strong>Horário:</strong> 07:00 - 08:00</p>
+                            <p><strong>Local:</strong> Sala 1</p>
+                            <p><strong>Vagas:</strong> <span class="available">8/20</span></p>
+                        </div>
+                        <p class="class-description">Uma aula relaxante de yoga para começar o seu dia com energia e equilíbrio.</p>
+                        <div class="class-actions">
+                            <button class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                        </div>
+                    </article>
+
+                    <!-- Class Card 2 -->
+                    <article class="class-card">
+                        <div class="class-header">
+                            <h3>Spinning Intenso</h3>
+                            <span class="class-type">Spinning</span>
+                        </div>
+                        <div class="class-info">
+                            <p><strong>Treinador:</strong> Maria Santos</p>
+                            <p><strong>Dia:</strong> Terça, Quinta</p>
+                            <p><strong>Horário:</strong> 18:30 - 19:30</p>
+                            <p><strong>Local:</strong> Sala 2</p>
+                            <p><strong>Vagas:</strong> <span class="full">0/15</span></p>
+                        </div>
+                        <p class="class-description">Aula de spinning de alta intensidade para queimar calorias e melhorar resistência.</p>
+                        <div class="class-actions">
+                            <button class="btn btn-primary btn-small" disabled>Aula Cheia</button>
+                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                        </div>
+                    </article>
+
+                    <!-- Class Card 3 -->
+                    <article class="class-card">
+                        <div class="class-header">
+                            <h3>HIIT Express</h3>
+                            <span class="class-type">HIIT</span>
+                        </div>
+                        <div class="class-info">
+                            <p><strong>Treinador:</strong> Carlos Mendes</p>
+                            <p><strong>Dia:</strong> Segunda, Quarta, Sexta</p>
+                            <p><strong>Horário:</strong> 19:00 - 19:45</p>
+                            <p><strong>Local:</strong> Sala 3</p>
+                            <p><strong>Vagas:</strong> <span class="available">12/20</span></p>
+                        </div>
+                        <p class="class-description">Treino de alta intensidade com intervalos para máxima eficácia em pouco tempo.</p>
+                        <div class="class-actions">
+                            <button class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                        </div>
+                    </article>
+
+                    <!-- Class Card 4 -->
+                    <article class="class-card">
+                        <div class="class-header">
+                            <h3>Pilates Clássico</h3>
+                            <span class="class-type">Pilates</span>
+                        </div>
+                        <div class="class-info">
+                            <p><strong>Treinador:</strong> Maria Santos</p>
+                            <p><strong>Dia:</strong> Terça, Quinta, Sábado</p>
+                            <p><strong>Horário:</strong> 10:00 - 11:00</p>
+                            <p><strong>Local:</strong> Sala 1</p>
+                            <p><strong>Vagas:</strong> <span class="available">5/15</span></p>
+                        </div>
+                        <p class="class-description">Aula de pilates focada em core, flexibilidade e fortalecimento muscular.</p>
+                        <div class="class-actions">
+                            <button class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                        </div>
+                    </article>
+
+                    <!-- Class Card 5 -->
+                    <article class="class-card">
+                        <div class="class-header">
+                            <h3>Zumba Party</h3>
+                            <span class="class-type">Zumba</span>
+                        </div>
+                        <div class="class-info">
+                            <p><strong>Treinador:</strong> João Silva</p>
+                            <p><strong>Dia:</strong> Quarta, Sábado</p>
+                            <p><strong>Horário:</strong> 20:00 - 21:00</p>
+                            <p><strong>Local:</strong> Sala 2</p>
+                            <p><strong>Vagas:</strong> <span class="available">18/25</span></p>
+                        </div>
+                        <p class="class-description">Dança e diversão! Aula energética de zumba para queimar calorias e se divertir.</p>
+                        <div class="class-actions">
+                            <button class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                        </div>
+                    </article>
+
+                    <!-- Class Card 6 -->
+                    <article class="class-card">
+                        <div class="class-header">
+                            <h3>Box Training</h3>
+                            <span class="class-type">Boxe</span>
+                        </div>
+                        <div class="class-info">
+                            <p><strong>Treinador:</strong> Carlos Mendes</p>
+                            <p><strong>Dia:</strong> Terça, Quinta</p>
+                            <p><strong>Horário:</strong> 17:00 - 18:00</p>
+                            <p><strong>Local:</strong> Sala 3</p>
+                            <p><strong>Vagas:</strong> <span class="available">6/10</span></p>
+                        </div>
+                        <p class="class-description">Treino de boxe para melhorar coordenação, força e resistência cardiovascular.</p>
+                        <div class="class-actions">
+                            <button class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>FitHub</h4>
+                    <p>Plataforma de gestão de ginásio moderna e intuitiva.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Ligações Rápidas</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="schedules.html">Aulas</a></li>
+                        <li><a href="#">Sobre Nós</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p>Email: info@fithub.pt</p>
+                    <p>Telefone: +351 XXX XXX XXX</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 FitHub. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

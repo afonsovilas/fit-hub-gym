@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Funcionários - FitHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <div class="navbar-logo">
+                    <a href="index.html">
+                        <h1>FitHub</h1>
+                    </a>
+                </div>
+                <ul class="navbar-menu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="schedules.html" class="nav-link">Aulas</a></li>
+                    <li><a href="admin-staff.html" class="nav-link active">Gestão</a></li>
+                    <li><a href="#" class="nav-link">Perfil</a></li>
+                    <li><a href="#" class="nav-link">Sair</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Page Title -->
+        <section class="page-header">
+            <div class="container">
+                <h1>Gestão de Funcionários</h1>
+                <p>Administre treinadores e staff do ginásio</p>
+            </div>
+        </section>
+
+        <!-- Admin Panel -->
+        <section class="admin-panel">
+            <div class="container">
+                <!-- Tabs Navigation -->
+                <div class="admin-tabs">
+                    <button class="tab-button active" data-tab="trainers">Treinadores</button>
+                    <button class="tab-button" data-tab="staff">Staff</button>
+                </div>
+
+                <!-- Trainers Tab -->
+                <div id="trainers" class="tab-content active">
+                    <!-- Add New Trainer Form -->
+                    <section class="form-section">
+                        <h2>Adicionar Novo Treinador</h2>
+                        <form class="staff-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="trainer-name">Nome Completo:</label>
+                                    <input type="text" id="trainer-name" name="trainer-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="trainer-email">Email:</label>
+                                    <input type="email" id="trainer-email" name="trainer-email" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="trainer-phone">Telefone:</label>
+                                    <input type="tel" id="trainer-phone" name="trainer-phone">
+                                </div>
+                                <div class="form-group">
+                                    <label for="trainer-specialization">Especialização:</label>
+                                    <select id="trainer-specialization" name="trainer-specialization" required>
+                                        <option value="">Selecione</option>
+                                        <option value="yoga">Yoga</option>
+                                        <option value="spinning">Spinning</option>
+                                        <option value="hiit">HIIT</option>
+                                        <option value="pilates">Pilates</option>
+                                        <option value="boxing">Boxe</option>
+                                        <option value="personal">Personal Training</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="trainer-certifications">Certificações:</label>
+                                <textarea id="trainer-certifications" name="trainer-certifications" rows="3" placeholder="Descreva as certificações..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="trainer-bio">Biografia:</label>
+                                <textarea id="trainer-bio" name="trainer-bio" rows="4" placeholder="Escreva a biografia do treinador..."></textarea>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Adicionar Treinador</button>
+                                <button type="reset" class="btn btn-secondary">Limpar</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Trainers List -->
+                    <section class="list-section">
+                        <h2>Treinadores Registados</h2>
+                        <div class="staff-table-wrapper">
+                            <table class="staff-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                        <th>Especialização</th>
+                                        <th>Telefone</th>
+                                        <th>Estado</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>João Silva</td>
+                                        <td>joao@fithub.pt</td>
+                                        <td>Yoga / Zumba</td>
+                                        <td>+351 911 222 333</td>
+                                        <td><span class="status active">Ativo</span></td>
+                                        <td class="actions">
+                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Maria Santos</td>
+                                        <td>maria@fithub.pt</td>
+                                        <td>Pilates / Spinning</td>
+                                        <td>+351 912 333 444</td>
+                                        <td><span class="status active">Ativo</span></td>
+                                        <td class="actions">
+                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Carlos Mendes</td>
+                                        <td>carlos@fithub.pt</td>
+                                        <td>HIIT / Boxe</td>
+                                        <td>+351 913 444 555</td>
+                                        <td><span class="status active">Ativo</span></td>
+                                        <td class="actions">
+                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ana Pereira</td>
+                                        <td>ana@fithub.pt</td>
+                                        <td>Personal Training</td>
+                                        <td>+351 914 555 666</td>
+                                        <td><span class="status inactive">Inativo</span></td>
+                                        <td class="actions">
+                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                            <button class="btn-icon btn-delete" title="Ativar">✔️</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Staff Tab -->
+                <div id="staff" class="tab-content">
+                    <!-- Add New Staff Member Form -->
+                    <section class="form-section">
+                        <h2>Adicionar Novo Membro do Staff</h2>
+                        <form class="staff-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="staff-name">Nome Completo:</label>
+                                    <input type="text" id="staff-name" name="staff-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="staff-email">Email:</label>
+                                    <input type="email" id="staff-email" name="staff-email" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="staff-phone">Telefone:</label>
+                                    <input type="tel" id="staff-phone" name="staff-phone">
+                                </div>
+                                <div class="form-group">
+                                    <label for="staff-position">Posição:</label>
+                                    <select id="staff-position" name="staff-position" required>
+                                        <option value="">Selecione</option>
+                                        <option value="receptionist">Recepcionista</option>
+                                        <option value="cleaner">Limpeza</option>
+                                        <option value="maintenance">Manutenção</option>
+                                        <option value="manager">Gerente</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="staff-department">Departamento:</label>
+                                <input type="text" id="staff-department" name="staff-department" placeholder="Ex: Receção, Limpeza, etc">
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Adicionar Staff</button>
+                                <button type="reset" class="btn btn-secondary">Limpar</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Staff List -->
+                    <section class="list-section">
+                        <h2>Staff Registado</h2>
+                        <div class="staff-table-wrapper">
+                            <table class="staff-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                        <th>Posição</th>
+                                        <th>Departamento</th>
+                                        <th>Estado</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Rita Oliveira</td>
+                                        <td>rita@fithub.pt</td>
+                                        <td>Recepcionista</td>
+                                        <td>Receção</td>
+                                        <td><span class="status active">Ativo</span></td>
+                                        <td class="actions">
+                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Paulo Costa</td>
+                                        <td>paulo@fithub.pt</td>
+                                        <td>Manutenção</td>
+                                        <td>Técnico</td>
+                                        <td><span class="status active">Ativo</span></td>
+                                        <td class="actions">
+                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Teresa Sousa</td>
+                                        <td>teresa@fithub.pt</td>
+                                        <td>Limpeza</td>
+                                        <td>Operacional</td>
+                                        <td><span class="status active">Ativo</span></td>
+                                        <td class="actions">
+                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>FitHub</h4>
+                    <p>Plataforma de gestão de ginásio moderna e intuitiva.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Ligações Rápidas</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="schedules.html">Aulas</a></li>
+                        <li><a href="#">Sobre Nós</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p>Email: info@fithub.pt</p>
+                    <p>Telefone: +351 XXX XXX XXX</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 FitHub. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/admin-staff.js"></script>
+</body>
+</html>
