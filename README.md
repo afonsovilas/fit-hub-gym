@@ -18,6 +18,8 @@ O styling está organizado em camadas num único ficheiro `css/style.css`:
 2. Componentes: botões, cartões, formulários, tabelas, estados e padrões reutilizáveis.
 3. Casos específicos: ajustes por secção/página (hero, headers de página, áreas de gestão, etc.).
 
+A estrutura da página admin-staff.html tem um design ligeiramente diferente principalmente no menu, pois não pertence ao website (front-office) , vai futuramente fazer parte do backoffice do admin.
+
 ## Como abrir o projeto
 
 ### Opção A - Sem servidor
