@@ -1,41 +1,42 @@
-# ltw02g08
+# FitHub - LTW Milestone 1
 
-## Features
+Primeira entrega focada em HTML + CSS.
 
-**All users:**
-- [ ] Register a new account.
-- [ ] Log in and out.
-- [ ] Edit their profile, including name, username, password, and profile photo.
+## Páginas incluídas
 
-**Members:**
-- [ ] Browse the schedule of available fitness classes, filtering by type, trainer, day, or time.
-- [ ] Enroll in and cancel enrollment from upcoming classes, subject to capacity limits.
-- [ ] View trainer profiles, including their specializations and the classes they teach.
-- [ ] Check the current availability of equipment in the main training area.
-- [ ] Leave ratings and reviews for classes they have attended.
+1. `index.html` - Landing/Home page
+2. `schedules.html` - Lista e filtros de aulas
+3. `admin-staff.html` - Gestão de treinadores e staff (formulários + tabelas)
 
-**Trainers:**
-- [ ] Manage their public profile, including bio, specializations, and certifications.
-- [ ] View the roster of members enrolled in their classes.
-- [ ] Track and manage their assigned class schedule.
+As 3 páginas usam componentes e estruturas diferentes para cobrir padrões variados de UI.
 
-**Admins:**
-- [ ] Manage members and trainers (create, update, and deactivate accounts).
-- [ ] Manage the class catalog (create, edit, and remove classes) and assign trainers to them.
-- [ ] Manage equipment in the main training area (add, update availability status, and remove items).
-- [ ] Elevate a user to admin status.
-- [ ] Oversee and ensure the smooth operation of the entire system.
+## Estrutura CSS
 
-**Extra:**
-- [ ] Something extra (e.g., personal training bookings, membership plans, waitlist, ...).
+O styling está organizado em camadas num único ficheiro `css/style.css`:
 
-## Running
+1. Base: variáveis CSS, reset e estilos globais de elementos HTML.
+2. Componentes: botões, cartões, formulários, tabelas, estados e padrões reutilizáveis.
+3. Casos específicos: ajustes por secção/página (hero, headers de página, áreas de gestão, etc.).
 
-    sqlite3 database/database.db < database/database.sql
-    php -S localhost:9000
+## Como abrir o projeto
 
-## Credentials
+### Opção A - Sem servidor
 
-- admin/p4s5w0rd
-- member/1234
-- trainer/1234
+1. Abrir `index.html` no browser.
+2. Usar o menu para navegar para `schedules.html` e `admin-staff.html`.
+
+### Opção B - Servidor local PHP (opcional)
+
+1. Na raiz do projeto, executar:
+
+```bash
+php -S localhost:9000
+```
+
+2. Abrir no browser:
+
+`http://localhost:9000/index.html`
+
+## Nota desta milestone
+
+Esta entrega está limitada ao front-end (HTML + CSS) das páginas principais.

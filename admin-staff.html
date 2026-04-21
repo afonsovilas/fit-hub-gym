@@ -9,11 +9,12 @@
 <body>
     <!-- Navigation Header -->
     <header class="header">
-        <nav class="navbar">
+        <nav class="navbar" aria-label="Navegação principal">
             <div class="navbar-container">
+                <button type="button" class="menu-toggle" aria-label="Abrir menu" title="Menu">☰</button>
                 <div class="navbar-logo">
                     <a href="index.html">
-                        <h1>FitHub</h1>
+                        <span class="site-brand">FitHub</span>
                     </a>
                 </div>
                 <ul class="navbar-menu">
@@ -30,7 +31,7 @@
     <!-- Main Content -->
     <main>
         <!-- Page Title -->
-        <section class="page-header">
+        <section class="page-header page-header--admin">
             <div class="container">
                 <h1>Gestão de Funcionários</h1>
                 <p>Administre treinadores e staff do ginásio</p>
@@ -41,13 +42,13 @@
         <section class="admin-panel">
             <div class="container">
                 <!-- Tabs Navigation -->
-                <div class="admin-tabs">
-                    <button class="tab-button active" data-tab="trainers">Treinadores</button>
-                    <button class="tab-button" data-tab="staff">Staff</button>
+                <div class="admin-tabs" role="tablist" aria-label="Categorias de gestão de equipa">
+                    <button type="button" class="tab-button active" data-tab="trainers" role="tab" id="tab-trainers" aria-controls="trainers" aria-selected="true">Treinadores</button>
+                    <button type="button" class="tab-button" data-tab="staff" role="tab" id="tab-staff" aria-controls="staff" aria-selected="false">Staff</button>
                 </div>
 
                 <!-- Trainers Tab -->
-                <div id="trainers" class="tab-content active">
+                <div id="trainers" class="tab-content active" role="tabpanel" aria-labelledby="tab-trainers">
                     <!-- Add New Trainer Form -->
                     <section class="form-section">
                         <h2>Adicionar Novo Treinador</h2>
@@ -69,16 +70,34 @@
                                     <input type="tel" id="trainer-phone" name="trainer-phone">
                                 </div>
                                 <div class="form-group">
-                                    <label for="trainer-specialization">Especialização:</label>
-                                    <select id="trainer-specialization" name="trainer-specialization" required>
-                                        <option value="">Selecione</option>
-                                        <option value="yoga">Yoga</option>
-                                        <option value="spinning">Spinning</option>
-                                        <option value="hiit">HIIT</option>
-                                        <option value="pilates">Pilates</option>
-                                        <option value="boxing">Boxe</option>
-                                        <option value="personal">Personal Training</option>
-                                    </select>
+                                    <fieldset class="checkbox-group">
+                                        <legend>Especializações:</legend>
+                                        <label class="checkbox-item" for="spec-yoga">
+                                            <input type="checkbox" id="spec-yoga" name="trainer-specialization[]" value="yoga">
+                                            <span>Yoga</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-spinning">
+                                            <input type="checkbox" id="spec-spinning" name="trainer-specialization[]" value="spinning">
+                                            <span>Spinning</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-hiit">
+                                            <input type="checkbox" id="spec-hiit" name="trainer-specialization[]" value="hiit">
+                                            <span>HIIT</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-pilates">
+                                            <input type="checkbox" id="spec-pilates" name="trainer-specialization[]" value="pilates">
+                                            <span>Pilates</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-boxing">
+                                            <input type="checkbox" id="spec-boxing" name="trainer-specialization[]" value="boxing">
+                                            <span>Boxe</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-personal">
+                                            <input type="checkbox" id="spec-personal" name="trainer-specialization[]" value="personal">
+                                            <span>Personal Training</span>
+                                        </label>
+                                    </fieldset>
+                                    <small class="form-hint">Selecione uma ou mais especializações.</small>
                                 </div>
                             </div>
 
@@ -106,12 +125,12 @@
                             <table class="staff-table">
                                 <thead>
                                     <tr>
-                                        <th>Nome</th>
-                                        <th>Email</th>
-                                        <th>Especialização</th>
-                                        <th>Telefone</th>
-                                        <th>Estado</th>
-                                        <th>Ações</th>
+                                        <th scope="col">Nome</th>
+                                        <th scope="col">Email</th>
+                                        <th scope="col">Especialização</th>
+                                        <th scope="col">Telefone</th>
+                                        <th scope="col">Estado</th>
+                                        <th scope="col" class="actions-col">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -122,8 +141,8 @@
                                         <td>+351 911 222 333</td>
                                         <td><span class="status active">Ativo</span></td>
                                         <td class="actions">
-                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
-                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                            <button type="button" class="btn-icon btn-edit" title="Editar" aria-label="Editar treinador João Silva">✏️</button>
+                                            <button type="button" class="btn-icon btn-delete" title="Desativar" aria-label="Desativar treinador João Silva">🗑️</button>
                                         </td>
                                     </tr>
                                     <tr>
@@ -133,8 +152,8 @@
                                         <td>+351 912 333 444</td>
                                         <td><span class="status active">Ativo</span></td>
                                         <td class="actions">
-                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
-                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                            <button type="button" class="btn-icon btn-edit" title="Editar" aria-label="Editar treinador Maria Santos">✏️</button>
+                                            <button type="button" class="btn-icon btn-delete" title="Desativar" aria-label="Desativar treinador Maria Santos">🗑️</button>
                                         </td>
                                     </tr>
                                     <tr>
@@ -144,8 +163,8 @@
                                         <td>+351 913 444 555</td>
                                         <td><span class="status active">Ativo</span></td>
                                         <td class="actions">
-                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
-                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                            <button type="button" class="btn-icon btn-edit" title="Editar" aria-label="Editar treinador Carlos Mendes">✏️</button>
+                                            <button type="button" class="btn-icon btn-delete" title="Desativar" aria-label="Desativar treinador Carlos Mendes">🗑️</button>
                                         </td>
                                     </tr>
                                     <tr>
@@ -155,8 +174,8 @@
                                         <td>+351 914 555 666</td>
                                         <td><span class="status inactive">Inativo</span></td>
                                         <td class="actions">
-                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
-                                            <button class="btn-icon btn-delete" title="Ativar">✔️</button>
+                                            <button type="button" class="btn-icon btn-edit" title="Editar" aria-label="Editar treinador Ana Pereira">✏️</button>
+                                            <button type="button" class="btn-icon btn-delete" title="Ativar" aria-label="Ativar treinador Ana Pereira">✔️</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -166,7 +185,7 @@
                 </div>
 
                 <!-- Staff Tab -->
-                <div id="staff" class="tab-content">
+                <div id="staff" class="tab-content" role="tabpanel" aria-labelledby="tab-staff">
                     <!-- Add New Staff Member Form -->
                     <section class="form-section">
                         <h2>Adicionar Novo Membro do Staff</h2>
@@ -191,17 +210,23 @@
                                     <label for="staff-position">Posição:</label>
                                     <select id="staff-position" name="staff-position" required>
                                         <option value="">Selecione</option>
-                                        <option value="receptionist">Recepcionista</option>
-                                        <option value="cleaner">Limpeza</option>
-                                        <option value="maintenance">Manutenção</option>
-                                        <option value="manager">Gerente</option>
+                                        <option value="front-desk-agent">Front Desk Agent</option>
+                                        <option value="facilities-technician">Técnico de Manutenção</option>
+                                        <option value="hygiene-assistant">Assistente de Limpeza</option>
+                                        <option value="operations-coordinator">Coordenador Operacional</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label for="staff-department">Departamento:</label>
-                                <input type="text" id="staff-department" name="staff-department" placeholder="Ex: Receção, Limpeza, etc">
+                                <select id="staff-department" name="staff-department" required>
+                                    <option value="">Selecione</option>
+                                    <option value="member-support">Atendimento ao Cliente</option>
+                                    <option value="operations">Operações</option>
+                                    <option value="facilities">Infraestruturas</option>
+                                    <option value="admin">Administração</option>
+                                </select>
                             </div>
 
                             <div class="form-actions">
@@ -218,46 +243,46 @@
                             <table class="staff-table">
                                 <thead>
                                     <tr>
-                                        <th>Nome</th>
-                                        <th>Email</th>
-                                        <th>Posição</th>
-                                        <th>Departamento</th>
-                                        <th>Estado</th>
-                                        <th>Ações</th>
+                                        <th scope="col">Nome</th>
+                                        <th scope="col">Email</th>
+                                        <th scope="col">Posição</th>
+                                        <th scope="col">Departamento</th>
+                                        <th scope="col">Estado</th>
+                                        <th scope="col" class="actions-col">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
                                         <td>Rita Oliveira</td>
                                         <td>rita@fithub.pt</td>
-                                        <td>Recepcionista</td>
-                                        <td>Receção</td>
+                                        <td>Front Desk Agent</td>
+                                        <td>Atendimento ao Cliente</td>
                                         <td><span class="status active">Ativo</span></td>
                                         <td class="actions">
-                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
-                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                            <button type="button" class="btn-icon btn-edit" title="Editar" aria-label="Editar membro do staff Rita Oliveira">✏️</button>
+                                            <button type="button" class="btn-icon btn-delete" title="Desativar" aria-label="Desativar membro do staff Rita Oliveira">🗑️</button>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>Paulo Costa</td>
                                         <td>paulo@fithub.pt</td>
-                                        <td>Manutenção</td>
-                                        <td>Técnico</td>
+                                        <td>Técnico de Manutenção</td>
+                                        <td>Infraestruturas</td>
                                         <td><span class="status active">Ativo</span></td>
                                         <td class="actions">
-                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
-                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                            <button type="button" class="btn-icon btn-edit" title="Editar" aria-label="Editar membro do staff Paulo Costa">✏️</button>
+                                            <button type="button" class="btn-icon btn-delete" title="Desativar" aria-label="Desativar membro do staff Paulo Costa">🗑️</button>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>Teresa Sousa</td>
                                         <td>teresa@fithub.pt</td>
-                                        <td>Limpeza</td>
-                                        <td>Operacional</td>
+                                        <td>Assistente de Limpeza</td>
+                                        <td>Operações</td>
                                         <td><span class="status active">Ativo</span></td>
                                         <td class="actions">
-                                            <button class="btn-icon btn-edit" title="Editar">✏️</button>
-                                            <button class="btn-icon btn-delete" title="Desativar">🗑️</button>
+                                            <button type="button" class="btn-icon btn-edit" title="Editar" aria-label="Editar membro do staff Teresa Sousa">✏️</button>
+                                            <button type="button" class="btn-icon btn-delete" title="Desativar" aria-label="Desativar membro do staff Teresa Sousa">🗑️</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -297,6 +322,7 @@
         </div>
     </footer>
 
+    <script src="js/navbar-scroll.js"></script>
     <script src="js/admin-staff.js"></script>
 </body>
 </html>

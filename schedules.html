@@ -6,14 +6,15 @@
     <title>Horários de Aulas - FitHub</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="schedules-page">
     <!-- Navigation Header -->
     <header class="header">
-        <nav class="navbar">
+        <nav class="navbar" aria-label="Navegação principal">
             <div class="navbar-container">
+                <button type="button" class="menu-toggle" aria-label="Abrir menu" title="Menu">☰</button>
                 <div class="navbar-logo">
                     <a href="index.html">
-                        <h1>FitHub</h1>
+                        <span class="site-brand">FitHub</span>
                     </a>
                 </div>
                 <ul class="navbar-menu">
@@ -30,7 +31,7 @@
     <!-- Main Content -->
     <main>
         <!-- Page Title -->
-        <section class="page-header">
+        <section class="page-header page-header--schedules">
             <div class="container">
                 <h1>Horários de Aulas</h1>
                 <p>Encontre a aula perfeita para si</p>
@@ -113,8 +114,8 @@
                         </div>
                         <p class="class-description">Uma aula relaxante de yoga para começar o seu dia com energia e equilíbrio.</p>
                         <div class="class-actions">
-                            <button class="btn btn-primary btn-small">Inscrever-se</button>
-                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                            <button type="button" class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button type="button" class="btn btn-secondary btn-small">Ver Detalhes</button>
                         </div>
                     </article>
 
@@ -133,8 +134,8 @@
                         </div>
                         <p class="class-description">Aula de spinning de alta intensidade para queimar calorias e melhorar resistência.</p>
                         <div class="class-actions">
-                            <button class="btn btn-primary btn-small" disabled>Aula Cheia</button>
-                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                            <button type="button" class="btn btn-primary btn-small" disabled>Aula Cheia</button>
+                            <button type="button" class="btn btn-secondary btn-small">Ver Detalhes</button>
                         </div>
                     </article>
 
@@ -153,8 +154,8 @@
                         </div>
                         <p class="class-description">Treino de alta intensidade com intervalos para máxima eficácia em pouco tempo.</p>
                         <div class="class-actions">
-                            <button class="btn btn-primary btn-small">Inscrever-se</button>
-                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                            <button type="button" class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button type="button" class="btn btn-secondary btn-small">Ver Detalhes</button>
                         </div>
                     </article>
 
@@ -173,8 +174,8 @@
                         </div>
                         <p class="class-description">Aula de pilates focada em core, flexibilidade e fortalecimento muscular.</p>
                         <div class="class-actions">
-                            <button class="btn btn-primary btn-small">Inscrever-se</button>
-                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                            <button type="button" class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button type="button" class="btn btn-secondary btn-small">Ver Detalhes</button>
                         </div>
                     </article>
 
@@ -193,8 +194,8 @@
                         </div>
                         <p class="class-description">Dança e diversão! Aula energética de zumba para queimar calorias e se divertir.</p>
                         <div class="class-actions">
-                            <button class="btn btn-primary btn-small">Inscrever-se</button>
-                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                            <button type="button" class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button type="button" class="btn btn-secondary btn-small">Ver Detalhes</button>
                         </div>
                     </article>
 
@@ -213,8 +214,8 @@
                         </div>
                         <p class="class-description">Treino de boxe para melhorar coordenação, força e resistência cardiovascular.</p>
                         <div class="class-actions">
-                            <button class="btn btn-primary btn-small">Inscrever-se</button>
-                            <button class="btn btn-secondary btn-small">Ver Detalhes</button>
+                            <button type="button" class="btn btn-primary btn-small">Inscrever-se</button>
+                            <button type="button" class="btn btn-secondary btn-small">Ver Detalhes</button>
                         </div>
                     </article>
                 </div>
@@ -249,5 +250,6 @@
             </div>
         </div>
     </footer>
+    <script src="js/navbar-scroll.js"></script>
 </body>
 </html>

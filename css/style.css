@@ -7,6 +7,22 @@
    1. RESET & BASE RULES
    ================================================================ */
 
+:root {
+    --color-bg: #f4f1eb;
+    --color-surface: #ffffff;
+    --color-surface-soft: #f7f5f1;
+    --color-text: #24201d;
+    --color-text-muted: #5d5853;
+    --color-primary: #cf5a2b;
+    --color-primary-strong: #a9461f;
+    --color-secondary: #495057;
+    --color-border: #d9d3ca;
+    --shadow-soft: 0 10px 30px rgba(36, 32, 29, 0.08);
+    --shadow-card: 0 18px 30px rgba(36, 32, 29, 0.12);
+    --font-body: "Candara", "Trebuchet MS", sans-serif;
+    --font-heading: "Bahnschrift", "Segoe UI", sans-serif;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -18,14 +34,18 @@ html {
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    background-color: #f8f9fa;
+    font-family: var(--font-body);
+    color: var(--color-text);
+    background:
+        radial-gradient(circle at 8% 12%, rgba(207, 90, 43, 0.08), transparent 35%),
+        radial-gradient(circle at 90% 85%, rgba(73, 80, 87, 0.08), transparent 35%),
+        var(--color-bg);
     line-height: 1.6;
 }
 
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
     font-weight: 600;
     margin-bottom: 0.5rem;
     line-height: 1.2;
@@ -38,13 +58,13 @@ h4 { font-size: 1.25rem; }
 
 /* Links */
 a {
-    color: #FF6B35;
+    color: var(--color-primary);
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 a:hover {
-    color: #E55A2B;
+    color: var(--color-primary-strong);
 }
 
 /* Lists */
@@ -64,14 +84,14 @@ input, select, textarea {
     font-family: inherit;
     font-size: 1rem;
     padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
     transition: border-color 0.3s ease;
 }
 
 input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: #FF6B35;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
@@ -95,45 +115,106 @@ textarea {
    ================================================================ */
 
 .header {
-    background: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(36, 32, 29, 0.12);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     position: sticky;
     top: 0;
     z-index: 100;
+    transition: background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+:is(.home-page, .schedules-page) .header {
+    background: transparent;
+    box-shadow: none;
+    border-bottom: 1px solid transparent;
+    position: fixed;
+    left: 0;
+    width: 100%;
+}
+
+.header.scrolled {
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(36, 32, 29, 0.12);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .navbar {
-    padding: 1rem 0;
+    padding: 0.85rem 0;
 }
 
 .navbar-container {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
+    min-height: 64px;
 }
 
-.navbar-logo h1 {
-    color: #FF6B35;
+.menu-toggle {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--color-text);
+    font-size: 1.9rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    justify-self: start;
+    transition: color 0.3s ease, opacity 0.3s ease;
+    opacity: 0.95;
+}
+
+.header.scrolled .menu-toggle {
+    color: var(--color-text);
+    opacity: 0.8;
+}
+
+:is(.home-page, .schedules-page) .header:not(.scrolled) .menu-toggle {
+    color: #ffffff;
+}
+
+.site-brand {
+    color: var(--color-primary);
     font-size: 1.5rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     margin: 0;
+    transition: color 0.3s ease;
+}
+
+.navbar-logo {
+    justify-self: center;
 }
 
 .navbar-logo a {
-    color: #FF6B35;
+    color: var(--color-primary);
+}
+
+:is(.home-page, .schedules-page) .site-brand,
+:is(.home-page, .schedules-page) .navbar-logo a {
+    color: #fefefe;
+}
+
+.header.scrolled .site-brand,
+.header.scrolled .navbar-logo a {
+    color: var(--color-primary);
 }
 
 .navbar-menu {
     display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
+    gap: 1.2rem;
     align-items: center;
+    justify-self: end;
+    flex-wrap: nowrap;
 }
 
 .nav-link {
-    color: #333;
+    color: var(--color-text);
     font-weight: 500;
     padding: 0.5rem 0;
     border-bottom: 2px solid transparent;
@@ -142,20 +223,83 @@ textarea {
 
 .nav-link:hover,
 .nav-link.active {
-    color: #FF6B35;
-    border-bottom-color: #FF6B35;
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+:is(.home-page, .schedules-page) .nav-link {
+    color: rgba(255, 255, 255, 0.96);
+}
+
+:is(.home-page, .schedules-page) .nav-link:hover,
+:is(.home-page, .schedules-page) .nav-link.active {
+    color: #ffffff;
+    border-bottom-color: rgba(255, 255, 255, 0.95);
+}
+
+.header.scrolled .nav-link {
+    color: var(--color-text);
+}
+
+.header.scrolled .nav-link:hover,
+.header.scrolled .nav-link.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
 }
 
 /* Mobile Navigation */
 @media (max-width: 768px) {
-    .navbar-menu {
-        gap: 1rem;
-        font-size: 0.9rem;
+    .navbar {
+        padding: 0.65rem 0;
     }
 
-    .navbar-logo h1 {
-        font-size: 1.25rem;
+    .navbar-container {
+        min-height: 56px;
     }
+
+    .navbar-menu {
+        display: none;
+    }
+
+    .site-brand {
+        font-size: 1.15rem;
+    }
+
+    .menu-toggle {
+        font-size: 1.6rem;
+    }
+}
+
+.checkbox-group {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.85rem;
+    background: var(--color-surface-soft);
+}
+
+.checkbox-group legend {
+    font-weight: 600;
+    color: var(--color-text);
+    padding: 0 0.35rem;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.checkbox-item:last-child {
+    margin-bottom: 0;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--color-primary);
 }
 
 /* ================================================================
@@ -166,7 +310,7 @@ textarea {
     display: inline-block;
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 999px;
     font-weight: 600;
     cursor: pointer;
     text-align: center;
@@ -175,18 +319,18 @@ textarea {
 }
 
 .btn-primary {
-    background-color: #FF6B35;
+    background-color: var(--color-primary);
     color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background-color: #E55A2B;
+    background-color: var(--color-primary-strong);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 .btn-secondary {
-    background-color: #6C757D;
+    background-color: var(--color-secondary);
     color: white;
 }
 
@@ -201,7 +345,7 @@ textarea {
 }
 
 .btn-signup {
-    background-color: #FF6B35;
+    background-color: var(--color-primary);
     color: white;
     padding: 1rem 2rem;
     font-size: 1.1rem;
@@ -211,7 +355,7 @@ textarea {
 }
 
 .btn-signup:hover:not(:disabled) {
-    background-color: #E55A2B;
+    background-color: var(--color-primary-strong);
     transform: translateY(-4px);
     box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
 }
@@ -305,7 +449,8 @@ textarea {
 .hero-image-wrapper {
     position: relative;
     width: 100%;
-    height: 500px;
+    min-height: 100svh;
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -315,6 +460,18 @@ textarea {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    filter: saturate(1.15) contrast(1.05);
+    transform: scale(1.03);
+}
+
+.hero-image-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1), transparent 36%),
+        radial-gradient(circle at 85% 75%, rgba(207, 90, 43, 0.16), transparent 42%);
+    z-index: 1;
 }
 
 .hero-overlay {
@@ -323,11 +480,12 @@ textarea {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(255, 107, 53, 0.3));
+    background: linear-gradient(120deg, rgba(14, 14, 16, 0.3), rgba(207, 90, 43, 0.12));
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
+    z-index: 2;
 }
 
 .hero-text h1 {
@@ -580,11 +738,40 @@ textarea {
 }
 
 .page-header {
-    background: linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%);
+    position: relative;
+    overflow: hidden;
+    background-color: #1c1816;
     color: white;
-    padding: 3rem 1rem;
+    padding: 4rem 1rem;
     text-align: center;
     margin-bottom: 2rem;
+}
+
+.page-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(140deg, rgba(9, 9, 10, 0.38), rgba(207, 90, 43, 0.18));
+}
+
+.page-header .container {
+    position: relative;
+    z-index: 1;
+}
+
+.page-header--schedules {
+    background-image: url("../assets/images/banner1.jpg");
+    background-size: cover;
+    background-position: center 35%;
+    min-height: clamp(160px, 40vh, 560px);
+    padding: clamp(8rem, 16vh, 10rem) 1rem 3.25rem;
+    margin-bottom: 0;
+}
+
+.page-header--admin {
+    background-image: url("../assets/images/banner3.jpg");
+    background-size: cover;
+    background-position: center 20%;
 }
 
 .page-header h1 {
@@ -913,6 +1100,13 @@ textarea {
     margin-top: 1rem;
 }
 
+.form-hint {
+    display: block;
+    margin-top: 0.45rem;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+}
+
 /* ================================================================
    15. TABLE STYLES
    ================================================================ */
@@ -939,11 +1133,13 @@ textarea {
     text-align: left;
     font-weight: 600;
     color: #333;
+    vertical-align: middle;
 }
 
 .staff-table td {
     padding: 1rem;
     border-bottom: 1px solid #eee;
+    vertical-align: middle;
 }
 
 .staff-table tbody tr {
@@ -957,6 +1153,14 @@ textarea {
 .staff-table .actions {
     display: flex;
     gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+.staff-table .actions-col {
+    text-align: center;
 }
 
 .btn-icon {
@@ -965,6 +1169,12 @@ textarea {
     cursor: pointer;
     font-size: 1.25rem;
     padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
     transition: transform 0.3s ease;
 }
 
@@ -1055,7 +1265,8 @@ textarea {
     h3 { font-size: 1.75rem; }
 
     .hero-image-wrapper {
-        height: 600px;
+        min-height: 100svh;
+        height: 100vh;
     }
 
     .hero-text h1 {
@@ -1118,7 +1329,8 @@ textarea {
 
 @media (min-width: 1024px) {
     .hero-image-wrapper {
-        height: 700px;
+        min-height: 100svh;
+        height: 100vh;
     }
 
     .about-stats {
