@@ -1,44 +1,58 @@
-# FitHub - LTW Milestone 1
+# ltw02g08
 
-Primeira entrega focada em HTML + CSS.
+## Projeto
 
-## Páginas incluídas
+### Páginas incluídas
 
-1. `index.html` - Landing/Home page
-2. `schedules.html` - Lista e filtros de aulas
-3. `admin-staff.html` - Gestão de treinadores e staff (formulários + tabelas)
+- index.html - Landing/Home page
+- schedules.html - Lista e filtros de aulas
+- admin-staff.html - Gestão de treinadores e staff (formulários + tabelas)
 
 As 3 páginas usam componentes e estruturas diferentes para cobrir padrões variados de UI.
 
-## Estrutura CSS
+### Estrutura CSS
 
-O styling está organizado em camadas num único ficheiro `css/style.css`:
+O styling está organizado em camadas num único ficheiro css/style.css:
 
-1. Base: variáveis CSS, reset e estilos globais de elementos HTML.
-2. Componentes: botões, cartões, formulários, tabelas, estados e padrões reutilizáveis.
-3. Casos específicos: ajustes por secção/página (hero, headers de página, áreas de gestão, etc.).
+- Base: variáveis CSS, reset e estilos globais de elementos HTML.
+- Componentes: botões, cartões, formulários, tabelas, estados e padrões reutilizáveis.
+- Casos específicos: ajustes por secção/página (hero, headers de página, áreas de gestão, etc.).
 
-A estrutura da página admin-staff.html tem um design ligeiramente diferente principalmente no menu, pois não pertence ao website (front-office) , vai futuramente fazer parte do backoffice do admin.
+A estrutura da página admin-staff.html tem um design ligeiramente diferente, principalmente no menu, pois não pertence ao website (front-office) e vai futuramente fazer parte do backoffice do admin.
 
-## Como abrir o projeto
+## Features
 
-### Opção A - Sem servidor
+**All users:**
+- [ ] Register a new account.
+- [ ] Log in and out.
+- [ ] Edit their profile, including name, username, password, and profile photo.
 
-1. Abrir `index.html` no browser.
-2. Usar o menu para navegar para `schedules.html` e `admin-staff.html`.
+**Members:**
+- [x] Browse the schedule of available fitness classes, filtering by type, trainer, day, or time.
+- [ ] Enroll in and cancel enrollment from upcoming classes, subject to capacity limits.
+- [ ] View trainer profiles, including their specializations and the classes they teach.
+- [ ] Check the current availability of equipment in the main training area.
+- [ ] Leave ratings and reviews for classes they have attended.
 
-### Opção B - Servidor local PHP (opcional)
+**Trainers:**
+- [ ] Manage their public profile, including bio, specializations, and certifications.
+- [ ] View the roster of members enrolled in their classes.
+- [ ] Track and manage their assigned class schedule.
 
-1. Na raiz do projeto, executar:
+**Admins:**
+- [x] Manage members and trainers (create, update, and deactivate accounts).
+- [ ] Manage the class catalog (create, edit, and remove classes) and assign trainers to them.
+- [ ] Manage equipment in the main training area (add, update availability status, and remove items).
+- [ ] Elevate a user to admin status.
+- [ ] Oversee and ensure the smooth operation of the entire system.
 
-```bash
-php -S localhost:9000
-```
+**Extra:**
+- [x] Front-end responsive pages for home, schedules, and admin/staff management.
 
-2. Abrir no browser:
+## Running
 
-`http://localhost:9000/index.html`
+    php -S localhost:9000
 
-## Nota desta milestone
+## Credentials
 
-Esta entrega está limitada ao front-end (HTML + CSS) das páginas principais.
+- N/A (Milestone 1: front-end only)
