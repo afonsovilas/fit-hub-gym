@@ -145,7 +145,7 @@ textarea {
 
 .navbar-container {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
@@ -157,6 +157,7 @@ textarea {
     appearance: none;
     border: none;
     background: transparent;
+    display: none;
     color: var(--color-text);
     font-size: 1.9rem;
     line-height: 1;
@@ -188,7 +189,8 @@ textarea {
 }
 
 .navbar-logo {
-    justify-self: center;
+    grid-column: 1;
+    justify-self: start;
 }
 
 .navbar-logo a {
@@ -207,6 +209,7 @@ textarea {
 
 .navbar-menu {
     display: flex;
+    grid-column: 3;
     gap: 1.2rem;
     align-items: center;
     justify-self: end;
@@ -255,10 +258,12 @@ textarea {
 
     .navbar-container {
         min-height: 56px;
+        grid-template-columns: auto 1fr auto;
     }
 
     .navbar-menu {
         display: none;
+        grid-column: 1 / -1;
     }
 
     .navbar-menu.is-open {
@@ -293,46 +298,21 @@ textarea {
         position: relative;
     }
 
+    .navbar-logo {
+        grid-column: 2;
+        justify-self: center;
+    }
+
     .site-brand {
         font-size: 1.15rem;
     }
 
     .menu-toggle {
+        grid-column: 1;
+        display: inline-flex;
         font-size: 1.6rem;
     }
 
-}
-
-.checkbox-group {
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 0.85rem;
-    background: var(--color-surface-soft);
-}
-
-.checkbox-group legend {
-    font-weight: 600;
-    color: var(--color-text);
-    padding: 0 0.35rem;
-}
-
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.45rem;
-    color: var(--color-text);
-    cursor: pointer;
-}
-
-.checkbox-item:last-child {
-    margin-bottom: 0;
-}
-
-.checkbox-item input[type="checkbox"] {
-    width: 1rem;
-    height: 1rem;
-    accent-color: var(--color-primary);
 }
 
 /* ================================================================
@@ -438,6 +418,38 @@ textarea {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1rem;
+}
+
+.checkbox-group {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.85rem;
+    background: var(--color-surface-soft);
+}
+
+.checkbox-group legend {
+    font-weight: 600;
+    color: var(--color-text);
+    padding: 0 0.35rem;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.checkbox-item:last-child {
+    margin-bottom: 0;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--color-primary);
 }
 
 /* Badges/Status */
@@ -1127,12 +1139,6 @@ textarea {
 .staff-form {
     display: grid;
     gap: 1.5rem;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
 }
 
 .form-actions {
