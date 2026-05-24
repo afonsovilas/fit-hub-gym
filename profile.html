@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - FitHub</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="profile-page">
+    <header class="header">
+        <nav class="navbar" aria-label="Navegação principal">
+            <div class="navbar-container">
+                <button type="button" class="menu-toggle" aria-label="Abrir menu" title="Menu">☰</button>
+                <div class="navbar-logo">
+                    <a href="index.html">
+                        <span class="site-brand">FitHub</span>
+                    </a>
+                </div>
+                <ul class="navbar-menu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="schedules.html" class="nav-link">Aulas</a></li>
+                    <li><a href="admin-staff.html" class="nav-link">Gestão</a></li>
+                    <li><a href="profile.html" class="nav-link active">Perfil</a></li>
+                    <li><a href="#" class="nav-link">Sair</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1>Meu Perfil</h1>
+                <p>Gerencie suas informações pessoais e aulas</p>
+            </div>
+        </section>
+
+        <div class="container">
+            <div class="profile-wrapper">
+                <!-- Profile Overview Section -->
+                <aside class="profile-sidebar">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <img src="assets/images/profile-placeholder.jpg" alt="Foto de perfil de John Doe" class="profile-photo">
+                            <div class="profile-info">
+                                <h2 class="profile-name">John Doe</h2>
+                                <p class="profile-username">@johndoe</p>
+                            </div>
+                        </div>
+                        <div class="profile-details">
+                            <p class="profile-detail">
+                                <span class="detail-label">Email:</span>
+                                <span>john.doe@fitclub.com</span>
+                            </p>
+                            <p class="profile-detail">
+                                <span class="detail-label">Membro desde:</span>
+                                <span>15 de Janeiro de 2024</span>
+                            </p>
+                            <p class="profile-detail">
+                                <span class="detail-label">Status:</span>
+                                <span class="status-badge status-active">Ativo</span>
+                            </p>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Edit Profile Form Section -->
+                <section class="profile-main">
+                    <div class="profile-section">
+                        <div class="profile-section-header">
+                            <h3>Editar Perfil</h3>
+                            <button type="button" class="btn btn-primary btn-small" id="edit-profile-btn">Editar</button>
+                        </div>
+                        <form class="profile-form" id="profile-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="full-name">Nome Completo:</label>
+                                    <input type="text" id="full-name" name="full-name" value="John Doe" disabled required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="username">Nome de Utilizador:</label>
+                                    <input type="text" id="username" name="username" value="johndoe" disabled required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="email">Email:</label>
+                                    <input type="email" id="email" name="email" value="john.doe@fitclub.com" disabled required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Telefone:</label>
+                                    <input type="tel" id="phone" name="phone" value="+351 912 345 678" disabled>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password">Nova Senha (deixe em branco para não alterar):</label>
+                                <input type="password" id="password" name="password" placeholder="••••••••" disabled>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password-confirm">Confirmar Senha:</label>
+                                <input type="password" id="password-confirm" name="password-confirm" placeholder="••••••••" disabled>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="photo-upload">Foto de Perfil:</label>
+                                <input type="file" id="photo-upload" name="photo-upload" accept="image/*" class="file-input" disabled>
+                                <small class="form-hint">Formas aceitas: JPG, PNG. Tamanho máximo: 5MB</small>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="save-btn" style="display: none;">Guardar Alterações</button>
+                                <button type="reset" class="btn btn-secondary btn-small" id="cancel-btn" style="display: none;">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- My Classes Section -->
+                    <div class="profile-section">
+                        <h3>As Minhas Aulas</h3>
+                        <p class="section-description">Aulas marcadas para as próximas semanas:</p>
+                        
+                        <div class="class-list">
+                            <article class="class-item">
+                                <div class="class-header">
+                                    <h4 class="class-title">Yoga Matinal</h4>
+                                    <span class="class-type">Yoga</span>
+                                </div>
+                                <div class="class-details">
+                                    <p class="class-info">
+                                        <strong>Instrutor:</strong> Maria Silva
+                                    </p>
+                                    <p class="class-info">
+                                        <strong>Data:</strong> 28 de Maio de 2026 às 07:00
+                                    </p>
+                                    <p class="class-info">
+                                        <strong>Localização:</strong> Sala 1 - Piso 2
+                                    </p>
+                                    <p class="class-info">
+                                        <strong>Duração:</strong> 60 minutos
+                                    </p>
+                                </div>
+                                <button type="button" class="btn btn-small btn-cancel" aria-label="Cancelar inscrição em Yoga Matinal">Cancelar</button>
+                            </article>
+
+                            <article class="class-item">
+                                <div class="class-header">
+                                    <h4 class="class-title">HIIT Treino Intensivo</h4>
+                                    <span class="class-type">HIIT</span>
+                                </div>
+                                <div class="class-details">
+                                    <p class="class-info">
+                                        <strong>Instrutor:</strong> João Costa
+                                    </p>
+                                    <p class="class-info">
+                                        <strong>Data:</strong> 30 de Maio de 2026 às 18:30
+                                    </p>
+                                    <p class="class-info">
+                                        <strong>Localização:</strong> Sala 3 - Piso 1
+                                    </p>
+                                    <p class="class-info">
+                                        <strong>Duração:</strong> 45 minutos
+                                    </p>
+                                </div>
+                                <button type="button" class="btn btn-small btn-cancel" aria-label="Cancelar inscrição em HIIT Treino Intensivo">Cancelar</button>
+                            </article>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>FitHub</h4>
+                    <p>Plataforma de gestão de ginásio moderna e intuitiva.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Ligações Rápidas</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="schedules.html">Aulas</a></li>
+                        <li><a href="#">Sobre Nós</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p>Email: info@fithub.pt</p>
+                    <p>Telefone: +351 939 939 939</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 FitHub. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/navbar-scroll.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html>
