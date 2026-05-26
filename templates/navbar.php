@@ -5,6 +5,7 @@ if (!isset($active_page)) {
     $active_page = match($current_script) {
         'index'        => 'home',
         'schedules'    => 'schedule',
+        'equipment'    => 'equipment',
         'admin-staff'  => 'admin',
         'dashboard'    => 'dashboard',
         'profile'      => 'profile',
@@ -35,6 +36,10 @@ $base = defined('BASE_URL_PATH') ? BASE_URL_PATH : '';
                 <li>
                     <a href="<?= h($base) ?>pages/schedules.php"
                        class="nav-link<?= $nav_class('schedule') ?>">Aulas</a>
+                </li>
+                <li>
+                    <a href="<?= h($base) ?>pages/equipment.php"
+                       class="nav-link<?= $nav_class('equipment') ?>">Equipamentos</a>
                 </li>
                 
                 <?php if (isset($_SESSION['user_id'])): ?>

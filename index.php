@@ -73,7 +73,7 @@ require_once __DIR__ . '/templates/navbar.php';
                     <h3>Aulas em Grupo</h3>
                     <p>Consulte o horário e inscreva-se</p>
                 </a>
-                <a href="#" class="quick-card">
+                <a href="pages/trainers.php" class="quick-card">
                     <div class="quick-icon">👤</div>
                     <h3>Treinadores</h3>
                     <p>Conheça os nossos especialistas</p>

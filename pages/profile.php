@@ -50,6 +50,36 @@ try {
     $stmtMyClasses->execute([$user_id]);
     $myClasses = $stmtMyClasses->fetchAll();
 
+    // Fetch past classes for review history
+    $stmtPastClasses = $db->prepare("
+        SELECT c.id, c.name, c.scheduled_at, c.duration_min, c.room, u.name AS instructor_name, u.id AS instructor_id
+        FROM bookings b
+        JOIN classes c ON b.class_id = c.id
+        JOIN users u ON c.instructor_id = u.id
+        WHERE b.user_id = ? AND c.scheduled_at < datetime('now')
+        ORDER BY c.scheduled_at DESC
+    ");
+    $stmtPastClasses->execute([$user_id]);
+    $pastClasses = $stmtPastClasses->fetchAll();
+
+    // Fetch reviews for past classes
+    $stmtReviews = $db->prepare("
+        SELECT class_id, rating, comment 
+        FROM reviews 
+        WHERE user_id = ?
+    ");
+    $stmtReviews->execute([$user_id]);
+    $reviewsRaw = $stmtReviews->fetchAll();
+    
+    // Convert to associative array keyed by class_id
+    $reviews = [];
+    foreach ($reviewsRaw as $review) {
+        $reviews[$review['class_id']] = [
+            'rating' => $review['rating'],
+            'comment' => $review['comment']
+        ];
+    }
+
 } catch (Throwable $e) {
     $error = $e->getMessage();
 }
@@ -188,6 +218,99 @@ try {
                                             <input type="hidden" name="class_id" value="<?= $c['id'] ?>">
                                             <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer;">Cancelar Inscrição</button>
                                         </form>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Class History and Review Section -->
+                    <div class="profile-section">
+                        <h3>Histórico de Aulas</h3>
+                        <p class="section-description">Deixe a sua opinião sobre as aulas que frequentou:</p>
+
+                        <?php if (empty($pastClasses)): ?>
+                            <p style="color:#94a3b8; font-style:italic;">Ainda não frequentaste nenhuma aula.</p>
+                        <?php else: ?>
+                            <div class="past-classes-list">
+                                <?php foreach ($pastClasses as $pastClass):
+                                    $class_id = $pastClass['id'];
+                                    $timestamp = strtotime($pastClass['scheduled_at']);
+                                    $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                                    $dia_extenso = $dias_semana[date('w', $timestamp)];
+                                    
+                                    // Check if user has already reviewed this class
+                                    $hasReview = isset($reviews[$class_id]);
+                                ?>
+                                    <article class="past-class-card">
+                                        <div class="past-class-header">
+                                            <div class="past-class-info">
+                                                <h4 class="past-class-title"><?= h($pastClass['name']) ?></h4>
+                                                <p class="past-class-meta">
+                                                    <?= $dia_extenso ?>, <?= date('d/m/Y', $timestamp) ?> às <?= date('H:i', $timestamp) ?> 
+                                                    <span class="past-class-trainer">| <?= h($pastClass['instructor_name']) ?></span>
+                                                </p>
+                                            </div>
+                                            <?php if ($hasReview): ?>
+                                                <span class="review-badge">✓ Avaliada</span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <?php if ($hasReview): ?>
+                                            <!-- Display Existing Review -->
+                                            <div class="review-display">
+                                                <div class="review-rating">
+                                                    <span class="review-stars">
+                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                            <span class="star <?= $i <= $reviews[$class_id]['rating'] ? 'filled' : '' ?>">★</span>
+                                                        <?php endfor; ?>
+                                                    </span>
+                                                    <span class="rating-text"><?= $reviews[$class_id]['rating'] ?>/5</span>
+                                                </div>
+                                                <div class="review-comment">
+                                                    <p><?= h($reviews[$class_id]['comment']) ?></p>
+                                                </div>
+                                            </div>
+                                        <?php else: ?>
+                                            <!-- Review Form for Past Classes -->
+                                            <form method="POST" action="../actions/submit_review.php" class="review-form">
+                                                <?= get_csrf_input() ?>
+                                                <input type="hidden" name="class_id" value="<?= $class_id ?>">
+
+                                                <div class="form-group">
+                                                    <label for="rating-<?= $class_id ?>">Avaliação (1-5 estrelas):</label>
+                                                    <div class="rating-input">
+                                                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                                                            <input 
+                                                                type="radio" 
+                                                                id="rating-<?= $class_id ?>-<?= $i ?>" 
+                                                                name="rating" 
+                                                                value="<?= $i ?>"
+                                                                required
+                                                                class="rating-radio"
+                                                            >
+                                                            <label for="rating-<?= $class_id ?>-<?= $i ?>" class="rating-label" title="<?= $i ?> estrela<?= $i !== 1 ? 's' : '' ?>">★</label>
+                                                        <?php endfor; ?>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="comment-<?= $class_id ?>">Deixe a sua opinião para melhorar a aula:</label>
+                                                    <textarea 
+                                                        id="comment-<?= $class_id ?>" 
+                                                        name="comment" 
+                                                        placeholder="Partilhe a sua experiência, dicas ou sugestões..."
+                                                        rows="4"
+                                                        maxlength="500"
+                                                    ></textarea>
+                                                    <small class="char-count">0/500</small>
+                                                </div>
+
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn btn-primary btn-small">Enviar Avaliação</button>
+                                                </div>
+                                            </form>
+                                        <?php endif; ?>
                                     </article>
                                 <?php endforeach; ?>
                             </div>

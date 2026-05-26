@@ -81,4 +81,47 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // You can add a visual feedback here (e.g., toast notification)
     });
+
+    // ── Character Counter for Review TextAreas ──
+    const commentTextareas = document.querySelectorAll('.review-form textarea');
+    commentTextareas.forEach(textarea => {
+        const charCount = textarea.parentElement.querySelector('.char-count');
+        
+        if (charCount) {
+            // Initialize character count
+            updateCharCount(textarea, charCount);
+            
+            // Update on input
+            textarea.addEventListener('input', function() {
+                updateCharCount(this, charCount);
+            });
+        }
+    });
+
+    function updateCharCount(textarea, charCount) {
+        const maxLength = textarea.getAttribute('maxlength') || 500;
+        const currentLength = textarea.value.length;
+        charCount.textContent = currentLength + '/' + maxLength;
+        
+        // Change color if near limit
+        if (currentLength > maxLength * 0.8) {
+            charCount.style.color = '#dc3545';
+            charCount.style.fontWeight = '600';
+        } else {
+            charCount.style.color = 'var(--color-text-muted)';
+            charCount.style.fontWeight = 'normal';
+        }
+    }
+
+    // ── Star Rating Keyboard Navigation ──
+    const ratingRadios = document.querySelectorAll('.rating-radio');
+    ratingRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Optional: Add visual feedback on selection
+            const label = document.querySelector(`label[for="${this.id}"]`);
+            if (label) {
+                label.classList.add('selected');
+            }
+        });
+    });
 });
