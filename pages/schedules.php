@@ -24,7 +24,7 @@ try {
 
     $filter_type    = $_GET['class-type'] ?? '';
     $filter_trainer = $_GET['trainer'] ?? '';
-    $filter_day     = $_GET['day'] ?? ''; // Simplificado (pode ser expandido no backend)
+    $filter_day     = $_GET['day'] ?? '';
     $filter_time    = $_GET['time'] ?? '';
 
     $stmtTrainers = $db->query("SELECT id, name FROM users WHERE role = 'trainer' AND is_active = 1 ORDER BY name ASC");
@@ -45,6 +45,32 @@ try {
     if ($filter_trainer !== '') {
         $query .= " AND c.instructor_id = ?";
         $params[] = (int) $filter_trainer;
+    }
+
+    if ($filter_day !== '') {
+        $day_map = [
+            'sunday'    => '0',
+            'monday'    => '1',
+            'tuesday'   => '2',
+            'wednesday' => '3',
+            'thursday'  => '4',
+            'friday'    => '5',
+            'saturday'  => '6'
+        ];
+        if (isset($day_map[$filter_day])) {
+            $query .= " AND strftime('%w', c.scheduled_at) = ?";
+            $params[] = $day_map[$filter_day];
+        }
+    }
+
+    if ($filter_time !== '') {
+        if ($filter_time === 'morning') {
+            $query .= " AND strftime('%H', c.scheduled_at) BETWEEN '06' AND '11'";
+        } elseif ($filter_time === 'afternoon') {
+            $query .= " AND strftime('%H', c.scheduled_at) BETWEEN '12' AND '17'";
+        } elseif ($filter_time === 'evening') {
+            $query .= " AND strftime('%H', c.scheduled_at) BETWEEN '18' AND '23'";
+        }
     }
 
     $query .= " ORDER BY c.scheduled_at ASC";

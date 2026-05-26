@@ -17,6 +17,7 @@ $active_page = 'admin';
 
 require_once BASE_PATH . '/templates/header.php';
 require_once BASE_PATH . '/templates/navbar.php';
+require_once BASE_PATH . '/src/csrf.php';
 require_once BASE_PATH . '/database/connection.php';
 
 try {
@@ -57,6 +58,8 @@ try {
 
     <section class="admin-panel">
         <div class="container">
+            <?php render_flash(); ?>
+
             <div class="admin-tabs" role="tablist" aria-label="Categorias de gestão de equipa">
                 <button type="button" class="tab-button active" data-tab="trainers" role="tab" id="tab-trainers" aria-controls="trainers" aria-selected="true">Treinadores</button>
                 <button type="button" class="tab-button" data-tab="staff" role="tab" id="tab-staff" aria-controls="staff" aria-selected="false">Staff</button>
@@ -66,11 +69,11 @@ try {
                 <div class="flash flash--error">Erro de base de dados: <?= h($error) ?></div>
             <?php endif; ?>
 
-            <!-- Aba Treinadores -->
             <div id="trainers" class="tab-content active" role="tabpanel" aria-labelledby="tab-trainers">
                 <section class="form-section">
                     <h2>Adicionar Novo Treinador</h2>
-                    <form class="staff-form" onsubmit="alert('O formulário será processado via PHP/Action na fase final!'); return false;">
+                    <form class="staff-form" method="POST" action="../../actions/add_trainer.php">
+                        <?= get_csrf_input() ?>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="trainer-name">Nome Completo:</label>
@@ -136,7 +139,6 @@ try {
                     </form>
                 </section>
 
-                <!-- Lista Dinâmica de Treinadores -->
                 <section class="list-section">
                     <h2>Treinadores Registados (Base de Dados)</h2>
                     <div class="staff-table-wrapper">
@@ -165,11 +167,16 @@ try {
                                                 <span class="status inactive">Inativo</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="actions">
+                                        <td class="actions" style="display: flex; gap: 8px; align-items: center; justify-content: center;">
                                             <button type="button" class="btn-icon btn-edit" title="Editar" onclick="alert('Editar treinador <?= h($t['name']) ?> (ID: <?= $t['id'] ?>)')">✏️</button>
-                                            <button type="button" class="btn-icon btn-delete" title="<?= $t['is_active'] ? 'Desativar' : 'Ativar' ?>" onclick="if(confirm('Tem a certeza que deseja alterar o estado de <?= h($t['name']) ?>?')) { alert('Alteração de estado efetuada com sucesso!'); }">
-                                                <?= $t['is_active'] ? '🗑️' : '✔️' ?>
-                                            </button>
+                                            
+                                            <form method="POST" action="../../actions/toggle_user_status.php" onsubmit="return confirm('Tem a certeza que deseja alterar o estado de <?= h($t['name']) ?>?');" style="margin: 0; padding: 0; display: inline;">
+                                                <?= get_csrf_input() ?>
+                                                <input type="hidden" name="user_id" value="<?= $t['id'] ?>">
+                                                <button type="submit" class="btn-icon btn-delete" title="<?= $t['is_active'] ? 'Desativar' : 'Ativar' ?>" style="background: none; border: none; cursor: pointer; padding: 0;">
+                                                    <?= $t['is_active'] ? '🗑️' : '✔️' ?>
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -179,11 +186,11 @@ try {
                 </section>
             </div>
 
-            <!-- Aba Staff -->
             <div id="staff" class="tab-content" role="tabpanel" aria-labelledby="tab-staff">
                 <section class="form-section">
                     <h2>Adicionar Novo Membro do Staff</h2>
-                    <form class="staff-form" onsubmit="alert('O formulário será processado via PHP/Action na fase final!'); return false;">
+                    <form class="staff-form" method="POST" action="../../actions/add_staff.php">
+                        <?= get_csrf_input() ?>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="staff-name">Nome Completo:</label>
@@ -230,7 +237,6 @@ try {
                     </form>
                 </section>
 
-                <!-- Lista Dinâmica de Staff -->
                 <section class="list-section">
                     <h2>Staff Registado (Base de Dados)</h2>
                     <div class="staff-table-wrapper">
@@ -247,7 +253,6 @@ try {
                             </thead>
                             <tbody>
                                 <?php foreach ($staffList as $s): 
-                                    // Formatar texto de cargo/departamento legível
                                     $pos_map = [
                                         'front-desk-agent' => 'Front Desk Agent',
                                         'facilities-technician' => 'Técnico de Manutenção',
@@ -275,11 +280,16 @@ try {
                                                 <span class="status inactive">Inativo</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="actions">
+                                        <td class="actions" style="display: flex; gap: 8px; align-items: center; justify-content: center;">
                                             <button type="button" class="btn-icon btn-edit" title="Editar" onclick="alert('Editar staff <?= h($s['name']) ?> (ID: <?= $s['id'] ?>)')">✏️</button>
-                                            <button type="button" class="btn-icon btn-delete" title="<?= $s['is_active'] ? 'Desativar' : 'Ativar' ?>" onclick="if(confirm('Tem a certeza que deseja alterar o estado de <?= h($s['name']) ?>?')) { alert('Alteração de estado efetuada com sucesso!'); }">
-                                                <?= $s['is_active'] ? '🗑️' : '✔️' ?>
-                                            </button>
+                                            
+                                            <form method="POST" action="../../actions/toggle_user_status.php" onsubmit="return confirm('Tem a certeza que deseja alterar o estado de <?= h($s['name']) ?>?');" style="margin: 0; padding: 0; display: inline;">
+                                                <?= get_csrf_input() ?>
+                                                <input type="hidden" name="user_id" value="<?= $s['id'] ?>">
+                                                <button type="submit" class="btn-icon btn-delete" title="<?= $s['is_active'] ? 'Desativar' : 'Ativar' ?>" style="background: none; border: none; cursor: pointer; padding: 0;">
+                                                    <?= $s['is_active'] ? '🗑️' : '✔️' ?>
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -292,7 +302,6 @@ try {
     </section>
 </main>
 
-<!-- Carregar scripts do template de base -->
 <?php 
 $extra_js = ['js/admin-staff.js'];
 require_once BASE_PATH . '/templates/footer.php'; 

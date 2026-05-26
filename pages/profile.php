@@ -19,12 +19,12 @@ $active_page = 'profile';
 
 require_once BASE_PATH . '/templates/header.php';
 require_once BASE_PATH . '/templates/navbar.php';
+require_once BASE_PATH . '/src/csrf.php';
 require_once BASE_PATH . '/database/connection.php';
 
 try {
     $db = get_db();
 
-    // 1. Simular utilizador logado (Aluno Piloto - ID 9)
     $user_id = 9;
 
     $stmtUser = $db->prepare("SELECT * FROM users WHERE id = ?");
@@ -35,7 +35,6 @@ try {
         throw new Exception("Utilizador piloto não encontrado. Certifique-se de correr o initialize.php.");
     }
 
-    // 2. Obter as aulas em que o utilizador está inscrito
     $stmtMyClasses = $db->prepare("
         SELECT c.*, u.name AS instructor_name 
         FROM bookings b
@@ -56,17 +55,18 @@ try {
     <section class="page-header">
         <div class="container">
             <h1>Meu Perfil</h1>
-            <p>Faca a gestao suas informações pessoais e consulte suas marcações de aulas</p>
+            <p>Gerencie suas informações pessoais e consulte suas marcações de aulas</p>
         </div>
     </section>
 
     <div class="container">
+        <?php render_flash(); ?>
+
         <?php if (isset($error)): ?>
             <div class="flash flash--error">Erro na base de dados: <?= h($error) ?></div>
         <?php else: ?>
             <div class="profile-wrapper">
                 
-                <!-- Barra Lateral de Visão Geral do Perfil -->
                 <aside class="profile-sidebar">
                     <div class="profile-card">
                         <div class="profile-header">
@@ -94,27 +94,27 @@ try {
                             </p>
                             <p class="profile-detail">
                                 <span class="detail-label">Status:</span>
-                                <span class="status-badge status-active"><?= $user['is_active'] ? '🟢 Ativo' : '🔴 Inativo' ?></span>
+                                <span class="status-badge status-active"><?= $user['is_active'] ? 'Ativo' : 'Inativo' ?></span>
                             </p>
                         </div>
                     </div>
                 </aside>
 
-                <!-- Formulário de Edição do Perfil -->
                 <section class="profile-main">
                     <div class="profile-section">
                         <div class="profile-section-header">
-                            <h3>Editar Perfil (Demo Dinâmica)</h3>
+                            <h3>Editar Perfil (Base de Dados)</h3>
                             <button type="button" class="btn btn-primary btn-small" id="edit-profile-btn">Editar</button>
                         </div>
-                        <form class="profile-form" id="profile-form" onsubmit="alert('Gravação simulada com base de dados SQLite!'); return false;">
+                        <form class="profile-form" id="profile-form" method="POST" action="../actions/update_profile.php">
+                            <?= get_csrf_input() ?>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="full-name">Nome Completo:</label>
                                     <input type="text" id="full-name" name="full-name" value="<?= h($user['name']) ?>" disabled required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="username">Nome de Utilizador:</label>
+                                    <label for="username">Nome de Utilizador (estático):</label>
                                     <input type="text" id="username" name="username" value="<?= h(strtolower(str_replace(' ', '', $user['name']))) ?>" disabled required>
                                 </div>
                             </div>
