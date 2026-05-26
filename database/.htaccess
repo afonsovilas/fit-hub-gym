@@ -1,0 +1,3 @@
+# Bloqueia qualquer acesso direto via browser a este diretório.
+# O ficheiro database.db e connection.php nao devem ser acessíveis publicamente.
+Deny from all
