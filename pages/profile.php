@@ -179,7 +179,11 @@ try {
                                                 <strong>Duração:</strong> <?= $c['duration_min'] ?> minutos
                                             </p>
                                         </div>
-                                        <button type="button" class="btn btn-small btn-cancel" onclick="if(confirm('Deseja realmente cancelar a sua inscrição na aula <?= h($c['name']) ?>?')) { alert('Inscrição cancelada com sucesso na base de dados! (Simulação)'); document.getElementById('class-item-<?= $c['id'] ?>').style.display='none'; }">Cancelar Inscrição</button>
+                                        <form method="POST" action="../actions/cancel_booking.php" onsubmit="return confirm('Deseja realmente cancelar a sua inscrição na aula <?= h($c['name']) ?>?');" style="margin: 0; padding: 0; display: inline;">
+                                            <?= get_csrf_input() ?>
+                                            <input type="hidden" name="class_id" value="<?= $c['id'] ?>">
+                                            <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer;">Cancelar Inscrição</button>
+                                        </form>
                                     </article>
                                 <?php endforeach; ?>
                             </div>

@@ -17,10 +17,14 @@ $active_page = 'schedule';
 
 require_once BASE_PATH . '/templates/header.php';
 require_once BASE_PATH . '/templates/navbar.php';
+require_once BASE_PATH . '/src/csrf.php';
 require_once BASE_PATH . '/database/connection.php';
 
 try {
     $db = get_db();
+    
+    $user_id = 9;
+    $stmtCheckBooked = $db->prepare("SELECT 1 FROM bookings WHERE user_id = ? AND class_id = ?");
 
     $filter_type    = $_GET['class-type'] ?? '';
     $filter_trainer = $_GET['trainer'] ?? '';
@@ -159,6 +163,8 @@ try {
     <section class="schedule-section">
         <div class="container">
             <h2>Aulas Disponíveis</h2>
+
+            <?php render_flash(); ?>
             
             <?php if (isset($error)): ?>
                 <div class="flash flash--error">Erro na base de dados: <?= h($error) ?></div>
@@ -172,15 +178,23 @@ try {
                         $vagas_restantes = $class['capacity'] - $inscritos;
                         $cheia = $vagas_restantes <= 0;
 
+                        $stmtCheckBooked->execute([$user_id, $class['id']]);
+                        $is_booked = (bool) $stmtCheckBooked->fetch();
+
                         $timestamp = strtotime($class['scheduled_at']);
                         $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
                         $dia_extenso = $dias_semana[date('w', $timestamp)];
                         $hora_inicio = date('H:i', $timestamp);
                         $hora_fim = date('H:i', $timestamp + ($class['duration_min'] * 60));
                     ?>
-                        <article class="class-card">
-                            <div class="class-header">
-                                <h3><?= h($class['name']) ?></h3>
+                        <article class="class-card" style="<?= $is_booked ? 'border-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);' : '' ?>">
+                            <div class="class-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <h3><?= h($class['name']) ?></h3>
+                                    <?php if ($is_booked): ?>
+                                        <span style="color:#10b981; font-weight:bold; font-size:0.85em; margin-top:2px;">✓ Já está Inscrito</span>
+                                    <?php endif; ?>
+                                </div>
                                 <span class="class-type" style="text-transform: capitalize;"><?= h(strtolower(str_replace(' Express', '', str_replace(' Matinal', '', str_replace(' Intenso', '', str_replace(' Clássico', '', $class['name'])))))) ?></span>
                             </div>
                             <div class="class-info">
@@ -197,11 +211,22 @@ try {
                                 </p>
                             </div>
                             <p class="class-description"><?= h($class['description']) ?></p>
-                            <div class="class-actions">
-                                <?php if ($cheia): ?>
+                            <div class="class-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <?php if ($is_booked): ?>
+                                    <form method="POST" action="../actions/cancel_booking.php" style="margin: 0; padding: 0; display: inline;">
+                                        <?= get_csrf_input() ?>
+                                        <input type="hidden" name="class_id" value="<?= $class['id'] ?>">
+                                        <input type="hidden" name="redirect_to" value="/pages/schedules.php">
+                                        <button type="submit" class="btn btn-secondary btn-small" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">Cancelar Inscrição</button>
+                                    </form>
+                                <?php elseif ($cheia): ?>
                                     <button type="button" class="btn btn-primary btn-small" disabled>Aula Cheia</button>
                                 <?php else: ?>
-                                    <button type="button" class="btn btn-primary btn-small" onclick="alert('Inscrição efetuada com sucesso! (Funcionalidade simulada via base de dados)')">Inscrever-se</button>
+                                    <form method="POST" action="../actions/book_class.php" style="margin: 0; padding: 0; display: inline;">
+                                        <?= get_csrf_input() ?>
+                                        <input type="hidden" name="class_id" value="<?= $class['id'] ?>">
+                                        <button type="submit" class="btn btn-primary btn-small">Inscrever-se</button>
+                                    </form>
                                 <?php endif; ?>
                                 <button type="button" class="btn btn-secondary btn-small" onclick="alert('Detalhes da aula: <?= h($class['description']) ?>\nLocal: Sala <?= h($class['room']) ?>')">Ver Detalhes</button>
                             </div>
