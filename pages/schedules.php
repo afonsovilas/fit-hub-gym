@@ -23,8 +23,12 @@ require_once BASE_PATH . '/database/connection.php';
 try {
     $db = get_db();
     
-    $user_id = 9;
-    $stmtCheckBooked = $db->prepare("SELECT 1 FROM bookings WHERE user_id = ? AND class_id = ?");
+    // Obter ID do utilizador logado da sessão, ou 0 se não autenticado
+    $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+    
+    $stmtCheckBooked = $user_id > 0 
+        ? $db->prepare("SELECT 1 FROM bookings WHERE user_id = ? AND class_id = ?") 
+        : null;
 
     $filter_type    = $_GET['class-type'] ?? '';
     $filter_trainer = $_GET['trainer'] ?? '';
@@ -159,7 +163,6 @@ try {
         </div>
     </section>
 
-    <!-- Lista Dinâmica de Aulas -->
     <section class="schedule-section">
         <div class="container">
             <h2>Aulas Disponíveis</h2>
@@ -178,8 +181,11 @@ try {
                         $vagas_restantes = $class['capacity'] - $inscritos;
                         $cheia = $vagas_restantes <= 0;
 
-                        $stmtCheckBooked->execute([$user_id, $class['id']]);
-                        $is_booked = (bool) $stmtCheckBooked->fetch();
+                        $is_booked = false;
+                        if ($user_id > 0 && $stmtCheckBooked) {
+                            $stmtCheckBooked->execute([$user_id, $class['id']]);
+                            $is_booked = (bool) $stmtCheckBooked->fetch();
+                        }
 
                         $timestamp = strtotime($class['scheduled_at']);
                         $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -221,12 +227,14 @@ try {
                                     </form>
                                 <?php elseif ($cheia): ?>
                                     <button type="button" class="btn btn-primary btn-small" disabled>Aula Cheia</button>
-                                <?php else: ?>
+                                <?php elseif ($user_id > 0): ?>
                                     <form method="POST" action="../actions/book_class.php" style="margin: 0; padding: 0; display: inline;">
                                         <?= get_csrf_input() ?>
                                         <input type="hidden" name="class_id" value="<?= $class['id'] ?>">
                                         <button type="submit" class="btn btn-primary btn-small">Inscrever-se</button>
                                     </form>
+                                <?php else: ?>
+                                    <a href="login.php" class="btn btn-primary btn-small" style="text-decoration: none; display: inline-block; text-align: center; line-height: 1.8;" onclick="alert('Inicie sessão para se inscrever nas aulas!');">Inscrever-se</a>
                                 <?php endif; ?>
                                 <button type="button" class="btn btn-secondary btn-small" onclick="alert('Detalhes da aula: <?= h($class['description']) ?>\nLocal: Sala <?= h($class['room']) ?>')">Ver Detalhes</button>
                             </div>

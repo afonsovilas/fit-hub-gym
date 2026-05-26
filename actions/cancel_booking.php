@@ -23,7 +23,7 @@ csrf_protect();
 try {
     $db = get_db();
 
-    $user_id = 9;
+    $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 9;
 
     $class_id = isset($_POST['class_id']) ? (int) $_POST['class_id'] : 0;
     

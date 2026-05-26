@@ -22,7 +22,8 @@ csrf_protect();
 try {
     $db = get_db();
 
-    $user_id = 9;
+    // Obter ID do utilizador logado a partir da sessão activa, com fallback para utilizador 9
+    $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 9;
 
     $name  = trim($_POST['full-name'] ?? '');
     $email = trim($_POST['email'] ?? '');

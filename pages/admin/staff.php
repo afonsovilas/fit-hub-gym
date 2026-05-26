@@ -20,6 +20,16 @@ require_once BASE_PATH . '/templates/navbar.php';
 require_once BASE_PATH . '/src/csrf.php';
 require_once BASE_PATH . '/database/connection.php';
 
+if (!isset($_SESSION['user_id'])) {
+    set_flash('Inicie sessão para aceder à área de gestão.', 'error');
+    redirect('/pages/login.php');
+}
+
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    set_flash('Acesso restrito. Apenas administradores podem aceder à área de gestão.', 'error');
+    redirect('/pages/profile.php');
+}
+
 try {
     $db = get_db();
 

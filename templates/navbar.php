@@ -36,15 +36,20 @@ $base = defined('BASE_URL_PATH') ? BASE_URL_PATH : '';
                     <a href="<?= h($base) ?>pages/schedules.php"
                        class="nav-link<?= $nav_class('schedule') ?>">Aulas</a>
                 </li>
-                <li>
-                    <a href="<?= h($base) ?>pages/admin/staff.php"
-                       class="nav-link<?= $nav_class('admin') ?>">Gestão</a>
-                </li>
-                <li>
-                    <a href="<?= h($base) ?>pages/profile.php"
-                       class="nav-link<?= $nav_class('profile') ?>">Perfil</a>
-                </li>
+                
                 <?php if (isset($_SESSION['user_id'])): ?>
+                    <li>
+                        <a href="<?= h($base) ?>pages/profile.php"
+                           class="nav-link<?= $nav_class('profile') ?>">Perfil</a>
+                    </li>
+                    
+                    <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+                        <li>
+                            <a href="<?= h($base) ?>pages/admin/staff.php"
+                               class="nav-link<?= $nav_class('admin') ?>">Gestão</a>
+                        </li>
+                    <?php endif; ?>
+
                     <li>
                         <a href="<?= h($base) ?>actions/logout_action.php"
                            class="nav-link">Sair</a>

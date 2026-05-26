@@ -5,8 +5,7 @@
  * Página de perfil do utilizador logado.
  * Integrada com a base de dados SQLite (FitHub).
  * 
- * NOTA: Carrega o "Aluno Piloto" (ID 9) por defeito para demonstração de dados.
- */
+*/
 
 declare(strict_types=1);
 
@@ -22,17 +21,22 @@ require_once BASE_PATH . '/templates/navbar.php';
 require_once BASE_PATH . '/src/csrf.php';
 require_once BASE_PATH . '/database/connection.php';
 
+if (!isset($_SESSION['user_id'])) {
+    set_flash('Inicie sessão para aceder ao seu perfil.', 'error');
+    redirect('/pages/login.php');
+}
+
 try {
     $db = get_db();
 
-    $user_id = 9;
+    $user_id = $_SESSION['user_id'];
 
     $stmtUser = $db->prepare("SELECT * FROM users WHERE id = ?");
     $stmtUser->execute([$user_id]);
     $user = $stmtUser->fetch();
 
     if (!$user) {
-        throw new Exception("Utilizador piloto não encontrado. Certifique-se de correr o initialize.php.");
+        throw new Exception("Utilizador não encontrado na base de dados.");
     }
 
     $stmtMyClasses = $db->prepare("
