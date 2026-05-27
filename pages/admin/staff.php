@@ -33,7 +33,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 try {
     $db = get_db();
 
-
+    // Fetch all trainers
     $stmtTrainers = $db->query("
         SELECT u.id, u.name, u.email, u.phone, u.is_active, tp.bio, tp.certifications,
                (SELECT GROUP_CONCAT(specialization, ' / ') FROM trainer_specializations WHERE trainer_id = u.id) AS specializations
@@ -44,6 +44,7 @@ try {
     ");
     $trainers = $stmtTrainers->fetchAll();
 
+    // Fetch all staff
     $stmtStaff = $db->query("
         SELECT u.id, u.name, u.email, u.phone, u.is_active, sp.position, sp.department
         FROM users u
@@ -53,8 +54,28 @@ try {
     ");
     $staffList = $stmtStaff->fetchAll();
 
+    // Fetch all users for management
+    $stmtUsers = $db->prepare("
+        SELECT id, name, email, username, role, is_active, created_at
+        FROM users
+        ORDER BY created_at DESC
+    ");
+    $stmtUsers->execute();
+    $users = $stmtUsers->fetchAll();
+
 } catch (Throwable $e) {
     $error = $e->getMessage();
+}
+
+// Helper function to translate role
+function translate_role(string $role): string {
+    $roles = [
+        'member'  => 'Membro',
+        'trainer' => 'Treinador',
+        'admin'   => 'Administrador',
+        'staff'   => 'Pessoal',
+    ];
+    return $roles[$role] ?? $role;
 }
 ?>
 
@@ -71,7 +92,8 @@ try {
             <?php render_flash(); ?>
 
             <div class="admin-tabs" role="tablist" aria-label="Categorias de gestão de equipa">
-                <button type="button" class="tab-button active" data-tab="trainers" role="tab" id="tab-trainers" aria-controls="trainers" aria-selected="true">Treinadores</button>
+                <button type="button" class="tab-button active" data-tab="users" role="tab" id="tab-users" aria-controls="users" aria-selected="true">👥 Utilizadores</button>
+                <button type="button" class="tab-button" data-tab="trainers" role="tab" id="tab-trainers" aria-controls="trainers" aria-selected="false">Treinadores</button>
                 <button type="button" class="tab-button" data-tab="staff" role="tab" id="tab-staff" aria-controls="staff" aria-selected="false">Staff</button>
             </div>
 
@@ -79,7 +101,120 @@ try {
                 <div class="flash flash--error">Erro de base de dados: <?= h($error) ?></div>
             <?php endif; ?>
 
-            <div id="trainers" class="tab-content active" role="tabpanel" aria-labelledby="tab-trainers">
+            <!-- Users Tab -->
+            <div id="users" class="tab-content active" role="tabpanel" aria-labelledby="tab-users">
+                <section class="form-section">
+                    <h2>Novo Utilizador</h2>
+                    <form method="POST" class="staff-form">
+                        <?= get_csrf_input() ?>
+                        <input type="hidden" name="action" value="save_user">
+                        <input type="hidden" name="user_id" value="">
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="user-name">Nome Completo *</label>
+                                <input type="text" id="user-name" name="name" placeholder="Ex: João Silva" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="user-email">Email *</label>
+                                <input type="email" id="user-email" name="email" placeholder="Ex: joao@fithub.pt" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="user-username">Nome de Utilizador *</label>
+                                <input type="text" id="user-username" name="username" placeholder="Ex: joao_silva" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="user-password">Senha <span id="password-note">(obrigatória para novos)</span> *</label>
+                                <input type="password" id="user-password" name="password" placeholder="Deixar em branco para não alterar (edições)">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="user-role">Função *</label>
+                            <select id="user-role" name="role" required>
+                                <option value="">-- Selecione uma função --</option>
+                                <option value="member">Membro</option>
+                                <option value="trainer">Treinador</option>
+                                <option value="staff">Pessoal</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Guardar Utilizador</button>
+                            <button type="reset" class="btn btn-secondary">Limpar</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="list-section">
+                    <h2>Todos os Utilizadores</h2>
+                    <?php if (empty($users)): ?>
+                        <div class="alert alert--info">
+                            <p>Nenhum utilizador encontrado.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="staff-table-wrapper">
+                            <table class="admin-users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                        <th>Utilizador</th>
+                                        <th>Função</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($users as $user):
+                                        $user_id = (int) $user['id'];
+                                        $is_active = (int) $user['is_active'];
+                                        $status_class = $is_active ? 'active' : 'inactive';
+                                        $status_text = $is_active ? 'Ativo' : 'Inativo';
+                                        $role_text = translate_role($user['role']);
+                                    ?>
+                                        <tr class="user-row" data-user-id="<?= $user_id ?>">
+                                            <td class="col-name"><?= h($user['name']) ?></td>
+                                            <td class="col-email"><?= h($user['email']) ?></td>
+                                            <td class="col-username"><?= h($user['username']) ?></td>
+                                            <td class="col-role">
+                                                <span class="role-badge role-<?= strtolower($user['role']) ?>">
+                                                    <?= $role_text ?>
+                                                </span>
+                                            </td>
+                                            <td class="col-status">
+                                                <span class="status-badge status-<?= $status_class ?>" id="status-<?= $user_id ?>">
+                                                    <?= $status_text ?>
+                                                </span>
+                                            </td>
+                                            <td class="col-actions">
+                                                <button type="button" class="btn-action btn-edit" data-user-id="<?= $user_id ?>" title="Editar utilizador">
+                                                    ✏️ Editar
+                                                </button>
+                                                <button type="button" class="btn-action btn-toggle-status" data-user-id="<?= $user_id ?>" data-current-status="<?= $is_active ?>" title="<?= $is_active ? 'Desativar' : 'Ativar' ?> utilizador">
+                                                    <?= $is_active ? '🔒 Desativar' : '🔓 Ativar' ?>
+                                                </button>
+                                                <?php if ($user['role'] !== 'admin'): ?>
+                                                    <button type="button" class="btn-action btn-make-admin" data-user-id="<?= $user_id ?>" title="Promover a administrador">
+                                                        👑 Admin
+                                                    </button>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </section>
+            </div>
+
+            <!-- Trainers Tab -->
+            <div id="trainers" class="tab-content" role="tabpanel" aria-labelledby="tab-trainers">
                 <section class="form-section">
                     <h2>Adicionar Novo Treinador</h2>
                     <form class="staff-form" method="POST" action="../../actions/add_trainer.php">
@@ -523,7 +658,32 @@ window.addEventListener('click', function(event) {
         closeStaffModal();
     }
 });
+
+// Tab switching functionality
+document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', function() {
+        const tabName = this.dataset.tab;
+        
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Remove active from all buttons
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-selected', 'false');
+        });
+        
+        // Show selected tab
+        document.getElementById(tabName).classList.add('active');
+        this.classList.add('active');
+        this.setAttribute('aria-selected', 'true');
+    });
+});
 </script>
+
+<script src="<?= BASE_URL_PATH ?>js/admin-users.js"></script>
 
 <?php 
 $extra_js = ['js/admin-staff.js'];

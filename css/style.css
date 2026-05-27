@@ -3084,6 +3084,439 @@ textarea {
     }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* Admin Panel Styles */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+.page-header--admin {
+    background-image: url("../assets/images/banner1.jpg");
+    background-size: cover;
+    background-position: center 35%;
+    min-height: clamp(160px, 40vh, 560px);
+    padding: clamp(8rem, 16vh, 10rem) 1rem 3.25rem;
+    margin-bottom: 0;
+}
+
+/* ── Admin Toolbar ── */
+.admin-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.admin-toolbar .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.admin-toolbar .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #a9461f 100%);
+    color: white;
+}
+
+.admin-toolbar .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+}
+
+/* ── Form Section ── */
+.admin-form-section {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin-bottom: 3rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.form-card {
+    padding: 2rem;
+}
+
+.form-card h2 {
+    margin-top: 0;
+    margin-bottom: 2rem;
+    color: var(--color-text);
+    font-size: 1.5rem;
+}
+
+/* ── Form Group ── */
+.admin-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.admin-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.95rem;
+}
+
+.admin-form input,
+.admin-form select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--color-text);
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.admin-form input:focus,
+.admin-form select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(207, 90, 43, 0.1);
+}
+
+.admin-form input::placeholder {
+    color: var(--color-text-muted);
+}
+
+/* ── Form Actions ── */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.form-actions .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.form-actions .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #a9461f 100%);
+    color: white;
+}
+
+.form-actions .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+}
+
+.form-actions .btn-secondary {
+    background: var(--color-surface-soft);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.form-actions .btn-secondary:hover {
+    background: var(--color-border);
+}
+
+/* ── Admin Table ── */
+.admin-table-section {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.admin-users-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.admin-users-table thead {
+    background: linear-gradient(135deg, rgba(207, 90, 43, 0.05) 0%, rgba(207, 90, 43, 0.02) 100%);
+    border-bottom: 2px solid var(--color-border);
+}
+
+.admin-users-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+}
+
+.admin-users-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.admin-users-table tbody tr:hover {
+    background: var(--color-surface-soft);
+}
+
+/* ── Table Columns ── */
+.col-name {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.col-email {
+    color: var(--color-text-muted);
+}
+
+.col-username {
+    font-family: 'Courier New', monospace;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+/* ── Role Badges ── */
+.role-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.role-member {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.role-trainer {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.role-staff {
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
+.role-admin {
+    background: #fce7f3;
+    color: #be185d;
+    border: 1px solid #fbcfe8;
+}
+
+/* ── Status Badges ── */
+.status-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.status-inactive {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* ── Action Buttons ── */
+.col-actions {
+    text-align: center;
+}
+
+.btn-action {
+    display: inline-block;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.25rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    background: var(--color-surface-soft);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.btn-action:hover {
+    background: var(--color-border);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-edit {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+.btn-edit:hover {
+    background: #bfdbfe;
+}
+
+.btn-toggle-status {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+}
+
+.btn-toggle-status:hover {
+    background: #fcd34d;
+}
+
+.btn-make-admin {
+    background: #fce7f3;
+    color: #be185d;
+    border-color: #fbcfe8;
+}
+
+.btn-make-admin:hover {
+    background: #fbcfe8;
+}
+
+/* ── Responsive Design for Admin ── */
+@media (max-width: 1024px) {
+    .admin-users-table {
+        font-size: 0.9rem;
+    }
+
+    .admin-users-table th,
+    .admin-users-table td {
+        padding: 0.75rem;
+    }
+
+    .btn-action {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+        margin: 0.2rem;
+        display: block;
+        width: 100%;
+        margin-bottom: 0.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-card {
+        padding: 1.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+
+    .admin-users-table {
+        font-size: 0.85rem;
+    }
+
+    .admin-users-table th,
+    .admin-users-table td {
+        padding: 0.6rem 0.5rem;
+    }
+
+    .col-name {
+        min-width: 120px;
+    }
+
+    .col-email {
+        min-width: 140px;
+    }
+
+    .col-username {
+        min-width: 100px;
+    }
+
+    .col-actions {
+        min-width: 180px;
+    }
+
+    .btn-action {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.7rem;
+    }
+
+    .role-badge,
+    .status-badge {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-toolbar {
+        justify-content: stretch;
+    }
+
+    .admin-toolbar .btn {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .form-card {
+        padding: 1rem;
+    }
+
+    .form-card h2 {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .admin-users-table {
+        font-size: 0.8rem;
+    }
+
+    .admin-users-table th,
+    .admin-users-table td {
+        padding: 0.5rem 0.4rem;
+    }
+
+    .col-name {
+        min-width: 100px;
+    }
+
+    .col-email {
+        min-width: 120px;
+    }
+
+    .col-username {
+        display: none;
+    }
+
+    .col-actions {
+        min-width: 150px;
+    }
+
+    .btn-action {
+        padding: 0.3rem 0.4rem;
+        font-size: 0.65rem;
+    }
+}
+
 @media print {
     .header, .footer, .filters-section, .cta {
         display: none;
