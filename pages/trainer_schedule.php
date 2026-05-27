@@ -40,7 +40,6 @@ $error = null;
 try {
     $db = get_db();
 
-    // Fetch all classes assigned to this trainer, ordered by date and time
     $stmtClasses = $db->prepare("
         SELECT 
             id,
@@ -89,7 +88,6 @@ try {
 ?>
 
 <main>
-    <!-- Page Header -->
     <section class="page-header page-header--trainer">
         <div class="container">
             <h1>Meu Horário de Aulas</h1>
@@ -320,7 +318,6 @@ try {
             return;
         }
 
-        // Build roster HTML
         let rosterHTML = '<div class="roster-list">';
         rosterHTML += `<h4 class="roster-title">${escapeHtml(className)} - ${members.length} aluno${members.length !== 1 ? 's' : ''}</h4>`;
         rosterHTML += '<ul class="roster-members">';
@@ -329,12 +326,34 @@ try {
             const memberName = escapeHtml(member.name);
             const memberAvatar = escapeHtml(member.avatar || '../assets/images/profile-placeholder.png');
             const memberEmail = escapeHtml(member.email);
+            const memberRole = escapeHtml(member.role || 'member');
+            
+            let roleBadge = '';
+            if (memberRole !== 'member') {
+                const roleLabels = {
+                    'trainer': 'Treinador',
+                    'staff': 'Staff',
+                    'admin': 'Admin'
+                };
+                const label = roleLabels[memberRole] || memberRole;
+                
+                let badgeStyle = 'background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3);';
+                if (memberRole === 'trainer') {
+                    badgeStyle = 'background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);';
+                } else if (memberRole === 'staff') {
+                    badgeStyle = 'background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);';
+                } else if (memberRole === 'admin') {
+                    badgeStyle = 'background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);';
+                }
+                
+                roleBadge = `<span class="badge" style="font-size:0.75em; padding:2px 6px; border-radius:4px; margin-left:6px; display:inline-block; font-weight:bold; vertical-align:middle; text-transform:uppercase; ${badgeStyle}">${label}</span>`;
+            }
             
             rosterHTML += `
                 <li class="roster-member">
                     <img src="${memberAvatar}" alt="Foto de ${memberName}" class="member-avatar" onerror="this.src='../assets/images/profile-placeholder.png'">
                     <div class="member-info">
-                        <p class="member-name">${memberName}</p>
+                        <p class="member-name">${memberName}${roleBadge}</p>
                         <p class="member-email">${memberEmail}</p>
                     </div>
                 </li>

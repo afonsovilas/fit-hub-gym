@@ -187,6 +187,8 @@ try {
                             $is_booked = (bool) $stmtCheckBooked->fetch();
                         }
 
+                        $is_own_class = ($user_id > 0 && (int) $class['instructor_id'] === $user_id);
+
                         $timestamp = strtotime($class['scheduled_at']);
                         $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
                         $dia_extenso = $dias_semana[date('w', $timestamp)];
@@ -218,7 +220,9 @@ try {
                             </div>
                             <p class="class-description"><?= h($class['description']) ?></p>
                             <div class="class-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <?php if ($is_booked): ?>
+                                <?php if ($is_own_class): ?>
+                                    <button type="button" class="btn btn-secondary btn-small" disabled style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: bold;">Minha Aula</button>
+                                <?php elseif ($is_booked): ?>
                                     <form method="POST" action="../actions/cancel_booking.php" style="margin: 0; padding: 0; display: inline;">
                                         <?= get_csrf_input() ?>
                                         <input type="hidden" name="class_id" value="<?= $class['id'] ?>">

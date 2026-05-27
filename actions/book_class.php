@@ -33,12 +33,18 @@ try {
         redirect('/pages/schedules.php');
     }
 
-    $stmtClass = $db->prepare("SELECT name, capacity FROM classes WHERE id = ?");
+    $stmtClass = $db->prepare("SELECT name, capacity, instructor_id FROM classes WHERE id = ?");
     $stmtClass->execute([$class_id]);
     $class = $stmtClass->fetch();
 
     if (!$class) {
         set_flash('A aula selecionada não existe.', 'error');
+        redirect('/pages/schedules.php');
+    }
+
+    // Impedir que um treinador se inscreva na sua própria aula
+    if ((int) $class['instructor_id'] === $user_id) {
+        set_flash("Não se pode inscrever numa aula que é ministrada por si mesmo(a)!", 'error');
         redirect('/pages/schedules.php');
     }
 

@@ -83,33 +83,32 @@ try {
         exit;
     }
 
-    // Fetch all members enrolled in this class
     $stmtRoster = $db->prepare("
         SELECT 
             u.id,
             u.name,
             u.email,
-            u.avatar
+            u.avatar,
+            u.role
         FROM users u
         JOIN bookings b ON u.id = b.user_id
-        WHERE b.class_id = ? AND u.role = 'member'
+        WHERE b.class_id = ?
         ORDER BY u.name ASC
     ");
     $stmtRoster->execute([$class_id]);
     $members = $stmtRoster->fetchAll();
 
-    // Sanitize member data for JSON response
     $sanitized_members = [];
     foreach ($members as $member) {
         $sanitized_members[] = [
             'id' => (int) $member['id'],
             'name' => htmlspecialchars($member['name'], ENT_QUOTES, 'UTF-8'),
             'email' => htmlspecialchars($member['email'], ENT_QUOTES, 'UTF-8'),
-            'avatar' => htmlspecialchars($member['avatar'] ?? '', ENT_QUOTES, 'UTF-8')
+            'avatar' => htmlspecialchars($member['avatar'] ?? '', ENT_QUOTES, 'UTF-8'),
+            'role' => htmlspecialchars($member['role'], ENT_QUOTES, 'UTF-8')
         ];
     }
 
-    // Return success response with roster data
     http_response_code(200);
     echo json_encode([
         'success' => true,
