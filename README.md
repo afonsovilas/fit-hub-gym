@@ -23,21 +23,21 @@ A estrutura da página admin-staff.html tem um design ligeiramente diferente, pr
 ## Features
 
 **All users:**
-- [ ] Register a new account.
-- [ ] Log in and out.
+- [x] Register a new account.
+- [x] Log in and out.
 - [ ] Edit their profile, including name, username, password, and profile photo.
 
 **Members:**
 - [x] Browse the schedule of available fitness classes, filtering by type, trainer, day, or time.
-- [ ] Enroll in and cancel enrollment from upcoming classes, subject to capacity limits.
-- [ ] View trainer profiles, including their specializations and the classes they teach.
-- [ ] Check the current availability of equipment in the main training area.
-- [ ] Leave ratings and reviews for classes they have attended.
+- [x] Enroll in and cancel enrollment from upcoming classes, subject to capacity limits.
+- [x] View trainer profiles, including their specializations and the classes they teach.
+- [x] Check the current availability of equipment in the main training area.
+- [x] Leave ratings and reviews for classes they have attended.
 
 **Trainers:**
 - [ ] Manage their public profile, including bio, specializations, and certifications.
-- [ ] View the roster of members enrolled in their classes.
-- [ ] Track and manage their assigned class schedule.
+- [x] View the roster of members enrolled in their classes.
+- [x] Track and manage their assigned class schedule.
 
 **Admins:**
 - [x] Manage members and trainers (create, update, and deactivate accounts).
@@ -55,4 +55,8 @@ php -S localhost:9000
 
 ## Credentials
 
-- N/A (Milestone 1: front-end only)
+All default pilot accounts use the common password: `123456`
+- **Membro**: `aluno@fithub.pt`
+- **Treinador**: `joao@fithub.pt`
+- **Administrador**: `admin@fithub.pt`
+- **Staff**: `rita@fithub.pt`
