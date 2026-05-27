@@ -16,7 +16,8 @@ $base = defined('BASE_URL_PATH') ? BASE_URL_PATH : '';
                     <ul>
                         <li><a href="<?= h($base) ?>index.php">Início</a></li>
                         <li><a href="<?= h($base) ?>pages/schedules.php">Aulas</a></li>
-                        <li><a href="#">Sobre Nós</a></li>
+                        <li><a href="<?= h($base) ?>pages/trainers.php">Treinadores</a></li>
+                        <li><a href="<?= h($base) ?>pages/equipment.php">Equipamentos</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
