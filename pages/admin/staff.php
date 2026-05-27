@@ -103,51 +103,57 @@ function translate_role(string $role): string {
 
             <!-- Users Tab -->
             <div id="users" class="tab-content active" role="tabpanel" aria-labelledby="tab-users">
-                <section class="form-section">
-                    <h2>Novo Utilizador</h2>
-                    <form method="POST" class="staff-form">
-                        <?= get_csrf_input() ?>
-                        <input type="hidden" name="action" value="save_user">
-                        <input type="hidden" name="user_id" value="">
+                <div class="admin-toolbar">
+                    <button type="button" class="btn btn-primary" id="btn-create-user">➕ Novo Utilizador</button>
+                </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="user-name">Nome Completo *</label>
-                                <input type="text" id="user-name" name="name" placeholder="Ex: João Silva" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="user-email">Email *</label>
-                                <input type="email" id="user-email" name="email" placeholder="Ex: joao@fithub.pt" required>
-                            </div>
-                        </div>
+                <section class="form-section admin-form-section" id="user-form-section" style="display: none;">
+                    <div class="form-card">
+                        <h2 id="form-title">Novo Utilizador</h2>
+                        <form method="POST" class="staff-form admin-form" id="user-form" action="../../actions/save_user.php">
+                            <?= get_csrf_input() ?>
+                            <input type="hidden" name="action" value="save_user">
+                            <input type="hidden" name="user_id" id="form-user-id" value="">
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="user-username">Nome de Utilizador *</label>
-                                <input type="text" id="user-username" name="username" placeholder="Ex: joao_silva" required>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="form-name">Nome Completo *</label>
+                                    <input type="text" id="form-name" name="name" placeholder="Ex: João Silva" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="form-email">Email *</label>
+                                    <input type="email" id="form-email" name="email" placeholder="Ex: joao@fithub.pt" required>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="user-password">Senha <span id="password-note">(obrigatória para novos)</span> *</label>
-                                <input type="password" id="user-password" name="password" placeholder="Deixar em branco para não alterar (edições)">
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="form-username">Nome de Utilizador *</label>
+                                    <input type="text" id="form-username" name="username" placeholder="Ex: joao_silva" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="form-password">Senha <span id="password-note">(obrigatória para novos)</span> *</label>
+                                    <input type="password" id="form-password" name="password" placeholder="Deixar em branco para não alterar (edições)">
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="user-role">Função *</label>
-                            <select id="user-role" name="role" required>
-                                <option value="">-- Selecione uma função --</option>
-                                <option value="member">Membro</option>
-                                <option value="trainer">Treinador</option>
-                                <option value="staff">Pessoal</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                        </div>
+                            <div class="form-group">
+                                <label for="form-role">Função *</label>
+                                <select id="form-role" name="role" required>
+                                    <option value="">-- Selecione uma função --</option>
+                                    <option value="member">Membro</option>
+                                    <option value="trainer">Treinador</option>
+                                    <option value="staff">Pessoal</option>
+                                    <option value="admin">Administrador</option>
+                                </select>
+                            </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Guardar Utilizador</button>
-                            <button type="reset" class="btn btn-secondary">Limpar</button>
-                        </div>
-                    </form>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Guardar Utilizador</button>
+                                <button type="button" class="btn btn-secondary" id="btn-cancel-form">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
                 </section>
 
                 <section class="list-section">

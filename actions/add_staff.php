@@ -47,12 +47,31 @@ try {
 
     $db->beginTransaction();
 
+    // Gerar um username padrão único a partir do nome
+    $base_username = strtolower(str_replace(' ', '', $name));
+    $base_username = preg_replace('/[^a-z0-9]/', '', $base_username);
+    if (strlen($base_username) === 0) {
+        $base_username = 'staff';
+    }
+    $username = $base_username;
+    $count = 0;
+    
+    $stmtCheckUsername = $db->prepare("SELECT id FROM users WHERE username = ?");
+    while (true) {
+        $stmtCheckUsername->execute([$username]);
+        if (!$stmtCheckUsername->fetch()) {
+            break;
+        }
+        $count++;
+        $username = $base_username . $count;
+    }
+
     $password_hash = password_hash('123456', PASSWORD_BCRYPT);
     $stmtUser = $db->prepare("
-        INSERT INTO users (name, email, password_hash, role, phone, is_active)
-        VALUES (?, ?, ?, 'staff', ?, 1)
+        INSERT INTO users (name, email, username, password_hash, role, phone, is_active)
+        VALUES (?, ?, ?, ?, 'staff', ?, 1)
     ");
-    $stmtUser->execute([$name, $email, $password_hash, $phone]);
+    $stmtUser->execute([$name, $email, $username, $password_hash, $phone]);
     $new_user_id = (int) $db->lastInsertId();
 
     $stmtProfile = $db->prepare("

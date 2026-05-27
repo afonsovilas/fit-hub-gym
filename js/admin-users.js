@@ -18,33 +18,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const formPassword = document.getElementById('form-password');
     const passwordNote = document.getElementById('password-note');
 
+    // CSRF Token from DOM
+    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
+
     // ──────────────────────────────────────────────────────────────────────
-    // Form Management
+    // Form Management (Defensive check to prevent errors if elements not present)
     // ──────────────────────────────────────────────────────────────────────
 
-    // Show form for creating new user
-    btnCreateUser.addEventListener('click', function() {
-        resetForm();
-        formUserId.value = '';
-        formTitle.textContent = 'Novo Utilizador';
-        passwordNote.textContent = '(obrigatória para novos)';
-        formPassword.required = true;
-        formSection.style.display = 'block';
-        formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+    if (btnCreateUser && btnCancelForm && userForm && formSection) {
+        btnCreateUser.addEventListener('click', function() {
+            resetForm();
+            formUserId.value = '';
+            formTitle.textContent = 'Novo Utilizador';
+            if (passwordNote) passwordNote.textContent = '(obrigatória para novos)';
+            if (formPassword) formPassword.required = true;
+            formSection.style.display = 'block';
+            formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
 
-    // Hide form
-    btnCancelForm.addEventListener('click', function() {
-        formSection.style.display = 'none';
-        resetForm();
-    });
+        btnCancelForm.addEventListener('click', function() {
+            formSection.style.display = 'none';
+            resetForm();
+        });
+    }
 
     // Edit user - populate form with existing data
     document.querySelectorAll('.btn-edit').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userId = this.dataset.userId;
-            editUser(userId);
-        });
+        if (btn.closest('.admin-users-table')) {
+            btn.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                editUser(userId);
+            });
+        }
     });
 
     // ──────────────────────────────────────────────────────────────────────
@@ -76,10 +81,12 @@ document.addEventListener('DOMContentLoaded', function() {
      * Reset form to empty state
      */
     function resetForm() {
-        userForm.reset();
-        formUserId.value = '';
-        formPassword.required = true;
-        passwordNote.textContent = '(obrigatória para novos)';
+        if (userForm) {
+            userForm.reset();
+            if (formUserId) formUserId.value = '';
+            if (formPassword) formPassword.required = true;
+            if (passwordNote) passwordNote.textContent = '(obrigatória para novos)';
+        }
     }
 
     /**
@@ -95,10 +102,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Extract data from table cells
-            const name = row.querySelector('.col-name').textContent;
-            const email = row.querySelector('.col-email').textContent;
-            const username = row.querySelector('.col-username').textContent;
-            const roleText = row.querySelector('.col-role .role-badge').textContent.trim();
+            const name = row.querySelector('.col-name').textContent.trim();
+            const email = row.querySelector('.col-email').textContent.trim();
+            const username = row.querySelector('.col-username').textContent.trim();
+            const roleBadge = row.querySelector('.col-role .role-badge');
+            const roleText = roleBadge ? roleBadge.textContent.trim() : 'Membro';
 
             // Map role text back to value
             const roleMap = {
@@ -111,21 +119,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const role = roleMap[roleText] || 'member';
 
             // Populate form
-            formUserId.value = userId;
-            document.getElementById('form-name').value = name;
-            document.getElementById('form-email').value = email;
-            document.getElementById('form-username').value = username;
-            document.getElementById('form-role').value = role;
-            document.getElementById('form-password').value = '';
+            if (formUserId) formUserId.value = userId;
+            const inputName = document.getElementById('form-name');
+            const inputEmail = document.getElementById('form-email');
+            const inputUsername = document.getElementById('form-username');
+            const selectRole = document.getElementById('form-role');
+            const inputPassword = document.getElementById('form-password');
+
+            if (inputName) inputName.value = name;
+            if (inputEmail) inputEmail.value = email;
+            if (inputUsername) inputUsername.value = username;
+            if (selectRole) selectRole.value = role;
+            if (inputPassword) inputPassword.value = '';
 
             // Update form UI for edit mode
-            formTitle.textContent = `Editar: ${name}`;
-            passwordNote.textContent = '(deixar em branco para não alterar)';
-            formPassword.required = false;
+            if (formTitle) formTitle.textContent = `Editar: ${name}`;
+            if (passwordNote) passwordNote.textContent = '(deixar em branco para não alterar)';
+            if (formPassword) formPassword.required = false;
 
             // Show form
-            formSection.style.display = 'block';
-            formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (formSection) {
+                formSection.style.display = 'block';
+                formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
 
         } catch (error) {
             console.error('Erro ao editar utilizador:', error);
@@ -137,13 +153,16 @@ document.addEventListener('DOMContentLoaded', function() {
      * Toggle user active/inactive status via AJAX
      */
     function toggleUserStatus(userId, currentStatus) {
-        if (!confirm('Tem certeza que deseja alterar o status deste utilizador?')) {
+        if (!confirm('Tem a certeza que deseja alterar o estado deste utilizador?')) {
             return;
         }
 
         const formData = new FormData();
         formData.append('action', 'toggle_status');
         formData.append('user_id', userId);
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
 
         const button = document.querySelector(`button[data-user-id="${userId}"].btn-toggle-status`);
 
@@ -164,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 button.dataset.currentStatus = newStatus;
                 button.textContent = newStatus ? '🔒 Desativar' : '🔓 Ativar';
 
-                // Update status badge
+                // Update status badge in Users tab
                 const statusBadge = document.getElementById(`status-${userId}`);
                 if (statusBadge) {
                     statusBadge.textContent = data.status_text;
@@ -173,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 showToast(data.message, 'success');
             } else {
-                showToast(data.message || 'Erro ao alterar status.', 'error');
+                showToast(data.message || 'Erro ao alterar estado.', 'error');
             }
         })
         .catch(error => {
@@ -186,13 +205,16 @@ document.addEventListener('DOMContentLoaded', function() {
      * Promote user to admin via AJAX
      */
     function makeUserAdmin(userId) {
-        if (!confirm('Tem certeza que deseja promover este utilizador a administrador?')) {
+        if (!confirm('Tem a certeza que deseja promover este utilizador a administrador?')) {
             return;
         }
 
         const formData = new FormData();
         formData.append('action', 'make_admin');
         formData.append('user_id', userId);
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
 
         const button = document.querySelector(`button[data-user-id="${userId}"].btn-make-admin`);
 
@@ -208,15 +230,19 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (data.success) {
-                // Update role badge
+                // Update role badge in Users tab
                 const row = document.querySelector(`tr[data-user-id="${userId}"]`);
                 if (row) {
                     const roleBadge = row.querySelector('.col-role .role-badge');
-                    roleBadge.textContent = data.role_text;
-                    roleBadge.className = 'role-badge role-admin';
+                    if (roleBadge) {
+                        roleBadge.textContent = data.role_text;
+                        roleBadge.className = 'role-badge role-admin';
+                    }
 
                     // Hide the "Make Admin" button
-                    button.style.display = 'none';
+                    if (button) {
+                        button.style.display = 'none';
+                    }
                 }
 
                 showToast(data.message, 'success');

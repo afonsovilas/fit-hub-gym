@@ -17,6 +17,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once BASE_PATH . '/database/connection.php';
+require_once BASE_PATH . '/src/csrf.php';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Security Checks
@@ -43,6 +44,13 @@ function json_response(bool $success, string $message, array $data = []): void {
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     json_response(false, 'Não autenticado. Por favor inicie sessão.');
+}
+
+// Check CSRF Token
+$csrf_token = $_POST['csrf_token'] ?? null;
+if (!validate_csrf_token($csrf_token)) {
+    http_response_code(403);
+    json_response(false, 'Acesso negado. Token de segurança CSRF ausente ou inválido.');
 }
 
 // Check admin role
