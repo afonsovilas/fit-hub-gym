@@ -113,15 +113,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ── Star Rating Keyboard Navigation ──
+    // ── Star Rating with Deselection ──
     const ratingRadios = document.querySelectorAll('.rating-radio');
     ratingRadios.forEach(radio => {
+        // Store previous state
         radio.addEventListener('change', function() {
-            // Optional: Add visual feedback on selection
             const label = document.querySelector(`label[for="${this.id}"]`);
             if (label) {
                 label.classList.add('selected');
             }
         });
+
+        // Allow deselection by clicking the same star again
+        const label = document.querySelector(`label[for="${radio.id}"]`);
+        if (label) {
+            label.addEventListener('click', function(e) {
+                // Check if this radio is already selected
+                if (radio.checked) {
+                    // Prevent default radio behavior
+                    e.preventDefault();
+                    
+                    // Uncheck the radio
+                    radio.checked = false;
+                    
+                    // Remove selected class from all labels in this form
+                    const form = radio.closest('.review-form');
+                    if (form) {
+                        const allLabels = form.querySelectorAll('.rating-label');
+                        allLabels.forEach(lbl => lbl.classList.remove('selected'));
+                    }
+                }
+            });
+        }
     });
 });

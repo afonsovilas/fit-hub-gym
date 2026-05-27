@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Validar CSRF token
-if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
     set_flash('Token de segurança inválido. Por favor tente novamente.', 'error');
     redirect('/pages/profile.php');
 }

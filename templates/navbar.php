@@ -6,6 +6,7 @@ if (!isset($active_page)) {
         'index'        => 'home',
         'schedules'    => 'schedule',
         'equipment'    => 'equipment',
+        'trainer_schedule' => 'trainer',
         'admin-staff'  => 'admin',
         'dashboard'    => 'dashboard',
         'profile'      => 'profile',
@@ -47,6 +48,13 @@ $base = defined('BASE_URL_PATH') ? BASE_URL_PATH : '';
                         <a href="<?= h($base) ?>pages/profile.php"
                            class="nav-link<?= $nav_class('profile') ?>">Perfil</a>
                     </li>
+
+                    <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'trainer'): ?>
+                        <li>
+                            <a href="<?= h($base) ?>pages/trainer_schedule.php"
+                               class="nav-link<?= $nav_class('trainer') ?>">Meu Horário</a>
+                        </li>
+                    <?php endif; ?>
                     
                     <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
                         <li>
