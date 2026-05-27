@@ -6,6 +6,7 @@ if (!isset($active_page)) {
         'index'        => 'home',
         'schedules'    => 'schedule',
         'equipment'    => 'equipment',
+        'trainers'     => 'trainers',
         'trainer_schedule' => 'trainer',
         'admin-staff'  => 'admin',
         'dashboard'    => 'dashboard',
@@ -68,6 +69,10 @@ $base = defined('BASE_URL_PATH') ? BASE_URL_PATH : '';
                            class="nav-link">Sair</a>
                     </li>
                 <?php else: ?>
+                    <li>
+                        <a href="<?= h($base) ?>pages/trainers.php"
+                           class="nav-link<?= $nav_class('trainers') ?>">Treinadores</a>
+                    </li>
                     <li>
                         <a href="<?= h($base) ?>pages/login.php"
                            class="nav-link">Entrar</a>
