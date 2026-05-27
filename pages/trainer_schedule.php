@@ -115,7 +115,6 @@ try {
                     </div>
                 </div>
 
-                <!-- Weekly Calendar Grid -->
                 <div class="weekly-schedule-wrapper">
                     <div class="weekly-schedule-grid">
                         <?php 
@@ -131,7 +130,6 @@ try {
                             </div>
                         <?php endforeach; ?>
 
-                        <!-- Classes for each day -->
                         <?php foreach ($classes_by_day as $day_index => $day_classes): ?>
                             <div class="day-column" data-day="<?= $day_index ?>">
                                 <?php if (empty($day_classes)): ?>
@@ -151,11 +149,9 @@ try {
                                         $class_time = date('H:i', $timestamp);
                                         $class_date_full = date('d/m/Y', $timestamp);
                                         
-                                        // Assign color class
                                         $color_class = $color_classes[$color_index % count($color_classes)];
                                         $color_index++;
                                         
-                                        // Fetch member count for this class
                                         try {
                                             $stmtCount = $db->prepare("
                                                 SELECT COUNT(*) as total FROM bookings WHERE class_id = ?
@@ -191,7 +187,6 @@ try {
                                                 👥 Alunos
                                             </button>
 
-                                            <!-- Roster Container (hidden by default) -->
                                             <div class="roster-container" id="roster-<?= $class_id ?>" style="display: none;">
                                                 <div class="roster-loading">
                                                     <span class="spinner"></span>
@@ -210,7 +205,6 @@ try {
     </div>
 </main>
 
-<!-- Roster Modal (for larger rosters) -->
 <div class="roster-modal" id="roster-modal" style="display: none;">
     <div class="modal-overlay" onclick="closeRosterModal()"></div>
     <div class="modal-content">
@@ -219,16 +213,12 @@ try {
             <button type="button" class="modal-close" onclick="closeRosterModal()" aria-label="Fechar modal">&times;</button>
         </div>
         <div class="modal-body" id="modal-roster-content">
-            <!-- Roster content loaded via AJAX -->
         </div>
     </div>
 </div>
 
 <script>
-    /**
-     * Trainer Schedule AJAX Script
-     * Handles fetching and displaying member roster for each class
-     */
+
     document.addEventListener('DOMContentLoaded', function() {
         const rosterButtons = document.querySelectorAll('.btn-roster');
 
@@ -241,7 +231,6 @@ try {
 
                 if (!rosterContainer) return;
 
-                // Check if already loaded
                 const existingRoster = rosterContainer.querySelector('.roster-list');
                 if (existingRoster) {
                     // Toggle visibility
@@ -253,18 +242,13 @@ try {
                     return;
                 }
 
-                // Show loading state
                 rosterContainer.style.display = '';
 
-                // Fetch roster data via AJAX
                 fetchRoster(classId, className, rosterId);
             });
         });
     });
 
-    /**
-     * Fetch roster data from API endpoint
-     */
     function fetchRoster(classId, className, rosterId) {
         const rosterContainer = document.getElementById(rosterId);
 
@@ -294,9 +278,6 @@ try {
         });
     }
 
-    /**
-     * Display roster data in the container
-     */
     function displayRoster(data, className, rosterContainer) {
         if (!data.success) {
             rosterContainer.innerHTML = `
@@ -324,7 +305,8 @@ try {
 
         members.forEach(member => {
             const memberName = escapeHtml(member.name);
-            const memberAvatar = escapeHtml(member.avatar || '../assets/images/profile-placeholder.png');
+            const rawAvatar = member.avatar ? (member.avatar.startsWith('http') || member.avatar.startsWith('../') ? member.avatar : '../' + member.avatar) : '../assets/images/avatars/profile-placeholder.png';
+            const memberAvatar = escapeHtml(rawAvatar);
             const memberEmail = escapeHtml(member.email);
             const memberRole = escapeHtml(member.role || 'member');
             
@@ -351,7 +333,7 @@ try {
             
             rosterHTML += `
                 <li class="roster-member">
-                    <img src="${memberAvatar}" alt="Foto de ${memberName}" class="member-avatar" onerror="this.src='../assets/images/profile-placeholder.png'">
+                    <img src="${memberAvatar}" alt="Foto de ${memberName}" class="member-avatar" onerror="this.src='../assets/images/avatars/profile-placeholder.png'">
                     <div class="member-info">
                         <p class="member-name">${memberName}${roleBadge}</p>
                         <p class="member-email">${memberEmail}</p>
@@ -364,18 +346,12 @@ try {
         rosterContainer.innerHTML = rosterHTML;
     }
 
-    /**
-     * Escape HTML to prevent XSS
-     */
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
 
-    /**
-     * Close roster modal
-     */
     function closeRosterModal() {
         const modal = document.getElementById('roster-modal');
         if (modal) {
@@ -383,9 +359,6 @@ try {
         }
     }
 
-    /**
-     * Close modal when clicking overlay
-     */
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closeRosterModal();

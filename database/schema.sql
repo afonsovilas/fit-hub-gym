@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     name          TEXT    NOT NULL,
     email         TEXT    NOT NULL UNIQUE,
+    username      TEXT    UNIQUE,
     password_hash TEXT    NOT NULL,
     role          TEXT    NOT NULL DEFAULT 'member'
                           CHECK(role IN ('member', 'trainer', 'staff', 'admin')),
@@ -166,11 +167,11 @@ CREATE TABLE IF NOT EXISTS progress_logs (
 -- ──────────────────────────────────────────────────────────────────────────────
 
 -- Inserir Treinadores
-INSERT INTO users (id, name, email, password_hash, role, phone, avatar, is_active) VALUES
-(1, 'João Silva', 'joao@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'trainer', '+351 911 222 333', 'assets/images/trainers/joao.jpg', 1),
-(2, 'Maria Santos', 'maria@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'trainer', '+351 912 333 444', 'assets/images/trainers/maria.jpg', 1),
-(3, 'Carlos Mendes', 'carlos@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'trainer', '+351 913 444 555', 'assets/images/trainers/carlos.jpg', 1),
-(4, 'Ana Pereira', 'ana@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'trainer', '+351 914 555 666', 'assets/images/trainers/ana.jpg', 0);
+INSERT INTO users (id, name, email, username, password_hash, role, phone, avatar, is_active) VALUES
+(1, 'João Silva', 'joao@fithub.pt', 'joaosilva', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'trainer', '+351 911 222 333', 'assets/images/trainers/joao.jpg', 1),
+(2, 'Maria Santos', 'maria@fithub.pt', 'mariasantos', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'trainer', '+351 912 333 444', 'assets/images/trainers/maria.jpg', 1),
+(3, 'Carlos Mendes', 'carlos@fithub.pt', 'carlosmendes', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'trainer', '+351 913 444 555', 'assets/images/trainers/carlos.jpg', 1),
+(4, 'Ana Pereira', 'ana@fithub.pt', 'anapereira', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'trainer', '+351 914 555 666', 'assets/images/trainers/ana.jpg', 0);
 
 -- Inserir Perfis de Treinadores
 INSERT INTO trainer_profiles (user_id, bio, certifications) VALUES
@@ -191,10 +192,10 @@ INSERT INTO trainer_specializations (trainer_id, specialization) VALUES
 (4, 'personal');
 
 -- Inserir Staff
-INSERT INTO users (id, name, email, password_hash, role, phone, avatar, is_active) VALUES
-(5, 'Rita Oliveira', 'rita@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'staff', '+351 921 111 222', 'assets/images/staff/rita.jpg', 1),
-(6, 'Paulo Costa', 'paulo@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'staff', '+351 922 222 333', 'assets/images/staff/paulo.jpg', 1),
-(7, 'Teresa Sousa', 'teresa@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'staff', '+351 923 333 444', 'assets/images/staff/teresa.jpg', 1);
+INSERT INTO users (id, name, email, username, password_hash, role, phone, avatar, is_active) VALUES
+(5, 'Rita Oliveira', 'rita@fithub.pt', 'ritaoliveira', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'staff', '+351 921 111 222', 'assets/images/staff/rita.jpg', 1),
+(6, 'Paulo Costa', 'paulo@fithub.pt', 'paulocosta', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'staff', '+351 922 222 333', 'assets/images/staff/paulo.jpg', 1),
+(7, 'Teresa Sousa', 'teresa@fithub.pt', 'teresasousa', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'staff', '+351 923 333 444', 'assets/images/staff/teresa.jpg', 1);
 
 -- Inserir Perfis de Staff
 INSERT INTO staff_profiles (user_id, position, department) VALUES
@@ -203,16 +204,16 @@ INSERT INTO staff_profiles (user_id, position, department) VALUES
 (7, 'hygiene-assistant', 'operations');
 
 -- Inserir Administrador
-INSERT INTO users (id, name, email, password_hash, role, phone, is_active) VALUES
-(8, 'Administrador FitHub', 'admin@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'admin', '+351 900 000 000', 1);
+INSERT INTO users (id, name, email, username, password_hash, role, phone, is_active) VALUES
+(8, 'Administrador FitHub', 'admin@fithub.pt', 'admin', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'admin', '+351 900 000 000', 1);
 
 -- Inserir Membro Aluno Piloto e mais 4 membros fictícios
-INSERT INTO users (id, name, email, password_hash, role, phone, is_active) VALUES
-(9, 'Aluno Piloto', 'aluno@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 931 111 222', 1),
-(10, 'Bernardo Silva', 'bernardo@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 932 222 333', 1),
-(11, 'Diana Costa', 'diana@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 933 333 444', 1),
-(12, 'Eduardo Santos', 'eduardo@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 934 444 555', 1),
-(13, 'Filipa Martins', 'filipa@fithub.pt', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 935 555 666', 1);
+INSERT INTO users (id, name, email, username, password_hash, role, phone, is_active) VALUES
+(9, 'Aluno Piloto', 'aluno@fithub.pt', 'alunopiloto', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 931 111 222', 1),
+(10, 'Bernardo Silva', 'bernardo@fithub.pt', 'bernardosilva', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 932 222 333', 1),
+(11, 'Diana Costa', 'diana@fithub.pt', 'dianacosta', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 933 333 444', 1),
+(12, 'Eduardo Santos', 'eduardo@fithub.pt', 'eduardosantos', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 934 444 555', 1),
+(13, 'Filipa Martins', 'filipa@fithub.pt', 'filipamartins', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'member', '+351 935 555 666', 1);
 
 -- Inserir Equipamentos
 INSERT INTO equipment (id, name, category, status, description) VALUES

@@ -3,7 +3,7 @@
  * pages/trainers.php
  *
  * Página dinâmica que exibe todos os treinadores do ginásio com suas especialidades,
- * certificações e aulas que ministram.
+ * certificações e aulas.
  * 
  * Ligada à base de dados SQLite (FitHub).
  */
@@ -24,7 +24,6 @@ require_once BASE_PATH . '/database/connection.php';
 try {
     $db = get_db();
     
-    // Fetch all active trainers with their profile data
     $stmtTrainers = $db->prepare("
         SELECT 
             u.id,
@@ -48,7 +47,6 @@ try {
 ?>
 
 <main>
-    <!-- Page Header -->
     <section class="page-header page-header--trainers">
         <div class="container">
             <h1>Nossos Treinadores</h1>
@@ -58,7 +56,6 @@ try {
 
     <?php render_flash(); ?>
 
-    <!-- Trainers List Section -->
     <section class="trainers-section">
         <div class="container">
             
@@ -75,12 +72,14 @@ try {
                     <?php foreach ($trainers as $trainer): 
                         $trainer_id = $trainer['id'];
                         $trainer_name = h($trainer['name']);
-                        $trainer_avatar = $trainer['avatar'] ? h($trainer['avatar']) : 'assets/images/placeholder-avatar.jpg';
+                        $avatar_path = $trainer['avatar'] ? BASE_PATH . '/' . $trainer['avatar'] : '';
+                        $trainer_avatar = ($trainer['avatar'] && file_exists($avatar_path)) 
+                            ? h(BASE_URL_PATH . $trainer['avatar']) 
+                            : BASE_URL_PATH . 'assets/images/avatars/profile-placeholder.png';
                         $trainer_bio = $trainer['bio'] ? h($trainer['bio']) : '';
                         $trainer_certifications = $trainer['certifications'] ? h($trainer['certifications']) : '';
                         $trainer_phone = $trainer['phone'] ? h($trainer['phone']) : '';
                         
-                        // Fetch specializations for this trainer
                         try {
                             $stmtSpecializations = $db->prepare("
                                 SELECT specialization 
@@ -93,23 +92,8 @@ try {
                         } catch (Throwable $e) {
                             $specializations = [];
                         }
-                        
-                        // Fetch classes taught by this trainer
-                        try {
-                            $stmtClasses = $db->prepare("
-                                SELECT id, name, scheduled_at 
-                                FROM classes 
-                                WHERE instructor_id = ? 
-                                ORDER BY name ASC
-                            ");
-                            $stmtClasses->execute([$trainer_id]);
-                            $classes = $stmtClasses->fetchAll();
-                        } catch (Throwable $e) {
-                            $classes = [];
-                        }
                     ?>
                         <article class="trainer-card">
-                            <!-- Trainer Avatar -->
                             <div class="trainer-avatar-wrapper">
                                 <img 
                                     src="<?= $trainer_avatar ?>" 
@@ -119,7 +103,6 @@ try {
                                 >
                             </div>
                             
-                            <!-- Trainer Info -->
                             <div class="trainer-content">
                                 <h2 class="trainer-name"><?= $trainer_name ?></h2>
                                 
@@ -127,7 +110,6 @@ try {
                                     <p class="trainer-bio"><?= $trainer_bio ?></p>
                                 <?php endif; ?>
                                 
-                                <!-- Certifications -->
                                 <?php if ($trainer_certifications): ?>
                                     <div class="trainer-certifications">
                                         <h3 class="trainer-section-title">Certificações</h3>
@@ -135,7 +117,6 @@ try {
                                     </div>
                                 <?php endif; ?>
                                 
-                                <!-- Specializations -->
                                 <?php if (!empty($specializations)): ?>
                                     <div class="trainer-specializations">
                                         <h3 class="trainer-section-title">Especializações</h3>
@@ -149,26 +130,6 @@ try {
                                     </div>
                                 <?php endif; ?>
                                 
-                                <!-- Classes Taught -->
-                                <?php if (!empty($classes)): ?>
-                                    <div class="trainer-classes">
-                                        <h3 class="trainer-section-title">Aulas Ministradas</h3>
-                                        <ul class="class-list">
-                                            <?php foreach ($classes as $class): ?>
-                                                <li class="class-item">
-                                                    <span class="class-name"><?= h($class['name']) ?></span>
-                                                    <?php if ($class['scheduled_at']): ?>
-                                                        <span class="class-date">
-                                                            (<?= date('d/m/Y H:i', strtotime($class['scheduled_at'])) ?>)
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </li>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                    </div>
-                                <?php endif; ?>
-                                
-                                <!-- Contact Info -->
                                 <?php if ($trainer_phone): ?>
                                     <div class="trainer-contact">
                                         <p><strong>Contacto:</strong> <?= $trainer_phone ?></p>

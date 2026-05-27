@@ -21,14 +21,12 @@ csrf_protect();
 try {
     $db = get_db();
 
-    // 1. Recolher e sanitizar inputs
     $name             = trim($_POST['name'] ?? '');
     $email            = trim($_POST['email'] ?? '');
     $phone            = trim($_POST['phone'] ?? '');
     $password         = $_POST['password'] ?? '';
     $password_confirm = $_POST['password-confirm'] ?? '';
 
-    // Validações
     if ($name === '' || $email === '' || $password === '') {
         set_flash('Por favor, preencha todos os campos obrigatórios.', 'error');
         redirect('/pages/register.php');
@@ -49,7 +47,6 @@ try {
         redirect('/pages/register.php');
     }
 
-    // Verificar se o email já existe
     $stmtCheck = $db->prepare("SELECT id FROM users WHERE email = ?");
     $stmtCheck->execute([$email]);
     if ($stmtCheck->fetch()) {
@@ -57,13 +54,31 @@ try {
         redirect('/pages/register.php');
     }
 
-    // 2. Encriptar password e efetuar o INSERT
+    // Gerar um username padrão único a partir do nome
+    $base_username = strtolower(str_replace(' ', '', $name));
+    $base_username = preg_replace('/[^a-z0-9]/', '', $base_username); // manter apenas letras e números
+    if (strlen($base_username) === 0) {
+        $base_username = 'user';
+    }
+    $username = $base_username;
+    $count = 0;
+    
+    $stmtCheckUsername = $db->prepare("SELECT id FROM users WHERE username = ?");
+    while (true) {
+        $stmtCheckUsername->execute([$username]);
+        if (!$stmtCheckUsername->fetch()) {
+            break;
+        }
+        $count++;
+        $username = $base_username . $count;
+    }
+
     $password_hash = password_hash($password, PASSWORD_BCRYPT);
     $stmtInsert = $db->prepare("
-        INSERT INTO users (name, email, password_hash, role, phone, is_active)
-        VALUES (?, ?, ?, 'member', ?, 1)
+        INSERT INTO users (name, email, username, password_hash, role, phone, is_active)
+        VALUES (?, ?, ?, ?, 'member', ?, 1)
     ");
-    $stmtInsert->execute([$name, $email, $password_hash, $phone]);
+    $stmtInsert->execute([$name, $email, $username, $password_hash, $phone]);
 
     set_flash('Conta criada com sucesso! Já pode iniciar a sua sessão.', 'success');
     redirect('/pages/login.php');

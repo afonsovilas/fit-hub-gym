@@ -104,13 +104,13 @@ try {
                 <aside class="profile-sidebar">
                     <div class="profile-card">
                         <div class="profile-header">
-                            <img src="<?= h($user['avatar'] ?? '../assets/images/profile-placeholder.png') ?>" 
-                                 alt="Foto de perfil de <?= h($user['name']) ?>" 
-                                 class="profile-photo"
-                                 onerror="this.src='../assets/images/profile-placeholder.png';">
+                             <img src="<?= $user['avatar'] ? h(BASE_URL_PATH . $user['avatar']) : '../assets/images/avatars/profile-placeholder.png' ?>" 
+                                  alt="Foto de perfil de <?= h($user['name']) ?>" 
+                                  class="profile-photo"
+                                  onerror="this.src='../assets/images/avatars/profile-placeholder.png';">
                             <div class="profile-info">
                                 <h2 class="profile-name"><?= h($user['name']) ?></h2>
-                                <p class="profile-username">@<?= h(strtolower(str_replace(' ', '', $user['name']))) ?></p>
+                                <p class="profile-username">@<?= h($user['username'] ?? strtolower(str_replace(' ', '', $user['name']))) ?></p>
                             </div>
                         </div>
                         <div class="profile-details">
@@ -140,7 +140,7 @@ try {
                             <h3>Editar Perfil (Base de Dados)</h3>
                             <button type="button" class="btn btn-primary btn-small" id="edit-profile-btn">Editar</button>
                         </div>
-                        <form class="profile-form" id="profile-form" method="POST" action="../actions/update_profile.php">
+                        <form class="profile-form" id="profile-form" method="POST" action="../actions/update_profile.php" enctype="multipart/form-data">
                             <?= get_csrf_input() ?>
                             <div class="form-row">
                                 <div class="form-group">
@@ -148,8 +148,8 @@ try {
                                     <input type="text" id="full-name" name="full-name" value="<?= h($user['name']) ?>" disabled required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="username">Nome de Utilizador (estático):</label>
-                                    <input type="text" id="username" name="username" value="<?= h(strtolower(str_replace(' ', '', $user['name']))) ?>" disabled required>
+                                    <label for="username">Nome de Utilizador:</label>
+                                    <input type="text" id="username" name="username" value="<?= h($user['username'] ?? '') ?>" disabled required>
                                 </div>
                             </div>
 
@@ -172,6 +172,12 @@ try {
                             <div class="form-group">
                                 <label for="password-confirm">Confirmar Senha:</label>
                                 <input type="password" id="password-confirm" name="password-confirm" placeholder="••••••••" disabled>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label for="avatar">Foto de Perfil (Avatar):</label>
+                                <input type="file" id="avatar" name="avatar" accept="image/*" disabled style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;">
+                                <small class="form-hint" style="color: #94a3b8; font-size: 0.8em; margin-top: 4px; display: block;">Envie uma imagem JPG, PNG ou GIF de até 2MB.</small>
                             </div>
 
                             <div class="form-actions">
@@ -224,7 +230,6 @@ try {
                         <?php endif; ?>
                     </div>
 
-                    <!-- Class History and Review Section -->
                     <div class="profile-section">
                         <h3>Histórico de Aulas</h3>
                         <p class="section-description">Deixe a sua opinião sobre as aulas que frequentou:</p>
@@ -239,7 +244,6 @@ try {
                                     $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
                                     $dia_extenso = $dias_semana[date('w', $timestamp)];
                                     
-                                    // Check if user has already reviewed this class
                                     $hasReview = isset($reviews[$class_id]);
                                 ?>
                                     <article class="past-class-card">
@@ -257,7 +261,6 @@ try {
                                         </div>
 
                                         <?php if ($hasReview): ?>
-                                            <!-- Display Existing Review -->
                                             <div class="review-display">
                                                 <div class="review-rating">
                                                     <span class="review-stars">
@@ -272,7 +275,6 @@ try {
                                                 </div>
                                             </div>
                                         <?php else: ?>
-                                            <!-- Review Form for Past Classes -->
                                             <form method="POST" action="../actions/submit_review.php" class="review-form">
                                                 <?= get_csrf_input() ?>
                                                 <input type="hidden" name="class_id" value="<?= $class_id ?>">

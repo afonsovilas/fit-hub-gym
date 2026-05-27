@@ -25,7 +25,7 @@ A estrutura da página admin-staff.html tem um design ligeiramente diferente, pr
 **All users:**
 - [x] Register a new account.
 - [x] Log in and out.
-- [ ] Edit their profile, including name, username, password, and profile photo.
+- [x] Edit their profile, including name, username, password, and profile photo.
 
 **Members:**
 - [x] Browse the schedule of available fitness classes, filtering by type, trainer, day, or time.
