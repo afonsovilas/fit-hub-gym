@@ -97,6 +97,11 @@ try {
             json_response(false, 'Utilizador não encontrado.');
         }
 
+        if ($user_id === (int) $_SESSION['user_id']) {
+            http_response_code(400);
+            json_response(false, 'Não é permitido desativar a sua própria conta de administrador!');
+        }
+
         $new_status = $user['is_active'] ? 0 : 1;
         
         $stmt = $db->prepare("UPDATE users SET is_active = ? WHERE id = ?");

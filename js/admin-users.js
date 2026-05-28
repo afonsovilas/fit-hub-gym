@@ -1,55 +1,221 @@
 /**
  * js/admin-users.js
  *
- * Admin User Management - Frontend Logic
+ * Admin User Dashboard Refactoring - Frontend Logic
  * Handles:
- * - Create/Edit user form visibility and submission
- * - AJAX actions: toggle_status, make_admin
- * - Dynamic UI updates based on responses
+ * - Client-side dynamic tab filtering (Todos, Membros, Treinadores, Staff, Admins)
+ * - Dynamic Form Panel toggling based on chosen user role
+ * - Form populating from metadata data-attributes during edits inside Modal
+ * - Modal display, close controls, and overlay backdrop clicks
+ * - Locking of Role dropdown during creations with submit override
+ * - AJAX security actions (status toggle, make admin) with CSRF validation
  */
 
 document.addEventListener('DOMContentLoaded', function() {
     const btnCreateUser = document.getElementById('btn-create-user');
     const btnCancelForm = document.getElementById('btn-cancel-form');
+    const btnCloseModal = document.getElementById('btn-close-modal');
     const userForm = document.getElementById('user-form');
-    const formSection = document.getElementById('user-form-section');
+    const userModal = document.getElementById('user-modal');
     const formTitle = document.getElementById('form-title');
     const formUserId = document.getElementById('form-user-id');
     const formPassword = document.getElementById('form-password');
     const passwordNote = document.getElementById('password-note');
+    const selectRole = document.getElementById('form-role');
+
+    // Active Tab tracking (All by default)
+    let currentActiveRole = 'all';
+
+    // Dynamic Panels
+    const trainerPanel = document.getElementById('trainer-fields-panel');
+    const staffPanel = document.getElementById('staff-fields-panel');
+
+    // Inputs inside panels
+    const inputPosition = document.getElementById('form-position');
+    const inputDepartment = document.getElementById('form-department');
 
     // CSRF Token from DOM
     const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
 
     // ──────────────────────────────────────────────────────────────────────
-    // Form Management (Defensive check to prevent errors if elements not present)
+    // Dynamic Role Form Toggle
     // ──────────────────────────────────────────────────────────────────────
 
-    if (btnCreateUser && btnCancelForm && userForm && formSection) {
+    if (selectRole) {
+        selectRole.addEventListener('change', function() {
+            toggleRolePanels(this.value);
+        });
+    }
+
+    // Real-time Username Formatting (convert spaces to underscores and strip invalid chars)
+    const inputUsername = document.getElementById('form-username');
+    if (inputUsername) {
+        inputUsername.addEventListener('input', function() {
+            let val = this.value;
+            // Replace spaces with underscores
+            val = val.replace(/\s+/g, '_');
+            // Remove any character that is not a-zA-Z0-9_
+            val = val.replace(/[^a-zA-Z0-9_]/g, '');
+            this.value = val;
+        });
+    }
+
+    /**
+     * Toggles visibility and required validation of role-specific panels
+     */
+    function toggleRolePanels(role) {
+        if (!trainerPanel || !staffPanel) return;
+
+        if (role === 'trainer') {
+            trainerPanel.style.display = 'block';
+            staffPanel.style.display = 'none';
+
+            // Disable staff validation
+            if (inputPosition) inputPosition.required = false;
+            if (inputDepartment) inputDepartment.required = false;
+        } else if (role === 'staff') {
+            trainerPanel.style.display = 'none';
+            staffPanel.style.display = 'block';
+
+            // Enable staff validation
+            if (inputPosition) inputPosition.required = true;
+            if (inputDepartment) inputDepartment.required = true;
+        } else {
+            // Member or Admin
+            trainerPanel.style.display = 'none';
+            staffPanel.style.display = 'none';
+
+            if (inputPosition) inputPosition.required = false;
+            if (inputDepartment) inputDepartment.required = false;
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Form & Modal Management
+    // ──────────────────────────────────────────────────────────────────────
+
+    if (btnCreateUser && btnCancelForm && userForm && userModal) {
+        // Show form for creating a new user (opens Modal)
         btnCreateUser.addEventListener('click', function() {
             resetForm();
             formUserId.value = '';
-            formTitle.textContent = 'Novo Utilizador';
+
+            const roleNames = {
+                'member': 'Membro',
+                'trainer': 'Treinador',
+                'staff': 'Pessoal',
+                'admin': 'Administrador'
+            };
+
+            // Context-Aware Preselection and Dynamic Panel Display
+            if (currentActiveRole !== 'all') {
+                if (selectRole) {
+                    selectRole.value = currentActiveRole;
+                    selectRole.disabled = true; // Lock dropdown when adding contextually
+                }
+                toggleRolePanels(currentActiveRole);
+
+                const roleName = roleNames[currentActiveRole] || 'Utilizador';
+                if (formTitle) formTitle.textContent = `Novo ${roleName}`;
+            } else {
+                if (selectRole) {
+                    selectRole.disabled = false; // general default
+                }
+                toggleRolePanels('');
+                if (formTitle) formTitle.textContent = 'Novo Utilizador';
+            }
+
             if (passwordNote) passwordNote.textContent = '(obrigatória para novos)';
             if (formPassword) formPassword.required = true;
-            formSection.style.display = 'block';
-            formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            userModal.style.display = 'flex';
         });
 
+        // Hide Modal (Cancel button click)
         btnCancelForm.addEventListener('click', function() {
-            formSection.style.display = 'none';
+            userModal.style.display = 'none';
             resetForm();
+        });
+
+        // Hide Modal (Close &times; click)
+        if (btnCloseModal) {
+            btnCloseModal.addEventListener('click', function() {
+                userModal.style.display = 'none';
+                resetForm();
+            });
+        }
+
+        // Hide Modal when clicking on the outside blurred overlay background
+        userModal.addEventListener('click', function(event) {
+            if (event.target === userModal) {
+                userModal.style.display = 'none';
+                resetForm();
+            }
+        });
+
+        // Ensure disabled select elements are submitted in the POST request!
+        userForm.addEventListener('submit', function() {
+            if (selectRole) {
+                selectRole.disabled = false; // Temporarily enable before submit so POST receives the value!
+            }
         });
     }
 
     // Edit user - populate form with existing data
     document.querySelectorAll('.btn-edit').forEach(btn => {
-        if (btn.closest('.admin-users-table')) {
-            btn.addEventListener('click', function() {
-                const userId = this.dataset.userId;
-                editUser(userId);
+        btn.addEventListener('click', function() {
+            populateEditForm(this);
+        });
+    });
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Client-Side Tab Filtering & Dynamic Add Button Adaptability
+    // ──────────────────────────────────────────────────────────────────────
+
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const roleFilter = this.getAttribute('data-tab'); // e.g. "all", "member", "trainer", etc.
+            currentActiveRole = roleFilter;
+
+            // Reset active classes on tabs
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
             });
-        }
+
+            // Set current tab active
+            this.classList.add('active');
+            this.setAttribute('aria-selected', 'true');
+
+            // Toggle Button visibility and customize text contextually
+            if (roleFilter === 'all') {
+                if (btnCreateUser) btnCreateUser.style.display = 'none';
+            } else {
+                if (btnCreateUser) {
+                    btnCreateUser.style.display = 'inline-flex';
+                    
+                    const roleNames = {
+                        'member': 'Membro',
+                        'trainer': 'Treinador',
+                        'staff': 'Pessoal',
+                        'admin': 'Administrador'
+                    };
+                    const roleName = roleNames[roleFilter] || 'Utilizador';
+                    btnCreateUser.innerHTML = `➕ Adicionar ${roleName}`;
+                }
+            }
+
+            // Filter rows instantly in the DOM
+            document.querySelectorAll('.user-row').forEach(row => {
+                const rowRole = row.getAttribute('data-user-role');
+                if (roleFilter === 'all' || rowRole === roleFilter) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
     });
 
     // ──────────────────────────────────────────────────────────────────────
@@ -65,20 +231,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Make user admin
-    document.querySelectorAll('.btn-make-admin').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userId = this.dataset.userId;
-            makeUserAdmin(userId);
-        });
-    });
+
 
     // ──────────────────────────────────────────────────────────────────────
     // Helper Functions
     // ──────────────────────────────────────────────────────────────────────
 
     /**
-     * Reset form to empty state
+     * Reset form fields to clean state
      */
     function resetForm() {
         if (userForm) {
@@ -86,67 +246,76 @@ document.addEventListener('DOMContentLoaded', function() {
             if (formUserId) formUserId.value = '';
             if (formPassword) formPassword.required = true;
             if (passwordNote) passwordNote.textContent = '(obrigatória para novos)';
+            
+            // Uncheck trainer specializations checkboxes
+            document.querySelectorAll('#trainer-fields-panel input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
         }
     }
 
     /**
-     * Load user data and populate form for editing
+     * Populate the unified form inside Modal during edits using data attributes
      */
-    async function editUser(userId) {
-        try {
-            // Get the row element to extract data
-            const row = document.querySelector(`tr[data-user-id="${userId}"]`);
-            if (!row) {
-                showToast('Erro ao carregar dados do utilizador.', 'error');
-                return;
-            }
+    function populateEditForm(button) {
+        if (!userForm || !userModal) return;
 
-            // Extract data from table cells
-            const name = row.querySelector('.col-name').textContent.trim();
-            const email = row.querySelector('.col-email').textContent.trim();
-            const username = row.querySelector('.col-username').textContent.trim();
-            const roleBadge = row.querySelector('.col-role .role-badge');
-            const roleText = roleBadge ? roleBadge.textContent.trim() : 'Membro';
+        resetForm();
 
-            // Map role text back to value
-            const roleMap = {
-                'Membro': 'member',
-                'Treinador': 'trainer',
-                'Pessoal': 'staff',
-                'Administrador': 'admin',
-            };
+        const userId = button.dataset.userId;
+        const name = button.dataset.name;
+        const email = button.dataset.email;
+        const username = button.dataset.username;
+        const role = button.dataset.role;
+        const phone = button.dataset.phone;
 
-            const role = roleMap[roleText] || 'member';
-
-            // Populate form
-            if (formUserId) formUserId.value = userId;
-            const inputName = document.getElementById('form-name');
-            const inputEmail = document.getElementById('form-email');
-            const inputUsername = document.getElementById('form-username');
-            const selectRole = document.getElementById('form-role');
-            const inputPassword = document.getElementById('form-password');
-
-            if (inputName) inputName.value = name;
-            if (inputEmail) inputEmail.value = email;
-            if (inputUsername) inputUsername.value = username;
-            if (selectRole) selectRole.value = role;
-            if (inputPassword) inputPassword.value = '';
-
-            // Update form UI for edit mode
-            if (formTitle) formTitle.textContent = `Editar: ${name}`;
-            if (passwordNote) passwordNote.textContent = '(deixar em branco para não alterar)';
-            if (formPassword) formPassword.required = false;
-
-            // Show form
-            if (formSection) {
-                formSection.style.display = 'block';
-                formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-
-        } catch (error) {
-            console.error('Erro ao editar utilizador:', error);
-            showToast('Erro ao carregar dados do utilizador.', 'error');
+        // Populate basic info
+        formUserId.value = userId;
+        document.getElementById('form-name').value = name;
+        document.getElementById('form-email').value = email;
+        document.getElementById('form-username').value = username;
+        document.getElementById('form-phone').value = phone;
+        selectRole.value = role;
+        if (selectRole) {
+            selectRole.disabled = false; // Always make sure it is enabled/unlocked when editing!
         }
+
+        // Password is not required when editing
+        if (formPassword) {
+            formPassword.value = '';
+            formPassword.required = false;
+        }
+        if (passwordNote) {
+            passwordNote.textContent = '(deixar em branco para não alterar)';
+        }
+
+        if (formTitle) {
+            formTitle.textContent = `Editar: ${name}`;
+        }
+
+        // Toggle dynamic sub-panels
+        toggleRolePanels(role);
+
+        // Populate role-specific info
+        if (role === 'trainer') {
+            document.getElementById('form-bio').value = button.dataset.bio || '';
+            document.getElementById('form-certifications').value = button.dataset.certifications || '';
+
+            // Check checkboxes
+            const rawSpecs = button.dataset.specializations || '';
+            const specsArray = rawSpecs.split('/').map(s => s.trim().toLowerCase());
+
+            document.querySelectorAll('#trainer-fields-panel input[type="checkbox"]').forEach(cb => {
+                cb.checked = specsArray.includes(cb.value.toLowerCase());
+            });
+
+        } else if (role === 'staff') {
+            if (inputPosition) inputPosition.value = button.dataset.position || '';
+            if (inputDepartment) inputDepartment.value = button.dataset.department || '';
+        }
+
+        // Display Modal
+        userModal.style.display = 'flex';
     }
 
     /**
@@ -178,12 +347,10 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (data.success) {
-                // Update button text and data attribute
                 const newStatus = data.new_status;
                 button.dataset.currentStatus = newStatus;
                 button.textContent = newStatus ? '🔒 Desativar' : '🔓 Ativar';
 
-                // Update status badge in Users tab
                 const statusBadge = document.getElementById(`status-${userId}`);
                 if (statusBadge) {
                     statusBadge.textContent = data.status_text;
@@ -201,66 +368,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /**
-     * Promote user to admin via AJAX
-     */
-    function makeUserAdmin(userId) {
-        if (!confirm('Tem a certeza que deseja promover este utilizador a administrador?')) {
-            return;
-        }
 
-        const formData = new FormData();
-        formData.append('action', 'make_admin');
-        formData.append('user_id', userId);
-        if (csrfToken) {
-            formData.append('csrf_token', csrfToken);
-        }
-
-        const button = document.querySelector(`button[data-user-id="${userId}"].btn-make-admin`);
-
-        fetch('../../api/api_admin_actions.php', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Update role badge in Users tab
-                const row = document.querySelector(`tr[data-user-id="${userId}"]`);
-                if (row) {
-                    const roleBadge = row.querySelector('.col-role .role-badge');
-                    if (roleBadge) {
-                        roleBadge.textContent = data.role_text;
-                        roleBadge.className = 'role-badge role-admin';
-                    }
-
-                    // Hide the "Make Admin" button
-                    if (button) {
-                        button.style.display = 'none';
-                    }
-                }
-
-                showToast(data.message, 'success');
-            } else {
-                showToast(data.message || 'Erro ao promover utilizador.', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Erro na requisição:', error);
-            showToast('Erro ao conectar com o servidor.', 'error');
-        });
-    }
 
     /**
      * Show toast notification
      */
     function showToast(message, type = 'info') {
-        // Create toast element
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.textContent = message;
@@ -280,7 +393,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.body.appendChild(toast);
 
-        // Auto remove after 3 seconds
         setTimeout(() => {
             toast.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => toast.remove(), 300);
@@ -288,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Toast animations (add to document if not already present)
+// Toast animations
 if (!document.querySelector('style[data-toasts]')) {
     const style = document.createElement('style');
     style.setAttribute('data-toasts', '');

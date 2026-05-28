@@ -2,9 +2,9 @@
 /**
  * actions/save_user.php
  *
- * Cria ou atualiza um utilizador na base de dados (Administração).
- * Suporta membros, treinadores, staff e administradores.
- * Protegido por CSRF e verificação de permissões admin.
+ * Processador unificado para criação ou atualização de qualquer utilizador (Membro, Treinador, Staff, Admin).
+ * Gere dados gerais e dados específicos de perfis no SQLite.
+ * Segurança: Autenticação obrigatória, apenas Administradores, proteção CSRF e validações estritas.
  */
 
 declare(strict_types=1);
@@ -29,26 +29,36 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION[
 try {
     $db = get_db();
 
+    // Dados gerais
     $user_id  = isset($_POST['user_id']) && $_POST['user_id'] !== '' ? (int) $_POST['user_id'] : 0;
     $name     = trim($_POST['name'] ?? '');
     $email    = trim($_POST['email'] ?? '');
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     $role     = trim($_POST['role'] ?? '');
+    $phone    = trim($_POST['phone'] ?? '');
 
-    // Validações de campos obrigatórios
+    // Dados de Treinador
+    $bio            = trim($_POST['bio'] ?? '');
+    $certifications = trim($_POST['certifications'] ?? '');
+    $specs          = $_POST['specializations'] ?? [];
+
+    // Dados de Staff
+    $position   = trim($_POST['position'] ?? '');
+    $department = trim($_POST['department'] ?? '');
+
+    // Validações gerais básicas
     if ($name === '' || $email === '' || $username === '' || $role === '') {
         set_flash('Por favor, preencha todos os campos obrigatórios (*).', 'error');
         redirect('/pages/admin/staff.php');
     }
 
-    // Validar formato de email
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         set_flash('O endereço de email introduzido não é válido.', 'error');
         redirect('/pages/admin/staff.php');
     }
 
-    // Validar o formato do username (letras, números e sublinhados apenas)
+    // Validar username (letras, números e sublinhados)
     $clean_username = preg_replace('/[^a-zA-Z0-9_]/', '', $username);
     if ($username !== $clean_username) {
         set_flash('O nome de utilizador apenas pode conter letras, números e sublinhados (_).', 'error');
@@ -62,14 +72,22 @@ try {
         redirect('/pages/admin/staff.php');
     }
 
+    // Validações de campos obrigatórios específicas por role
+    if ($role === 'staff') {
+        if ($position === '' || $department === '') {
+            set_flash('Para o Pessoal (Staff), a posição e o departamento são obrigatórios.', 'error');
+            redirect('/pages/admin/staff.php');
+        }
+    }
+
     $db->beginTransaction();
 
     if ($user_id <= 0) {
         // ──────────────────────────────────────────────────────────────────────
         // MODO: CRIAR NOVO UTILIZADOR
         // ──────────────────────────────────────────────────────────────────────
-        
-        // Password é obrigatória ao criar
+
+        // Password é obrigatória
         if ($password === '') {
             set_flash('A palavra-passe é obrigatória para novos utilizadores.', 'error');
             $db->rollBack();
@@ -86,7 +104,7 @@ try {
         $stmtCheckEmail = $db->prepare("SELECT id FROM users WHERE email = ?");
         $stmtCheckEmail->execute([$email]);
         if ($stmtCheckEmail->fetch()) {
-            set_flash('Este email já se encontra em uso.', 'error');
+            set_flash('Este email já se encontra registado por outra conta.', 'error');
             $db->rollBack();
             redirect('/pages/admin/staff.php');
         }
@@ -95,7 +113,7 @@ try {
         $stmtCheckUser = $db->prepare("SELECT id FROM users WHERE username = ?");
         $stmtCheckUser->execute([$username]);
         if ($stmtCheckUser->fetch()) {
-            set_flash('Este nome de utilizador já se encontra em uso.', 'error');
+            set_flash('Este nome de utilizador já se encontra registado por outra conta.', 'error');
             $db->rollBack();
             redirect('/pages/admin/staff.php');
         }
@@ -103,22 +121,32 @@ try {
         $password_hash = password_hash($password, PASSWORD_BCRYPT);
         
         $stmtInsert = $db->prepare("
-            INSERT INTO users (name, email, username, password_hash, role, is_active)
-            VALUES (?, ?, ?, ?, ?, 1)
+            INSERT INTO users (name, email, username, password_hash, role, phone, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, 1)
         ");
-        $stmtInsert->execute([$name, $email, $username, $password_hash, $role]);
+        $stmtInsert->execute([$name, $email, $username, $password_hash, $role, $phone]);
         $new_id = (int) $db->lastInsertId();
 
-        // Criar perfis associados se necessário
+        // Guardar dados específicos de perfil do novo utilizador
         if ($role === 'trainer') {
-            $stmtProfile = $db->prepare("INSERT INTO trainer_profiles (user_id, bio, certifications) VALUES (?, '', '')");
-            $stmtProfile->execute([$new_id]);
+            // Perfil do treinador
+            $stmtProfile = $db->prepare("INSERT INTO trainer_profiles (user_id, bio, certifications) VALUES (?, ?, ?)");
+            $stmtProfile->execute([$new_id, $bio, $certifications]);
+
+            // Especializações
+            if (!empty($specs) && is_array($specs)) {
+                $stmtSpec = $db->prepare("INSERT INTO trainer_specializations (trainer_id, specialization) VALUES (?, ?)");
+                foreach ($specs as $spec) {
+                    $specClean = trim(strtolower($spec));
+                    if ($specClean !== '') {
+                        $stmtSpec->execute([$new_id, $specClean]);
+                    }
+                }
+            }
         } elseif ($role === 'staff') {
-            $stmtProfile = $db->prepare("
-                INSERT INTO staff_profiles (user_id, position, department) 
-                VALUES (?, 'front-desk-agent', 'member-support')
-            ");
-            $stmtProfile->execute([$new_id]);
+            // Perfil do staff
+            $stmtProfile = $db->prepare("INSERT INTO staff_profiles (user_id, position, department) VALUES (?, ?, ?)");
+            $stmtProfile->execute([$new_id, $position, $department]);
         }
 
         $db->commit();
@@ -134,12 +162,14 @@ try {
         $stmtCheckExist->execute([$user_id]);
         $existing_user = $stmtCheckExist->fetch();
         if (!$existing_user) {
-            set_flash('O utilizador selecionado não existe na base de dados.', 'error');
+            set_flash('O utilizador a editar não existe na base de dados.', 'error');
             $db->rollBack();
             redirect('/pages/admin/staff.php');
         }
 
-        // Verificar email único (excluindo o próprio utilizador)
+        $old_role = $existing_user['role'];
+
+        // Verificar email único
         $stmtCheckEmail = $db->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
         $stmtCheckEmail->execute([$email, $user_id]);
         if ($stmtCheckEmail->fetch()) {
@@ -148,7 +178,7 @@ try {
             redirect('/pages/admin/staff.php');
         }
 
-        // Verificar username único (excluindo o próprio utilizador)
+        // Verificar username único
         $stmtCheckUser = $db->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
         $stmtCheckUser->execute([$username, $user_id]);
         if ($stmtCheckUser->fetch()) {
@@ -160,10 +190,10 @@ try {
         // Atualizar dados gerais do utilizador
         $stmtUpdate = $db->prepare("
             UPDATE users
-            SET name = ?, email = ?, username = ?, role = ?
+            SET name = ?, email = ?, username = ?, role = ?, phone = ?
             WHERE id = ?
         ");
-        $stmtUpdate->execute([$name, $email, $username, $role, $user_id]);
+        $stmtUpdate->execute([$name, $email, $username, $role, $phone, $user_id]);
 
         // Se password foi fornecida, atualizar password_hash
         if ($password !== '') {
@@ -177,23 +207,63 @@ try {
             $stmtUpdatePass->execute([$password_hash, $user_id]);
         }
 
-        // Garantir que perfis correspondentes existem se a role mudou/é trainer ou staff
+        // Limpeza de tabelas antigas se a role mudou
+        if ($old_role !== $role) {
+            if ($old_role === 'trainer') {
+                $db->prepare("DELETE FROM trainer_profiles WHERE user_id = ?")->execute([$user_id]);
+                $db->prepare("DELETE FROM trainer_specializations WHERE trainer_id = ?")->execute([$user_id]);
+            } elseif ($old_role === 'staff') {
+                $db->prepare("DELETE FROM staff_profiles WHERE user_id = ?")->execute([$user_id]);
+            }
+        }
+
+        // Gravar ou atualizar os novos dados específicos do perfil
         if ($role === 'trainer') {
             $stmtCheckProfile = $db->prepare("SELECT 1 FROM trainer_profiles WHERE user_id = ?");
             $stmtCheckProfile->execute([$user_id]);
-            if (!$stmtCheckProfile->fetch()) {
-                $stmtInsertProfile = $db->prepare("INSERT INTO trainer_profiles (user_id, bio, certifications) VALUES (?, '', '')");
-                $stmtInsertProfile->execute([$user_id]);
+            if ($stmtCheckProfile->fetch()) {
+                $stmtUpdateProfile = $db->prepare("
+                    UPDATE trainer_profiles 
+                    SET bio = ?, certifications = ? 
+                    WHERE user_id = ?
+                ");
+                $stmtUpdateProfile->execute([$bio, $certifications, $user_id]);
+            } else {
+                $stmtInsertProfile = $db->prepare("
+                    INSERT INTO trainer_profiles (user_id, bio, certifications) 
+                    VALUES (?, ?, ?)
+                ");
+                $stmtInsertProfile->execute([$user_id, $bio, $certifications]);
             }
+
+            // Atualizar especializações
+            $db->prepare("DELETE FROM trainer_specializations WHERE trainer_id = ?")->execute([$user_id]);
+            if (!empty($specs) && is_array($specs)) {
+                $stmtInsertSpec = $db->prepare("INSERT INTO trainer_specializations (trainer_id, specialization) VALUES (?, ?)");
+                foreach ($specs as $spec) {
+                    $specClean = trim(strtolower($spec));
+                    if ($specClean !== '') {
+                        $stmtInsertSpec->execute([$user_id, $specClean]);
+                    }
+                }
+            }
+
         } elseif ($role === 'staff') {
             $stmtCheckProfile = $db->prepare("SELECT 1 FROM staff_profiles WHERE user_id = ?");
             $stmtCheckProfile->execute([$user_id]);
-            if (!$stmtCheckProfile->fetch()) {
+            if ($stmtCheckProfile->fetch()) {
+                $stmtUpdateProfile = $db->prepare("
+                    UPDATE staff_profiles 
+                    SET position = ?, department = ? 
+                    WHERE user_id = ?
+                ");
+                $stmtUpdateProfile->execute([$position, $department, $user_id]);
+            } else {
                 $stmtInsertProfile = $db->prepare("
                     INSERT INTO staff_profiles (user_id, position, department) 
-                    VALUES (?, 'front-desk-agent', 'member-support')
+                    VALUES (?, ?, ?)
                 ");
-                $stmtInsertProfile->execute([$user_id]);
+                $stmtInsertProfile->execute([$user_id, $position, $department]);
             }
         }
 

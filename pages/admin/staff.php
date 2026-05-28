@@ -2,8 +2,8 @@
 /**
  * pages/admin/staff.php
  *
- * Página de Gestão administrativa de Treinadores e Staff.
- * Integrada com a base de dados SQLite (FitHub).
+ * Painel Administrativo de Gestão de Utilizadores (FitHub).
+ * Vista unificada e dinâmica com filtros client-side e formulário reativo por cargo.
  */
 
 declare(strict_types=1);
@@ -11,7 +11,7 @@ declare(strict_types=1);
 define('BASE_PATH',     dirname(dirname(__DIR__)));
 define('BASE_URL_PATH', '../../');
 
-$page_title  = 'Gestão de Funcionários';
+$page_title  = 'Gestão de Utilizadores';
 $body_class  = 'admin-page';
 $active_page = 'admin';
 
@@ -33,41 +33,24 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 try {
     $db = get_db();
 
-    // Fetch all trainers
-    $stmtTrainers = $db->query("
-        SELECT u.id, u.name, u.email, u.phone, u.is_active, tp.bio, tp.certifications,
-               (SELECT GROUP_CONCAT(specialization, ' / ') FROM trainer_specializations WHERE trainer_id = u.id) AS specializations
+    // Query unificada de alta performance trazendo todos os utilizadores e seus respetivos perfis associados
+    $stmtUsers = $db->query("
+        SELECT u.id, u.name, u.email, u.phone, u.username, u.role, u.is_active, u.created_at,
+               tp.bio, tp.certifications,
+               (SELECT GROUP_CONCAT(specialization, ' / ') FROM trainer_specializations WHERE trainer_id = u.id) AS specializations,
+               sp.position, sp.department
         FROM users u
         LEFT JOIN trainer_profiles tp ON u.id = tp.user_id
-        WHERE u.role = 'trainer'
-        ORDER BY u.name ASC
-    ");
-    $trainers = $stmtTrainers->fetchAll();
-
-    // Fetch all staff
-    $stmtStaff = $db->query("
-        SELECT u.id, u.name, u.email, u.phone, u.is_active, sp.position, sp.department
-        FROM users u
         LEFT JOIN staff_profiles sp ON u.id = sp.user_id
-        WHERE u.role = 'staff'
-        ORDER BY u.name ASC
+        ORDER BY u.created_at DESC
     ");
-    $staffList = $stmtStaff->fetchAll();
-
-    // Fetch all users for management
-    $stmtUsers = $db->prepare("
-        SELECT id, name, email, username, role, is_active, created_at
-        FROM users
-        ORDER BY created_at DESC
-    ");
-    $stmtUsers->execute();
     $users = $stmtUsers->fetchAll();
 
 } catch (Throwable $e) {
     $error = $e->getMessage();
 }
 
-// Helper function to translate role
+// Função auxiliar para tradução de papéis
 function translate_role(string $role): string {
     $roles = [
         'member'  => 'Membro',
@@ -82,8 +65,8 @@ function translate_role(string $role): string {
 <main>
     <section class="page-header page-header--admin">
         <div class="container">
-            <h1>Gestão de Funcionários</h1>
-            <p>Administre treinadores e staff do ginásio FitHub</p>
+            <h1>Gestão de Utilizadores</h1>
+            <p>Administre membros, treinadores, pessoal e administradores da plataforma FitHub</p>
         </div>
     </section>
 
@@ -91,607 +74,300 @@ function translate_role(string $role): string {
         <div class="container">
             <?php render_flash(); ?>
 
-            <div class="admin-tabs" role="tablist" aria-label="Categorias de gestão de equipa">
-                <button type="button" class="tab-button active" data-tab="users" role="tab" id="tab-users" aria-controls="users" aria-selected="true">👥 Utilizadores</button>
-                <button type="button" class="tab-button" data-tab="trainers" role="tab" id="tab-trainers" aria-controls="trainers" aria-selected="false">Treinadores</button>
-                <button type="button" class="tab-button" data-tab="staff" role="tab" id="tab-staff" aria-controls="staff" aria-selected="false">Staff</button>
+            <!-- Separadores de Categoria (Filtro Client-Side instantâneo) -->
+            <div class="admin-tabs" role="tablist" aria-label="Categorias de gestão de utilizadores">
+                <button type="button" class="tab-button active" data-tab="all" role="tab" id="tab-all" aria-selected="true">👥 Todos</button>
+                <button type="button" class="tab-button" data-tab="member" role="tab" id="tab-member" aria-selected="false">👤 Membros</button>
+                <button type="button" class="tab-button" data-tab="trainer" role="tab" id="tab-trainer" aria-selected="false">💪 Treinadores</button>
+                <button type="button" class="tab-button" data-tab="staff" role="tab" id="tab-staff" aria-selected="false">💼 Staff</button>
+                <button type="button" class="tab-button" data-tab="admin" role="tab" id="tab-admin" aria-selected="false">👑 Admins</button>
             </div>
 
             <?php if (isset($error)): ?>
                 <div class="flash flash--error">Erro de base de dados: <?= h($error) ?></div>
             <?php endif; ?>
 
-            <!-- Users Tab -->
-            <div id="users" class="tab-content active" role="tabpanel" aria-labelledby="tab-users">
-                <div class="admin-toolbar">
-                    <button type="button" class="btn btn-primary" id="btn-create-user">➕ Novo Utilizador</button>
-                </div>
+            <!-- Estilos Premium de Acessibilidade para o Modal Escuro -->
+            <style>
+            #user-modal label {
+                color: #cbd5e1 !important; /* light slate */
+                font-weight: 600;
+            }
+            #user-modal h3, #user-modal h2 {
+                color: #38bdf8 !important; /* premium cyan */
+            }
+            #user-modal input, #user-modal select, #user-modal textarea {
+                background-color: #1e293b !important; /* dark slate background */
+                border: 1px solid #334155 !important;
+                color: #ffffff !important;
+                transition: all 0.3s ease;
+            }
+            #user-modal input:focus, #user-modal select:focus, #user-modal textarea:focus {
+                border-color: #38bdf8 !important;
+                box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+                outline: none;
+            }
+            #user-modal input::placeholder {
+                color: #64748b !important;
+            }
+            #user-modal select option {
+                background-color: #0f172a !important; /* keep select dropdown options dark */
+                color: #ffffff !important;
+            }
+            #user-modal .checkbox-group {
+                border: 1px solid #334155 !important;
+                border-radius: 8px !important;
+                padding: 1.25rem !important;
+                background: #1e293b !important;
+                margin-top: 10px !important;
+            }
+            #user-modal .checkbox-group legend {
+                background-color: #38bdf8 !important; /* Inverted background color: premium cyan pill */
+                color: #0f172a !important; /* Deep dark slate text for absolute high contrast */
+                font-weight: bold !important;
+                padding: 4px 12px !important;
+                border-radius: 999px !important;
+                font-size: 0.9em !important;
+                margin-left: 10px !important;
+            }
+            </style>
 
-                <section class="form-section admin-form-section" id="user-form-section" style="display: none;">
-                    <div class="form-card">
-                        <h2 id="form-title">Novo Utilizador</h2>
-                        <form method="POST" class="staff-form admin-form" id="user-form" action="../../actions/save_user.php">
-                            <?= get_csrf_input() ?>
-                            <input type="hidden" name="action" value="save_user">
-                            <input type="hidden" name="user_id" id="form-user-id" value="">
+            <div id="user-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+                <div style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; max-width: 650px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; max-height: 90vh;">
+                    
+                    <!-- Modal Header -->
+                    <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: #0b0f19;">
+                        <h3 id="form-title" style="margin: 0; color: #38bdf8; font-size: 1.4em; font-weight: 700;">Novo Utilizador</h3>
+                        <button type="button" id="btn-close-modal" style="background: none; border: none; color: #94a3b8; font-size: 1.8em; cursor: pointer; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">&times;</button>
+                    </div>
 
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="form-name">Nome Completo *</label>
-                                    <input type="text" id="form-name" name="name" placeholder="Ex: João Silva" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="form-email">Email *</label>
-                                    <input type="email" id="form-email" name="email" placeholder="Ex: joao@fithub.pt" required>
-                                </div>
+                    <!-- Modal Body (Formulário) -->
+                    <form method="POST" class="staff-form admin-form" id="user-form" action="../../actions/save_user.php" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; margin: 0;">
+                        <?= get_csrf_input() ?>
+                        <input type="hidden" name="action" value="save_user">
+                        <input type="hidden" name="user_id" id="form-user-id" value="">
+
+                        <!-- Dados Gerais -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-name">Nome Completo *</label>
+                                <input type="text" id="form-name" name="name" placeholder="Ex: João Silva" required>
                             </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="form-username">Nome de Utilizador *</label>
-                                    <input type="text" id="form-username" name="username" placeholder="Ex: joao_silva" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="form-password">Senha <span id="password-note">(obrigatória para novos)</span> *</label>
-                                    <input type="password" id="form-password" name="password" placeholder="Deixar em branco para não alterar (edições)">
-                                </div>
+                            <div class="form-group">
+                                <label for="form-email">Email *</label>
+                                <input type="email" id="form-email" name="email" placeholder="Ex: joao@fithub.pt" required>
                             </div>
+                        </div>
 
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-username">Nome de Utilizador *</label>
+                                <input type="text" id="form-username" name="username" placeholder="Ex: joao_silva" required>
+                                <small class="form-hint" style="color: #94a3b8; font-size: 0.8em; margin-top: 4px; display: block;">Apenas letras, números e sublinhados (_). Sem espaços.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-password">Senha <span id="password-note">(obrigatória para novos)</span> *</label>
+                                <input type="password" id="form-password" name="password" placeholder="Mínimo 6 caracteres">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-phone">Telefone</label>
+                                <input type="tel" id="form-phone" name="phone" placeholder="Ex: 912345678">
+                            </div>
                             <div class="form-group">
                                 <label for="form-role">Função *</label>
                                 <select id="form-role" name="role" required>
                                     <option value="">-- Selecione uma função --</option>
                                     <option value="member">Membro</option>
                                     <option value="trainer">Treinador</option>
-                                    <option value="staff">Pessoal</option>
+                                    <option value="staff">Pessoal (Staff)</option>
                                     <option value="admin">Administrador</option>
                                 </select>
                             </div>
-
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">Guardar Utilizador</button>
-                                <button type="button" class="btn btn-secondary" id="btn-cancel-form">Cancelar</button>
-                            </div>
-                        </form>
-                    </div>
-                </section>
-
-                <section class="list-section">
-                    <h2>Todos os Utilizadores</h2>
-                    <?php if (empty($users)): ?>
-                        <div class="alert alert--info">
-                            <p>Nenhum utilizador encontrado.</p>
                         </div>
-                    <?php else: ?>
-                        <div class="staff-table-wrapper">
-                            <table class="admin-users-table">
-                                <thead>
-                                    <tr>
-                                        <th>Nome</th>
-                                        <th>Email</th>
-                                        <th>Utilizador</th>
-                                        <th>Função</th>
-                                        <th>Status</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($users as $user):
-                                        $user_id = (int) $user['id'];
-                                        $is_active = (int) $user['is_active'];
-                                        $status_class = $is_active ? 'active' : 'inactive';
-                                        $status_text = $is_active ? 'Ativo' : 'Inativo';
-                                        $role_text = translate_role($user['role']);
-                                    ?>
-                                        <tr class="user-row" data-user-id="<?= $user_id ?>">
-                                            <td class="col-name"><?= h($user['name']) ?></td>
-                                            <td class="col-email"><?= h($user['email']) ?></td>
-                                            <td class="col-username"><?= h($user['username']) ?></td>
-                                            <td class="col-role">
-                                                <span class="role-badge role-<?= strtolower($user['role']) ?>">
-                                                    <?= $role_text ?>
-                                                </span>
-                                            </td>
-                                            <td class="col-status">
-                                                <span class="status-badge status-<?= $status_class ?>" id="status-<?= $user_id ?>">
-                                                    <?= $status_text ?>
-                                                </span>
-                                            </td>
-                                            <td class="col-actions">
-                                                <button type="button" class="btn-action btn-edit" data-user-id="<?= $user_id ?>" title="Editar utilizador">
-                                                    ✏️ Editar
-                                                </button>
+
+                        <div id="trainer-fields-panel" style="display: none; border-top: 1px solid var(--color-border); padding-top: 1.5rem; margin-top: 1rem;">
+                            <h3 style="color: var(--color-primary); margin-bottom: 1rem;">Perfil de Treinador</h3>
+                            
+                            <div class="form-group">
+                                <fieldset class="checkbox-group">
+                                    <legend>Especializações</legend>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 5px;">
+                                        <label class="checkbox-item" for="spec-yoga" style="display: flex; align-items: center; gap: 8px; color: #cbd5e1; cursor: pointer;">
+                                            <input type="checkbox" id="spec-yoga" name="specializations[]" value="yoga">
+                                            <span>Yoga</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-spinning" style="display: flex; align-items: center; gap: 8px; color: #cbd5e1; cursor: pointer;">
+                                            <input type="checkbox" id="spec-spinning" name="specializations[]" value="spinning">
+                                            <span>Spinning</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-hiit" style="display: flex; align-items: center; gap: 8px; color: #cbd5e1; cursor: pointer;">
+                                            <input type="checkbox" id="spec-hiit" name="specializations[]" value="hiit">
+                                            <span>HIIT</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-pilates" style="display: flex; align-items: center; gap: 8px; color: #cbd5e1; cursor: pointer;">
+                                            <input type="checkbox" id="spec-pilates" name="specializations[]" value="pilates">
+                                            <span>Pilates</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-boxing" style="display: flex; align-items: center; gap: 8px; color: #cbd5e1; cursor: pointer;">
+                                            <input type="checkbox" id="spec-boxing" name="specializations[]" value="boxing">
+                                            <span>Boxe</span>
+                                        </label>
+                                        <label class="checkbox-item" for="spec-personal" style="display: flex; align-items: center; gap: 8px; color: #cbd5e1; cursor: pointer;">
+                                            <input type="checkbox" id="spec-personal" name="specializations[]" value="personal">
+                                            <span>Personal Training</span>
+                                        </label>
+                                    </div>
+                                </fieldset>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="form-certifications">Certificações</label>
+                                <textarea id="form-certifications" name="certifications" rows="2" placeholder="Ex: Cédula PROCAFD, Certificação Pilates Clínico..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="form-bio">Biografia</label>
+                                <textarea id="form-bio" name="bio" rows="3" placeholder="Escreva uma breve biografia do treinador..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- PAINEL DINÂMICO: Campos de Staff (Oculto por defeito) -->
+                        <div id="staff-fields-panel" style="display: none; border-top: 1px solid var(--color-border); padding-top: 1.5rem; margin-top: 1rem;">
+                            <h3 style="color: var(--color-primary); margin-bottom: 1rem;">Perfil Operacional (Staff)</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="form-position">Posição *</label>
+                                    <select id="form-position" name="position">
+                                        <option value="">-- Selecione uma posição --</option>
+                                        <option value="front-desk-agent">Front Desk Agent</option>
+                                        <option value="facilities-technician">Técnico de Manutenção</option>
+                                        <option value="hygiene-assistant">Assistente de Limpeza</option>
+                                        <option value="operations-coordinator">Coordenador Operacional</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="form-department">Departamento *</label>
+                                    <select id="form-department" name="department">
+                                        <option value="">-- Selecione um departamento --</option>
+                                        <option value="member-support">Atendimento ao Cliente</option>
+                                        <option value="operations">Operações</option>
+                                        <option value="facilities">Infraestruturas</option>
+                                        <option value="admin">Administração</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nota informativa sobre restrições de Username -->
+                        <div style="border-top: 1px solid #1e293b; padding-top: 12px; margin-top: 10px;">
+                            <p style="color: #94a3b8; font-size: 0.8em; margin: 0; line-height: 1.4;">
+                                <strong>Regra do Nome de Utilizador:</strong> Apenas pode conter letras, números e sublinhados (_). Espaços introduzidos são automaticamente convertidos em sublinhados.
+                            </p>
+                        </div>
+
+                        <!-- Ações do Formulário -->
+                        <div class="form-actions" style="border-top: 1px solid #1e293b; padding-top: 15px; margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+                            <button type="button" class="btn btn-secondary" id="btn-cancel-form" style="flex: none; width: auto; padding: 0.5rem 1.5rem; margin: 0;">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" style="flex: none; width: auto; padding: 0.5rem 1.5rem; margin: 0;">Guardar Utilizador</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Listagem Geral de Utilizadores -->
+            <section class="list-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h2 style="margin: 0;">Todos os Utilizadores</h2>
+                    <button type="button" class="btn btn-primary" id="btn-create-user" style="padding: 0.6rem 1.25rem; font-size: 0.9em; margin: 0; display: none; align-items: center; gap: 6px;">➕ Novo Utilizador</button>
+                </div>
+                <?php if (empty($users)): ?>
+                    <div class="alert alert--info">
+                        <p>Nenhum utilizador encontrado na base de dados.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="staff-table-wrapper">
+                        <table class="admin-users-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Email / Telemóvel</th>
+                                    <th>Utilizador</th>
+                                    <th>Função</th>
+                                    <th>Status</th>
+                                    <th style="text-align: center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($users as $user):
+                                    $user_id = (int) $user['id'];
+                                    $is_active = (int) $user['is_active'];
+                                    $status_class = $is_active ? 'active' : 'inactive';
+                                    $status_text = $is_active ? 'Ativo' : 'Inativo';
+                                    $role_text = translate_role($user['role']);
+                                ?>
+                                    <tr class="user-row" data-user-id="<?= $user_id ?>" data-user-role="<?= $user['role'] ?>">
+                                        <td class="col-name"><?= h($user['name']) ?></td>
+                                        <td class="col-email">
+                                            <div><?= h($user['email']) ?></div>
+                                            <?php if (!empty($user['phone'])): ?>
+                                                <small style="color: var(--color-text-muted); font-size: 0.8em;">📞 <?= h($user['phone']) ?></small>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="col-username"><?= h($user['username'] ?? 'N/D') ?></td>
+                                        <td class="col-role">
+                                            <span class="role-badge role-<?= strtolower($user['role']) ?>">
+                                                <?= $role_text ?>
+                                            </span>
+                                        </td>
+                                        <td class="col-status">
+                                            <span class="status-badge status-<?= $status_class ?>" id="status-<?= $user_id ?>">
+                                                <?= $status_text ?>
+                                            </span>
+                                        </td>
+                                        <td class="col-actions" style="text-align: center;">
+                                            <!-- Botão de Edição com toda a metadata necessária encapsulada em data attributes -->
+                                            <button type="button" class="btn-action btn-edit" 
+                                                    data-user-id="<?= $user_id ?>"
+                                                    data-name="<?= h($user['name']) ?>"
+                                                    data-email="<?= h($user['email']) ?>"
+                                                    data-username="<?= h($user['username'] ?? '') ?>"
+                                                    data-role="<?= $user['role'] ?>"
+                                                    data-phone="<?= h($user['phone'] ?? '') ?>"
+                                                    data-bio="<?= h($user['bio'] ?? '') ?>"
+                                                    data-certifications="<?= h($user['certifications'] ?? '') ?>"
+                                                    data-specializations="<?= h($user['specializations'] ?? '') ?>"
+                                                    data-position="<?= h($user['position'] ?? '') ?>"
+                                                    data-department="<?= h($user['department'] ?? '') ?>"
+                                                    title="Editar utilizador">
+                                                ✏️ Editar
+                                            </button>
+                                            <?php if ($user_id !== (int) $_SESSION['user_id']): ?>
                                                 <button type="button" class="btn-action btn-toggle-status" data-user-id="<?= $user_id ?>" data-current-status="<?= $is_active ?>" title="<?= $is_active ? 'Desativar' : 'Ativar' ?> utilizador">
                                                     <?= $is_active ? '🔒 Desativar' : '🔓 Ativar' ?>
                                                 </button>
-                                                <?php if ($user['role'] !== 'admin'): ?>
-                                                    <button type="button" class="btn-action btn-make-admin" data-user-id="<?= $user_id ?>" title="Promover a administrador">
-                                                        👑 Admin
-                                                    </button>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php endif; ?>
-                </section>
-            </div>
-
-            <!-- Trainers Tab -->
-            <div id="trainers" class="tab-content" role="tabpanel" aria-labelledby="tab-trainers">
-                <section class="form-section">
-                    <h2>Adicionar Novo Treinador</h2>
-                    <form class="staff-form" method="POST" action="../../actions/add_trainer.php">
-                        <?= get_csrf_input() ?>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="trainer-name">Nome Completo:</label>
-                                <input type="text" id="trainer-name" name="trainer-name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="trainer-email">Email:</label>
-                                <input type="email" id="trainer-email" name="trainer-email" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="trainer-phone">Telefone:</label>
-                                <input type="tel" id="trainer-phone" name="trainer-phone">
-                            </div>
-                            <div class="form-group">
-                                <fieldset class="checkbox-group">
-                                    <legend>Especializações:</legend>
-                                    <label class="checkbox-item" for="spec-yoga">
-                                        <input type="checkbox" id="spec-yoga" name="trainer-specialization[]" value="yoga">
-                                        <span>Yoga</span>
-                                    </label>
-                                    <label class="checkbox-item" for="spec-spinning">
-                                        <input type="checkbox" id="spec-spinning" name="trainer-specialization[]" value="spinning">
-                                        <span>Spinning</span>
-                                    </label>
-                                    <label class="checkbox-item" for="spec-hiit">
-                                        <input type="checkbox" id="spec-hiit" name="trainer-specialization[]" value="hiit">
-                                        <span>HIIT</span>
-                                    </label>
-                                    <label class="checkbox-item" for="spec-pilates">
-                                        <input type="checkbox" id="spec-pilates" name="trainer-specialization[]" value="pilates">
-                                        <span>Pilates</span>
-                                    </label>
-                                    <label class="checkbox-item" for="spec-boxing">
-                                        <input type="checkbox" id="spec-boxing" name="trainer-specialization[]" value="boxing">
-                                        <span>Boxe</span>
-                                    </label>
-                                    <label class="checkbox-item" for="spec-personal">
-                                        <input type="checkbox" id="spec-personal" name="trainer-specialization[]" value="personal">
-                                        <span>Personal Training</span>
-                                    </label>
-                                </fieldset>
-                                <small class="form-hint">Selecione uma ou mais especializações.</small>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="trainer-certifications">Certificações:</label>
-                            <textarea id="trainer-certifications" name="trainer-certifications" rows="3" placeholder="Descreva as certificações..."></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="trainer-bio">Biografia:</label>
-                            <textarea id="trainer-bio" name="trainer-bio" rows="4" placeholder="Escreva a biografia do treinador..."></textarea>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Adicionar Treinador</button>
-                            <button type="reset" class="btn btn-secondary">Limpar</button>
-                        </div>
-                    </form>
-                </section>
-
-                <section class="list-section">
-                    <h2>Treinadores Registados (Base de Dados)</h2>
-                    <div class="staff-table-wrapper">
-                        <table class="staff-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Nome</th>
-                                    <th scope="col">Email</th>
-                                    <th scope="col">Especializações</th>
-                                    <th scope="col">Telefone</th>
-                                    <th scope="col">Estado</th>
-                                    <th scope="col" class="actions-col">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($trainers as $t): ?>
-                                    <tr>
-                                        <td><strong><?= h($t['name']) ?></strong></td>
-                                        <td><?= h($t['email']) ?></td>
-                                        <td style="text-transform: capitalize; color:#38bdf8;"><?= h($t['specializations'] ?? 'Nenhuma') ?></td>
-                                        <td><?= h($t['phone'] ?? 'N/D') ?></td>
-                                        <td>
-                                            <?php if ($t['is_active']): ?>
-                                                <span class="status active">Ativo</span>
                                             <?php else: ?>
-                                                <span class="status inactive">Inativo</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="actions" style="display: flex; gap: 8px; align-items: center; justify-content: center;">
-                                            <button type="button" class="btn-icon btn-edit" title="Editar" 
-                                                    data-id="<?= $t['id'] ?>"
-                                                    data-name="<?= h($t['name']) ?>"
-                                                    data-email="<?= h($t['email']) ?>"
-                                                    data-phone="<?= h($t['phone'] ?? '') ?>"
-                                                    data-bio="<?= h($t['bio'] ?? '') ?>"
-                                                    data-certifications="<?= h($t['certifications'] ?? '') ?>"
-                                                    data-specializations="<?= h($t['specializations'] ?? '') ?>"
-                                                    onclick="openEditTrainerModal(this)">
-                                                ✏️
-                                            </button>
-                                            
-                                            <form method="POST" action="../../actions/toggle_user_status.php" onsubmit="return confirm('Tem a certeza que deseja alterar o estado de <?= h($t['name']) ?>?');" style="margin: 0; padding: 0; display: inline;">
-                                                <?= get_csrf_input() ?>
-                                                <input type="hidden" name="user_id" value="<?= $t['id'] ?>">
-                                                <button type="submit" class="btn-icon btn-delete" title="<?= $t['is_active'] ? 'Desativar' : 'Ativar' ?>" style="background: none; border: none; cursor: pointer; padding: 0;">
-                                                    <?= $t['is_active'] ? '🗑️' : '✔️' ?>
+                                                <button type="button" class="btn-action btn-toggle-status" disabled style="opacity: 0.5; cursor: not-allowed;" title="Não pode desativar a sua própria conta de administrador">
+                                                    🔒 Desativar
                                                 </button>
-                                            </form>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
-                </section>
-            </div>
-
-            <div id="staff" class="tab-content" role="tabpanel" aria-labelledby="tab-staff">
-                <section class="form-section">
-                    <h2>Adicionar Novo Membro do Staff</h2>
-                    <form class="staff-form" method="POST" action="../../actions/add_staff.php">
-                        <?= get_csrf_input() ?>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="staff-name">Nome Completo:</label>
-                                <input type="text" id="staff-name" name="staff-name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="staff-email">Email:</label>
-                                <input type="email" id="staff-email" name="staff-email" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="staff-phone">Telefone:</label>
-                                <input type="tel" id="staff-phone" name="staff-phone">
-                            </div>
-                            <div class="form-group">
-                                <label for="staff-position">Posição:</label>
-                                <select id="staff-position" name="staff-position" required>
-                                    <option value="">Selecione</option>
-                                    <option value="front-desk-agent">Front Desk Agent</option>
-                                    <option value="facilities-technician">Técnico de Manutenção</option>
-                                    <option value="hygiene-assistant">Assistente de Limpeza</option>
-                                    <option value="operations-coordinator">Coordenador Operacional</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="staff-department">Departamento:</label>
-                            <select id="staff-department" name="staff-department" required>
-                                <option value="">Selecione</option>
-                                <option value="member-support">Atendimento ao Cliente</option>
-                                <option value="operations">Operações</option>
-                                <option value="facilities">Infraestruturas</option>
-                                <option value="admin">Administração</option>
-                            </select>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Adicionar Staff</button>
-                            <button type="reset" class="btn btn-secondary">Limpar</button>
-                        </div>
-                    </form>
-                </section>
-
-                <section class="list-section">
-                    <h2>Staff Registado (Base de Dados)</h2>
-                    <div class="staff-table-wrapper">
-                        <table class="staff-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Nome</th>
-                                    <th scope="col">Email</th>
-                                    <th scope="col">Posição</th>
-                                    <th scope="col">Departamento</th>
-                                    <th scope="col">Estado</th>
-                                    <th scope="col" class="actions-col">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($staffList as $s): 
-                                    $pos_map = [
-                                        'front-desk-agent' => 'Front Desk Agent',
-                                        'facilities-technician' => 'Técnico de Manutenção',
-                                        'hygiene-assistant' => 'Assistente de Limpeza',
-                                        'operations-coordinator' => 'Coordenador Operacional'
-                                    ];
-                                    $dept_map = [
-                                        'member-support' => 'Atendimento ao Cliente',
-                                        'operations' => 'Operações',
-                                        'facilities' => 'Infraestruturas',
-                                        'admin' => 'Administração'
-                                    ];
-                                    $pos_name = $pos_map[$s['position']] ?? $s['position'];
-                                    $dept_name = $dept_map[$s['department']] ?? $s['department'];
-                                ?>
-                                    <tr>
-                                        <td><strong><?= h($s['name']) ?></strong></td>
-                                        <td><?= h($s['email']) ?></td>
-                                        <td><?= h($pos_name) ?></td>
-                                        <td><?= h($dept_name) ?></td>
-                                        <td>
-                                            <?php if ($s['is_active']): ?>
-                                                <span class="status active">Ativo</span>
-                                            <?php else: ?>
-                                                <span class="status inactive">Inativo</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="actions" style="display: flex; gap: 8px; align-items: center; justify-content: center;">
-                                            <button type="button" class="btn-icon btn-edit" title="Editar" 
-                                                    data-id="<?= $s['id'] ?>"
-                                                    data-name="<?= h($s['name']) ?>"
-                                                    data-email="<?= h($s['email']) ?>"
-                                                    data-phone="<?= h($s['phone'] ?? '') ?>"
-                                                    data-position="<?= h($s['position'] ?? '') ?>"
-                                                    data-department="<?= h($s['department'] ?? '') ?>"
-                                                    onclick="openEditStaffModal(this)">
-                                                ✏️
-                                            </button>
-                                            
-                                            <form method="POST" action="../../actions/toggle_user_status.php" onsubmit="return confirm('Tem a certeza que deseja alterar o estado de <?= h($s['name']) ?>?');" style="margin: 0; padding: 0; display: inline;">
-                                                <?= get_csrf_input() ?>
-                                                <input type="hidden" name="user_id" value="<?= $s['id'] ?>">
-                                                <button type="submit" class="btn-icon btn-delete" title="<?= $s['is_active'] ? 'Desativar' : 'Ativar' ?>" style="background: none; border: none; cursor: pointer; padding: 0;">
-                                                    <?= $s['is_active'] ? '🗑️' : '✔️' ?>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
+                <?php endif; ?>
+            </section>
         </div>
     </section>
-
-    <div id="edit-trainer-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px;">
-        <div style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; max-width: 600px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden; max-height: 90vh;">
-            <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; color: #38bdf8; font-size: 1.4em;">Editar Treinador</h3>
-                <button type="button" onclick="closeTrainerModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.8em; cursor: pointer; line-height: 1;">&times;</button>
-            </div>
-            <form method="POST" action="../../actions/update_user.php" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto;">
-                <?= get_csrf_input() ?>
-                <input type="hidden" name="user_id" id="edit-trainer-id">
-                
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-trainer-name-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Nome Completo:</label>
-                    <input type="text" id="edit-trainer-name-input" name="name" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;">
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-trainer-email-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Email:</label>
-                    <input type="email" id="edit-trainer-email-input" name="email" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;">
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-trainer-phone-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Telefone:</label>
-                    <input type="tel" id="edit-trainer-phone-input" name="phone" style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;">
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <fieldset class="checkbox-group" style="border: 1px solid #334155; border-radius: 6px; padding: 12px; background: #1e293b;">
-                        <legend style="color: #e2e8f0; font-weight: bold; padding: 0 6px;">Especializações:</legend>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 5px;">
-                            <label class="checkbox-item" for="edit-spec-yoga" style="display: flex; align-items: center; gap: 8px; color: #e2e8f0; cursor: pointer;">
-                                <input type="checkbox" id="edit-spec-yoga" name="specializations[]" value="yoga">
-                                <span>Yoga</span>
-                            </label>
-                            <label class="checkbox-item" for="edit-spec-spinning" style="display: flex; align-items: center; gap: 8px; color: #e2e8f0; cursor: pointer;">
-                                <input type="checkbox" id="edit-spec-spinning" name="specializations[]" value="spinning">
-                                <span>Spinning</span>
-                            </label>
-                            <label class="checkbox-item" for="edit-spec-hiit" style="display: flex; align-items: center; gap: 8px; color: #e2e8f0; cursor: pointer;">
-                                <input type="checkbox" id="edit-spec-hiit" name="specializations[]" value="hiit">
-                                <span>HIIT</span>
-                            </label>
-                            <label class="checkbox-item" for="edit-spec-pilates" style="display: flex; align-items: center; gap: 8px; color: #e2e8f0; cursor: pointer;">
-                                <input type="checkbox" id="edit-spec-pilates" name="specializations[]" value="pilates">
-                                <span>Pilates</span>
-                            </label>
-                            <label class="checkbox-item" for="edit-spec-boxing" style="display: flex; align-items: center; gap: 8px; color: #e2e8f0; cursor: pointer;">
-                                <input type="checkbox" id="edit-spec-boxing" name="specializations[]" value="boxing">
-                                <span>Boxe</span>
-                            </label>
-                            <label class="checkbox-item" for="edit-spec-personal" style="display: flex; align-items: center; gap: 8px; color: #e2e8f0; cursor: pointer;">
-                                <input type="checkbox" id="edit-spec-personal" name="specializations[]" value="personal">
-                                <span>Personal Training</span>
-                            </label>
-                        </div>
-                    </fieldset>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-trainer-certifications-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Certificações:</label>
-                    <textarea id="edit-trainer-certifications-input" name="certifications" rows="2" style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;"></textarea>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-trainer-bio-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Biografia:</label>
-                    <textarea id="edit-trainer-bio-input" name="bio" rows="3" style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;"></textarea>
-                </div>
-
-                <div style="padding: 15px 0 0; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #1e293b; margin-top: 10px;">
-                    <button type="button" onclick="closeTrainerModal()" class="btn btn-secondary btn-small">Cancelar</button>
-                    <button type="submit" class="btn btn-primary btn-small">Salvar Alterações</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="edit-staff-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px;">
-        <div style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden;">
-            <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; color: #38bdf8; font-size: 1.4em;">Editar Funcionário Staff</h3>
-                <button type="button" onclick="closeStaffModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.8em; cursor: pointer; line-height: 1;">&times;</button>
-            </div>
-            <form method="POST" action="../../actions/update_user.php" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
-                <?= get_csrf_input() ?>
-                <input type="hidden" name="user_id" id="edit-staff-id">
-                
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-staff-name-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Nome Completo:</label>
-                    <input type="text" id="edit-staff-name-input" name="name" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;">
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-staff-email-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Email:</label>
-                    <input type="email" id="edit-staff-email-input" name="email" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;">
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-staff-phone-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Telefone:</label>
-                    <input type="tel" id="edit-staff-phone-input" name="phone" style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;">
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-staff-position-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Posição:</label>
-                    <select id="edit-staff-position-input" name="position" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff; cursor: pointer;">
-                        <option value="front-desk-agent">Front Desk Agent</option>
-                        <option value="facilities-technician">Técnico de Manutenção</option>
-                        <option value="hygiene-assistant">Assistente de Limpeza</option>
-                        <option value="operations-coordinator">Coordenador Operacional</option>
-                    </select>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <label for="edit-staff-department-input" style="font-weight: 600; color: #e2e8f0; font-size: 0.9em; text-align: left;">Departamento:</label>
-                    <select id="edit-staff-department-input" name="department" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff; cursor: pointer;">
-                        <option value="member-support">Atendimento ao Cliente</option>
-                        <option value="operations">Operações</option>
-                        <option value="facilities">Infraestruturas</option>
-                        <option value="admin">Administração</option>
-                    </select>
-                </div>
-
-                <div style="padding: 15px 0 0; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #1e293b; margin-top: 10px;">
-                    <button type="button" onclick="closeStaffModal()" class="btn btn-secondary btn-small">Cancelar</button>
-                    <button type="submit" class="btn btn-primary btn-small">Salvar Alterações</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
 </main>
-
-<script>
-function openEditTrainerModal(button) {
-    const id = button.dataset.id;
-    const name = button.dataset.name;
-    const email = button.dataset.email;
-    const phone = button.dataset.phone;
-    const bio = button.dataset.bio;
-    const certifications = button.dataset.certifications;
-    const specializations = button.dataset.specializations.split(' / ').map(s => s.trim().toLowerCase());
-
-    document.getElementById('edit-trainer-id').value = id;
-    document.getElementById('edit-trainer-name-input').value = name;
-    document.getElementById('edit-trainer-email-input').value = email;
-    document.getElementById('edit-trainer-phone-input').value = phone;
-    document.getElementById('edit-trainer-bio-input').value = bio;
-    document.getElementById('edit-trainer-certifications-input').value = certifications;
-
-    const checkboxes = document.querySelectorAll('#edit-trainer-modal input[type="checkbox"]');
-    checkboxes.forEach(cb => {
-        cb.checked = specializations.includes(cb.value.toLowerCase());
-    });
-
-    const modal = document.getElementById('edit-trainer-modal');
-    modal.style.display = 'flex';
-}
-
-function closeTrainerModal() {
-    document.getElementById('edit-trainer-modal').style.display = 'none';
-}
-
-function openEditStaffModal(button) {
-    const id = button.dataset.id;
-    const name = button.dataset.name;
-    const email = button.dataset.email;
-    const phone = button.dataset.phone;
-    const position = button.dataset.position;
-    const department = button.dataset.department;
-
-    document.getElementById('edit-staff-id').value = id;
-    document.getElementById('edit-staff-name-input').value = name;
-    document.getElementById('edit-staff-email-input').value = email;
-    document.getElementById('edit-staff-phone-input').value = phone;
-    document.getElementById('edit-staff-position-input').value = position;
-    document.getElementById('edit-staff-department-input').value = department;
-
-    const modal = document.getElementById('edit-staff-modal');
-    modal.style.display = 'flex';
-}
-
-function closeStaffModal() {
-    document.getElementById('edit-staff-modal').style.display = 'none';
-}
-
-window.addEventListener('click', function(event) {
-    const trainerModal = document.getElementById('edit-trainer-modal');
-    const staffModal = document.getElementById('edit-staff-modal');
-    if (event.target === trainerModal) {
-        closeTrainerModal();
-    }
-    if (event.target === staffModal) {
-        closeStaffModal();
-    }
-});
-
-// Tab switching functionality
-document.querySelectorAll('.tab-button').forEach(button => {
-    button.addEventListener('click', function() {
-        const tabName = this.dataset.tab;
-        
-        // Hide all tabs
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        // Remove active from all buttons
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.remove('active');
-            btn.setAttribute('aria-selected', 'false');
-        });
-        
-        // Show selected tab
-        document.getElementById(tabName).classList.add('active');
-        this.classList.add('active');
-        this.setAttribute('aria-selected', 'true');
-    });
-});
-</script>
 
 <script src="<?= BASE_URL_PATH ?>js/admin-users.js"></script>
 
 <?php 
-$extra_js = ['js/admin-staff.js'];
 require_once BASE_PATH . '/templates/footer.php'; 
 ?>

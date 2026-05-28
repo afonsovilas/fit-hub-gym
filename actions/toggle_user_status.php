@@ -38,6 +38,11 @@ try {
         redirect('/pages/admin/staff.php');
     }
 
+    if ($target_id === (int) $_SESSION['user_id']) {
+        set_flash('Não é permitido desativar a sua própria conta de administrador!', 'error');
+        redirect('/pages/admin/staff.php');
+    }
+
     if ($target_id === 8) {
         set_flash('Não é permitido desativar a conta do administrador principal.', 'error');
         redirect('/pages/admin/staff.php');
