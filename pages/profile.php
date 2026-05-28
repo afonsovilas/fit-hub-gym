@@ -187,7 +187,8 @@ try {
                         </form>
                     </div>
 
-                    <div class="profile-section">
+                    <?php if (isset($user['role']) && $user['role'] !== 'admin'): ?>
+                        <div class="profile-section">
                         <h3>As Minhas Aulas Agendadas</h3>
                         <p class="section-description">Tens inscrições confirmadas nas seguintes aulas:</p>
                         
@@ -318,6 +319,7 @@ try {
                             </div>
                         <?php endif; ?>
                     </div>
+                    <?php endif; ?>
                 </section>
             </div>
         <?php endif; ?>

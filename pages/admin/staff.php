@@ -366,7 +366,24 @@ function translate_role(string $role): string {
     </section>
 </main>
 
-<script src="<?= BASE_URL_PATH ?>js/admin-users.js"></script>
+    <!-- Modal de Confirmação para Ativar/Desativar Utilizador -->
+    <div id="confirm-status-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+        <div style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden;">
+            <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: #0b0f19;">
+                <h3 style="margin: 0; color: #cf5a2b; font-size: 1.25em; font-weight: 700;">Confirmar Alteração</h3>
+                <button type="button" id="confirm-status-close" style="background: none; border: none; color: #94a3b8; font-size: 1.8em; cursor: pointer; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">&times;</button>
+            </div>
+            <div style="padding: 20px; color: #cbd5e1; font-size: 0.95rem; line-height: 1.5; background: #0f172a;">
+                <p id="confirm-status-message">Tem a certeza que deseja alterar o estado deste utilizador?</p>
+            </div>
+            <div style="padding: 15px 20px; border-top: 1px solid #1e293b; display: flex; justify-content: flex-end; gap: 10px; background: #0b0f19;">
+                <button type="button" id="confirm-status-cancel" class="btn btn-secondary" style="padding: 0.5rem 1.25rem; font-size: 0.9em; margin: 0; border-radius: 6px;">Cancelar</button>
+                <button type="button" id="confirm-status-proceed" class="btn btn-primary" style="padding: 0.5rem 1.25rem; font-size: 0.9em; margin: 0; border-radius: 6px; background-color: #cf5a2b; color: white; font-weight: bold; border: none; cursor: pointer;">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="<?= BASE_URL_PATH ?>js/admin-users.js"></script>
 
 <?php 
 require_once BASE_PATH . '/templates/footer.php'; 

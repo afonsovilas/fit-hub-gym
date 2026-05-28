@@ -32,6 +32,7 @@ $base = defined('BASE_URL_PATH') ? BASE_URL_PATH : '';
         </div>
     </footer>
 
+    <script src="<?= h($base) ?>js/toast.js"></script>
     <script src="<?= h($base) ?>js/navbar-scroll.js"></script>
 
     <?php foreach ($extra_js as $js_file): ?>

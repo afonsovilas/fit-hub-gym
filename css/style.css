@@ -915,6 +915,12 @@ textarea {
     gap: 1rem;
 }
 
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 .filter-group {
     display: flex;
     flex-direction: column;
@@ -955,6 +961,10 @@ textarea {
     border-left: 4px solid #FF6B35;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
 }
 
 .class-card:hover {
@@ -998,6 +1008,36 @@ textarea {
 
 .class-info strong {
     color: #333;
+}
+
+.class-card .class-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    background-color: var(--color-surface-soft) !important;
+    padding: 1rem !important;
+    border-radius: 8px !important;
+    margin: 0 0 1rem 0 !important;
+}
+
+.class-card .class-info p {
+    margin: 0 !important;
+    font-size: 0.95rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    padding-bottom: 0.35rem !important;
+}
+
+.class-card .class-info p:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+
+.class-card .class-info strong {
+    color: var(--color-text-muted) !important;
+    font-weight: 600 !important;
 }
 
 .class-description {
@@ -1554,7 +1594,11 @@ textarea {
     }
 
     .filters-form {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .filters-form .filter-actions {
+        grid-column: span 1;
     }
 
     .schedule-grid {
@@ -1618,11 +1662,11 @@ textarea {
     }
 
     .filters-form {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr) auto;
         align-items: flex-end;
     }
 
-    .filters-form button {
+    .filters-form .filter-actions {
         grid-column: auto;
     }
 

@@ -82,9 +82,16 @@ function render_flash(): void
         return;
     }
 
-    echo '<div class="flash flash--' . h($flash['type']) . '" role="alert">'
-        . h($flash['message'])
-        . '</div>';
+    $msg = json_encode($flash['message'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    $type = json_encode($flash['type']);
+
+    echo "<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof showToast === 'function') {
+                showToast($msg, $type);
+            }
+        });
+    </script>";
 }
 
 /**

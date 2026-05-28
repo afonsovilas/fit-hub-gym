@@ -222,14 +222,64 @@ document.addEventListener('DOMContentLoaded', function() {
     // AJAX Actions
     // ──────────────────────────────────────────────────────────────────────
 
-    // Toggle user status (activate/deactivate)
+    // Confirmation Modal Elements
+    const confirmStatusModal = document.getElementById('confirm-status-modal');
+    const confirmStatusMessage = document.getElementById('confirm-status-message');
+    const confirmStatusProceed = document.getElementById('confirm-status-proceed');
+    const confirmStatusCancel = document.getElementById('confirm-status-cancel');
+    const confirmStatusClose = document.getElementById('confirm-status-close');
+
+    let pendingUserId = null;
+    let pendingStatus = null;
+
+    // Toggle user status (activate/deactivate) - Opens custom modal
     document.querySelectorAll('.btn-toggle-status').forEach(btn => {
         btn.addEventListener('click', function() {
-            const userId = this.dataset.userId;
-            const currentStatus = parseInt(this.dataset.currentStatus);
-            toggleUserStatus(userId, currentStatus);
+            pendingUserId = this.dataset.userId;
+            pendingStatus = parseInt(this.dataset.currentStatus);
+
+            if (confirmStatusMessage && confirmStatusModal) {
+                const actionText = pendingStatus ? 'desativar' : 'ativar';
+                confirmStatusMessage.innerHTML = `Tem a certeza que deseja <strong>${actionText}</strong> a conta deste utilizador?`;
+                confirmStatusModal.style.display = 'flex';
+            }
         });
     });
+
+    if (confirmStatusCancel) {
+        confirmStatusCancel.addEventListener('click', function() {
+            if (confirmStatusModal) confirmStatusModal.style.display = 'none';
+            pendingUserId = null;
+            pendingStatus = null;
+        });
+    }
+
+    if (confirmStatusClose) {
+        confirmStatusClose.addEventListener('click', function() {
+            if (confirmStatusModal) confirmStatusModal.style.display = 'none';
+            pendingUserId = null;
+            pendingStatus = null;
+        });
+    }
+
+    if (confirmStatusModal) {
+        confirmStatusModal.addEventListener('click', function(e) {
+            if (e.target === confirmStatusModal) {
+                confirmStatusModal.style.display = 'none';
+                pendingUserId = null;
+                pendingStatus = null;
+            }
+        });
+    }
+
+    if (confirmStatusProceed) {
+        confirmStatusProceed.addEventListener('click', function() {
+            if (confirmStatusModal) confirmStatusModal.style.display = 'none';
+            if (pendingUserId !== null) {
+                toggleUserStatus(pendingUserId, pendingStatus);
+            }
+        });
+    }
 
 
 
@@ -322,10 +372,6 @@ document.addEventListener('DOMContentLoaded', function() {
      * Toggle user active/inactive status via AJAX
      */
     function toggleUserStatus(userId, currentStatus) {
-        if (!confirm('Tem a certeza que deseja alterar o estado deste utilizador?')) {
-            return;
-        }
-
         const formData = new FormData();
         formData.append('action', 'toggle_status');
         formData.append('user_id', userId);
@@ -370,61 +416,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    /**
-     * Show toast notification
-     */
-    function showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.textContent = message;
-        toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 6px;
-            background: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        `;
-
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
 });
-
-// Toast animations
-if (!document.querySelector('style[data-toasts]')) {
-    const style = document.createElement('style');
-    style.setAttribute('data-toasts', '');
-    style.textContent = `
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        @keyframes slideOut {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-        }
-    `;
-    document.head.appendChild(style);
-}
