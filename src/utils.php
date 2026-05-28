@@ -128,7 +128,7 @@ function validate_schedule_time(string $datetime_str, int $duration_min = 0): ar
         return ['success' => false, 'message' => 'Data e hora inválidas.'];
     }
     
-    // 1. Validar intervalos de 15 minutos
+    // Validar intervalos de 15 minutos
     $minute = (int) date('i', $timestamp);
     if ($minute % 15 !== 0) {
         return [
@@ -137,22 +137,22 @@ function validate_schedule_time(string $datetime_str, int $duration_min = 0): ar
         ];
     }
     
-    // 2. Determinar se é feriado em Portugal
+    // Determinar se é feriado em Portugal
     $day_month = date('m-d', $timestamp);
     $year = (int) date('Y', $timestamp);
     
     // Feriados Nacionais Fixos
     $fixed_holidays = [
-        '01-01', // Ano Novo
-        '04-25', // Dia da Liberdade
-        '05-01', // Dia do Trabalhador
-        '06-10', // Dia de Portugal
-        '08-15', // Assunção de Nossa Senhora
-        '10-05', // Implantação da República
-        '11-01', // Dia de Todos os Santos
-        '12-01', // Restauração da Independência
-        '12-08', // Dia da Imaculada Conceição
-        '12-25', // Natal
+        '01-01', 
+        '04-25', 
+        '05-01', 
+        '06-10',
+        '08-15', 
+        '10-05', 
+        '11-01', 
+        '12-01', 
+        '12-08', 
+        '12-25', 
     ];
     
     $is_holiday = in_array($day_month, $fixed_holidays);
@@ -177,7 +177,7 @@ function validate_schedule_time(string $datetime_str, int $duration_min = 0): ar
         }
     }
     
-    // 3. Obter limites de horário com base no dia
+    // Obter limites de horário com base no dia
     $day_of_week = (int) date('w', $timestamp); // 0 = Domingo, 6 = Sábado, 1-5 = Segunda a Sexta
     $time_str = date('H:i', $timestamp);
     
@@ -206,7 +206,7 @@ function validate_schedule_time(string $datetime_str, int $duration_min = 0): ar
         ];
     }
 
-    // 4. Validar se a sessão termina antes do fecho do ginásio
+    // Validar se a sessão termina antes do fecho do ginásio
     if ($duration_min > 0) {
         $end_timestamp = $timestamp + ($duration_min * 60);
         $date_str = date('Y-m-d', $timestamp);

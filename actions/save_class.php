@@ -19,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 csrf_protect();
 
-// Apenas administradores
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
     http_response_code(403);
     die('Acesso negado. Apenas administradores podem realizar esta ação.');
@@ -37,7 +36,6 @@ try {
     $duration_min  = isset($_POST['duration_min']) ? (int) $_POST['duration_min'] : 60;
     $room          = trim($_POST['room'] ?? 'Sala 1');
 
-    // Validações gerais básicas
     if ($name === '' || $instructor_id <= 0 || $scheduled_at === '' || $room === '') {
         set_flash('Por favor, preencha todos os campos obrigatórios (*).', 'error');
         redirect('/pages/schedules.php');
@@ -48,7 +46,6 @@ try {
         redirect('/pages/schedules.php');
     }
 
-    // Verificar se o instrutor realmente existe e é um treinador ativo
     $stmtTrainer = $db->prepare("SELECT id FROM users WHERE id = ? AND role = 'trainer' AND is_active = 1");
     $stmtTrainer->execute([$instructor_id]);
     if (!$stmtTrainer->fetch()) {
@@ -56,16 +53,13 @@ try {
         redirect('/pages/schedules.php');
     }
 
-    // Converter datetime-local (Y-m-d\TH:i) para SQLite format (Y-m-d H:i)
     $db_scheduled_at = str_replace('T', ' ', $scheduled_at);
 
-    // Impedir agendamento retroativo (no passado)
     if (strtotime($db_scheduled_at) < time()) {
         set_flash('Não é permitido marcar ou agendar uma aula com data/hora anterior à atual.', 'error');
         redirect('/pages/schedules.php');
     }
 
-    // Validar horário de funcionamento e intervalos de 15 minutos (com duração da aula)
     $time_validation = validate_schedule_time($db_scheduled_at, $duration_min);
     if (!$time_validation['success']) {
         set_flash($time_validation['message'], 'error');
@@ -75,7 +69,7 @@ try {
     $db->beginTransaction();
 
     if ($class_id <= 0) {
-        // MODO: CRIAR NOVA AULA
+        // MODE: CREATE NEW CLASS
         $stmtInsert = $db->prepare("
             INSERT INTO classes (name, description, instructor_id, capacity, scheduled_at, duration_min, room)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -86,7 +80,7 @@ try {
         set_flash("Aula de grupo '" . h($name) . "' criada com sucesso no catálogo!", 'success');
 
     } else {
-        // MODO: EDITAR AULA EXISTENTE
+        // MODE: EDIT EXISTING CLASS
         $stmtCheck = $db->prepare("SELECT name, capacity FROM classes WHERE id = ?");
         $stmtCheck->execute([$class_id]);
         $oldClass = $stmtCheck->fetch();

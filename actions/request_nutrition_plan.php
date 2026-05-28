@@ -42,7 +42,7 @@ try {
         redirect('/pages/profile.php#nutricao');
     }
 
-    // 1. Verify that the trainer exists, is active, and has the 'nutricao' specialization
+    // Verify that the trainer exists, is active, and has the 'nutricao' specialization
     $stmtTrainer = $db->prepare("
         SELECT u.name, u.is_active 
         FROM users u
@@ -69,14 +69,14 @@ try {
 
     $db->beginTransaction();
 
-    // 2. Insert nutrition request
+    // Insert nutrition request
     $stmtInsert = $db->prepare("
         INSERT INTO nutrition_requests (member_id, trainer_id, status, created_at)
         VALUES (?, ?, 'pending', datetime('now'))
     ");
     $stmtInsert->execute([$member_id, $trainer_id]);
 
-    // 3. Notify the trainer
+    // Notify the trainer
     $stmtNotify = $db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
     $notificationMsg = "Novo pedido de plano de nutrição pendente recebido de '" . $member_name . "'.";
     $stmtNotify->execute([$trainer_id, $notificationMsg]);

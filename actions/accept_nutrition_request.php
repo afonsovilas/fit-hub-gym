@@ -45,7 +45,7 @@ try {
         redirect($redirect_to);
     }
 
-    // 1. Verify the request exists, is pending, and belongs to this trainer
+    // Verify the request exists, is pending, and belongs to this trainer
     $stmtCheck = $db->prepare("
         SELECT member_id, status FROM nutrition_requests 
         WHERE id = ? AND trainer_id = ?
@@ -63,21 +63,19 @@ try {
         redirect($redirect_to);
     }
 
-    // 2. Validate scheduled date (must be in the future)
+    // Validate scheduled date (must be in the future)
     $scheduled_time = strtotime($scheduled_date_raw);
     if ($scheduled_time === false || $scheduled_time < time()) {
         set_flash('A data e hora do agendamento deve ser no futuro.', 'error');
         redirect($redirect_to);
     }
 
-    // Validar horário de funcionamento e intervalos de 15 minutos (com duração de 60 min)
     $time_validation = validate_schedule_time($scheduled_date_raw, 60);
     if (!$time_validation['success']) {
         set_flash($time_validation['message'], 'error');
         redirect($redirect_to);
     }
 
-    // Format for SQLite (Y-m-d H:i:s)
     $scheduled_date = date('Y-m-d H:i:s', $scheduled_time);
 
     // Get trainer name for notification
@@ -87,7 +85,7 @@ try {
 
     $db->beginTransaction();
 
-    // 3. Update status to accepted and set scheduled_date
+    // Update status to accepted and set scheduled_date
     $stmtUpdate = $db->prepare("
         UPDATE nutrition_requests 
         SET status = 'accepted', scheduled_date = ? 
@@ -95,7 +93,7 @@ try {
     ");
     $stmtUpdate->execute([$scheduled_date, $request_id]);
 
-    // 4. Send notification to member
+    // Send notification to member
     $stmtNotify = $db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
     $notificationMsg = "O seu pedido de plano de nutrição foi aceite por '" . $trainer_name . "' e agendado para " . date('d/m/Y \à\s H:i', $scheduled_time) . ".";
     $stmtNotify->execute([$request['member_id'], $notificationMsg]);

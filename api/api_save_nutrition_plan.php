@@ -34,7 +34,7 @@ if (!validate_csrf_token($csrf_token)) {
     exit;
 }
 
-// 1. Verify user session
+// Verify user session
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode([
@@ -44,7 +44,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// 2. Verify user role
+// Verify user role
 if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'trainer') {
     http_response_code(403);
     echo json_encode([
@@ -90,7 +90,7 @@ try {
 
     $db = get_db();
 
-    // 3. Verify request exists and belongs to the logged-in trainer
+    // Verify request exists and belongs to the logged-in trainer
     $stmtCheck = $db->prepare("
         SELECT member_id, status FROM nutrition_requests 
         WHERE id = ? AND trainer_id = ?
@@ -116,7 +116,7 @@ try {
 
     $db->beginTransaction();
 
-    // 4. Update the nutrition plan details and set status to completed
+    // Update the nutrition plan details and set status to completed
     $stmtUpdate = $db->prepare("
         UPDATE nutrition_requests 
         SET status = 'completed', plan_details = ? 
@@ -124,7 +124,7 @@ try {
     ");
     $stmtUpdate->execute([$plan_details, $request_id]);
 
-    // 5. Send notification to member
+    // Send notification to member
     $stmtNotify = $db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
     if ($is_edit) {
         $notificationMsg = "O seu plano de nutrição foi atualizado por '" . $trainer_name . "'. Já pode consultar as alterações no seu perfil.";

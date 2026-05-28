@@ -50,7 +50,7 @@ try {
 
     $redirect_to = trim($_POST['redirect_to'] ?? '');
     if ($redirect_to !== '' && strpos($redirect_to, '/') === 0 && strpos($redirect_to, '//') !== 0) {
-        // Safe local redirect
+        
     } else {
         $redirect_to = '/pages/profile.php';
     }
