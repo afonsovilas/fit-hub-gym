@@ -1,69 +1,81 @@
 // Profile Edit Mode Toggle
 document.addEventListener('DOMContentLoaded', function() {
-    const editBtn = document.getElementById('edit-profile-btn');
-    const saveBtn = document.getElementById('save-btn');
-    const cancelBtn = document.getElementById('cancel-btn');
-    const profileForm = document.getElementById('profile-form');
-    const formInputs = profileForm.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="file"], textarea, input[type="checkbox"]');
+    function setupEditToggle(formId, editBtnId, saveBtnId, cancelBtnId) {
+        const form = document.getElementById(formId);
+        const editBtn = document.getElementById(editBtnId);
+        const saveBtn = document.getElementById(saveBtnId);
+        const cancelBtn = document.getElementById(cancelBtnId);
+        if (!form || !editBtn) return;
 
-    // Elements to update in the sidebar
-    const profileName = document.querySelector('.profile-name');
-    const profileUsername = document.querySelector('.profile-username');
-    const profilePhoto = document.querySelector('.profile-photo');
-    const originalAvatarSrc = profilePhoto ? profilePhoto.src : '';
-
-    // Store original values
-    const originalValues = [];
-    formInputs.forEach(input => {
-        if (input.type === 'checkbox') {
-            originalValues.push({
-                element: input,
-                checked: input.checked
-            });
-        } else {
-            originalValues.push({
-                element: input,
-                value: input.value
-            });
-        }
-    });
-
-    // Enable edit mode
-    editBtn.addEventListener('click', function() {
+        const formInputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="file"], textarea, input[type="checkbox"]');
+        
+        // Store original values
+        const originalValues = [];
         formInputs.forEach(input => {
-            input.disabled = false;
-        });
-        editBtn.style.display = 'none';
-        saveBtn.style.display = 'inline-block';
-        cancelBtn.style.display = 'inline-block';
-    });
-
-    // Cancel edit mode
-    cancelBtn.addEventListener('click', function() {
-        // Restore original values
-        originalValues.forEach(item => {
-            if (item.element.type === 'checkbox') {
-                item.element.checked = item.checked;
+            if (input.type === 'checkbox') {
+                originalValues.push({
+                    element: input,
+                    checked: input.checked
+                });
             } else {
-                item.element.value = item.value;
+                originalValues.push({
+                    element: input,
+                    value: input.value
+                });
             }
         });
-        // Restore original avatar photo
-        if (profilePhoto) {
-            profilePhoto.src = originalAvatarSrc;
-        }
-        const previewContainer = document.getElementById('avatar-preview-container');
-        if (previewContainer) {
-            previewContainer.style.display = 'none';
-        }
-        // Disable inputs
-        formInputs.forEach(input => {
-            input.disabled = true;
+
+        // Elements to update in the sidebar (only for personal form)
+        const profilePhoto = document.querySelector('.profile-photo');
+        const originalAvatarSrc = profilePhoto ? profilePhoto.src : '';
+
+        // Enable edit mode
+        editBtn.addEventListener('click', function() {
+            formInputs.forEach(input => {
+                input.disabled = false;
+            });
+            editBtn.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'inline-block';
+            if (cancelBtn) cancelBtn.style.display = 'inline-block';
         });
-        editBtn.style.display = 'inline-block';
-        saveBtn.style.display = 'none';
-        cancelBtn.style.display = 'none';
-    });
+
+        // Cancel edit mode
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                // Restore original values
+                originalValues.forEach(item => {
+                    if (item.element.type === 'checkbox') {
+                        item.element.checked = item.checked;
+                    } else {
+                        item.element.value = item.value;
+                    }
+                });
+                
+                // Restore original avatar photo if this is the personal form
+                if (formId === 'profile-form-personal') {
+                    if (profilePhoto) {
+                        profilePhoto.src = originalAvatarSrc;
+                    }
+                    const previewContainer = document.getElementById('avatar-preview-container');
+                    if (previewContainer) {
+                        previewContainer.style.display = 'none';
+                    }
+                }
+
+                // Disable inputs
+                formInputs.forEach(input => {
+                    input.disabled = true;
+                });
+                editBtn.style.display = 'inline-block';
+                if (saveBtn) saveBtn.style.display = 'none';
+                if (cancelBtn) cancelBtn.style.display = 'none';
+            });
+        }
+    }
+
+    // Set up both forms independently!
+    setupEditToggle('profile-form-personal', 'edit-profile-btn-personal', 'save-btn-personal', 'cancel-btn-personal');
+    setupEditToggle('profile-form-professional', 'edit-profile-btn-professional', 'save-btn-professional', 'cancel-btn-professional');
 
     // ── Dynamic Avatar Pre-visualization with Interactive Drag-and-Zoom Cropper ──
     const avatarInput = document.getElementById('avatar');
@@ -215,14 +227,12 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('touchmove', onDragMove, { passive: false });
         window.addEventListener('touchend', onDragEnd);
 
-        // ── Zoom Zoom centered calculation ──
         cropperZoomSlider.addEventListener('input', function() {
             const oldZoom = zoom;
             zoom = parseFloat(this.value);
 
             const center = containerSize / 2;
 
-            // Zoom centered relative to viewport pivot
             currentX = center - (zoom / oldZoom) * (center - currentX);
             currentY = center - (zoom / oldZoom) * (center - currentY);
 
@@ -230,10 +240,9 @@ document.addEventListener('DOMContentLoaded', function() {
             updateImageTransform();
         });
 
-        // ── Close / Reset Cropper modal functions ──
         function closeAndResetCropper() {
             cropperModal.style.display = 'none';
-            avatarInput.value = ''; // Clear file input
+            avatarInput.value = '';
             previewContainer.style.display = 'none';
             if (profilePhoto) {
                 profilePhoto.src = originalAvatarSrc;
@@ -243,49 +252,55 @@ document.addEventListener('DOMContentLoaded', function() {
         cropperCancelBtn.addEventListener('click', closeAndResetCropper);
         cropperCloseBtn.addEventListener('click', closeAndResetCropper);
 
-        // ── Canvas Cropping and DataTransfer Submission ──
         cropperConfirmBtn.addEventListener('click', function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 400;
-            canvas.height = 400;
-            const ctx = canvas.getContext('2d');
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 400;
+                canvas.height = 400;
+                const ctx = canvas.getContext('2d');
 
-            // Map viewport coordinates back to original unscaled image scale
-            const sx = -currentX / zoom;
-            const sy = -currentY / zoom;
-            const sw = containerSize / zoom;
-            const sh = containerSize / zoom;
+                const sx = -currentX / zoom;
+                const sy = -currentY / zoom;
+                const sw = containerSize / zoom;
+                const sh = containerSize / zoom;
 
-            const scaleFactor = cropperImg.naturalWidth / baseWidth;
+                const scaleFactor = cropperImg.naturalWidth / baseWidth;
 
-            const finalSx = sx * scaleFactor;
-            const finalSy = sy * scaleFactor;
-            const finalSw = sw * scaleFactor;
-            const finalSh = sh * scaleFactor;
+                const finalSx = sx * scaleFactor;
+                const finalSy = sy * scaleFactor;
+                const finalSw = sw * scaleFactor;
+                const finalSh = sh * scaleFactor;
 
-            ctx.drawImage(cropperImg, finalSx, finalSy, finalSw, finalSh, 0, 0, 400, 400);
+                ctx.drawImage(cropperImg, finalSx, finalSy, finalSw, finalSh, 0, 0, 400, 400);
 
-            // Convert to Blob and set as File input value
-            canvas.toBlob(function(blob) {
-                if (blob) {
-                    const originalName = selectedFile ? selectedFile.name : 'avatar.jpg';
-                    const croppedFile = new File([blob], originalName, { type: 'image/jpeg' });
-
-                    // DataTransfer magic
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(croppedFile);
-                    avatarInput.files = dataTransfer.files;
-
-                    // Update visuals
-                    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-                    previewImg.src = croppedDataUrl;
-                    previewContainer.style.display = 'flex';
-                    if (profilePhoto) {
-                        profilePhoto.src = croppedDataUrl;
-                    }
+                const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                
+                const parts = croppedDataUrl.split(',');
+                const mime = parts[0].match(/:(.*?);/)[1];
+                const bstr = atob(parts[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
                 }
-                cropperModal.style.display = 'none';
-            }, 'image/jpeg', 0.9);
+                const blob = new Blob([u8arr], { type: mime });
+
+                const originalName = selectedFile ? selectedFile.name : 'avatar.jpg';
+                const croppedFile = new File([blob], originalName, { type: 'image/jpeg' });
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(croppedFile);
+                avatarInput.files = dataTransfer.files;
+
+                previewImg.src = croppedDataUrl;
+                previewContainer.style.display = 'flex';
+                if (profilePhoto) {
+                    profilePhoto.src = croppedDataUrl;
+                }
+            } catch (err) {
+                console.error('Error cropping avatar:', err);
+            }
+            cropperModal.style.display = 'none';
         });
     }
 
@@ -554,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize tab based on URL Hash
         function initTabFromHash() {
             const hash = window.location.hash.substring(1); // strip the leading '#'
-            const allowedTabs = ['dados-pessoais', 'aulas-grupo', 'treino-personalizado', 'avaliacoes-historico'];
+            const allowedTabs = ['dados-pessoais', 'aulas-grupo', 'treino-personalizado', 'avaliacoes-historico', 'dados-profissionais', 'avaliacoes-aulas'];
             
             if (hash && allowedTabs.includes(hash)) {
                 activateTab(hash);

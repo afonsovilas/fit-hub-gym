@@ -82,7 +82,7 @@ try {
 
     // Fetch my waitlisted classes
     $myWaitlists = [];
-    if ($user && $user['role'] === 'member') {
+    if ($user && ($user['role'] === 'member' || $user['role'] === 'trainer')) {
         $stmtMyWaitlists = $db->prepare("
             SELECT c.*, u.name AS instructor_name 
             FROM class_waitlists cw
@@ -99,6 +99,7 @@ try {
     $trainer_bio = '';
     $trainer_certs = '';
     $mySpecs = [];
+    $trainerClasses = [];
     if ($user && $user['role'] === 'trainer') {
         $stmtTp = $db->prepare("SELECT bio, certifications FROM trainer_profiles WHERE user_id = ?");
         $stmtTp->execute([$user_id]);
@@ -114,6 +115,7 @@ try {
         foreach ($specsRaw as $spec) {
             $mySpecs[] = $spec['specialization'];
         }
+
     }
 
 } catch (Throwable $e) {
@@ -196,7 +198,7 @@ try {
 
                 <section class="profile-main">
                     <?php if ($user['role'] === 'member'): ?>
-                        <!-- Tabs Navigation Bar -->
+                        <!-- Tabs Navigation Bar for Members -->
                         <div class="profile-tabs-nav" style="display: flex; gap: 8px; border-bottom: 2px solid #334155; padding-bottom: 0px; margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none;">
                             <button type="button" class="tab-btn active" data-tab="dados-pessoais" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -215,16 +217,36 @@ try {
                                 Avaliações & Histórico
                             </button>
                         </div>
+                    <?php elseif ($user['role'] === 'trainer'): ?>
+                        <!-- Tabs Navigation Bar for Trainers -->
+                        <div class="profile-tabs-nav" style="display: flex; gap: 8px; border-bottom: 2px solid #334155; padding-bottom: 0px; margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none;">
+                            <button type="button" class="tab-btn active" data-tab="dados-pessoais" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Dados Pessoais
+                            </button>
+                            <button type="button" class="tab-btn" data-tab="dados-profissionais" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                Dados Profissionais
+                            </button>
+                            <button type="button" class="tab-btn" data-tab="aulas-grupo" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                Aulas de Grupo
+                            </button>
+                            <button type="button" class="tab-btn" data-tab="avaliacoes-aulas" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></polygon></svg>
+                                Avaliações das Aulas
+                            </button>
+                        </div>
                     <?php endif; ?>
 
-                    <div id="pane-dados-pessoais" class="<?= $user['role'] === 'member' ? 'tab-pane active' : '' ?>">
-                        <div class="profile-section">
-                        <div class="profile-section-header">
-                            <h3>Editar Perfil (Base de Dados)</h3>
-                            <button type="button" class="btn btn-primary btn-small" id="edit-profile-btn">Editar</button>
-                        </div>
-                        <form class="profile-form" id="profile-form" method="POST" action="../actions/update_profile.php" enctype="multipart/form-data">
-                            <?= get_csrf_input() ?>
+                    <form class="profile-form" id="profile-form-personal" method="POST" action="../actions/update_profile.php" enctype="multipart/form-data">
+                        <?= get_csrf_input() ?>
+                        <div id="pane-dados-pessoais" class="<?= ($user['role'] === 'member' || $user['role'] === 'trainer') ? 'tab-pane active' : '' ?>">
+                            <div class="profile-section">
+                            <div class="profile-section-header">
+                                <h3>Editar Perfil (Base de Dados)</h3>
+                                <button type="button" class="btn btn-primary btn-small edit-profile-btn" id="edit-profile-btn-personal">Editar</button>
+                            </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="full-name">Nome Completo:</label>
@@ -269,18 +291,33 @@ try {
                                 <small class="form-hint" style="color: #94a3b8; font-size: 0.8em; margin-top: 4px; display: block;">Envie uma imagem JPG, PNG ou GIF de até 2MB.</small>
                             </div>
 
-                            <?php if ($user['role'] === 'trainer'): ?>
-                                <div class="trainer-extra-info" style="border-top: 1px solid #334155; padding-top: 1.5rem; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 15px;">
-                                    <h4 style="margin: 0; color: #38bdf8; font-size: 1.1rem; font-weight: 600;">Informações de Treinador</h4>
-                                    
+                            <div class="form-actions" style="margin-top: 1.5rem;">
+                                <button type="submit" class="btn btn-primary" id="save-btn-personal" style="display: none;">Guardar Alterações</button>
+                                <button type="button" class="btn btn-secondary btn-small" id="cancel-btn-personal" style="display: none;">Cancelar</button>
+                            </div>
+                        </div>
+                    </div><!-- #pane-dados-pessoais -->
+                    </form>
+
+                    <?php if ($user['role'] === 'trainer'): ?>
+                    <form class="profile-form" id="profile-form-professional" method="POST" action="../actions/update_profile_professional.php">
+                        <?= get_csrf_input() ?>
+                        <div id="pane-dados-profissionais" class="tab-pane">
+                            <div class="profile-section">
+                                <div class="profile-section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                    <h3 style="color: var(--color-text); font-size: 1.5rem; margin: 0;">Informações de Treinador</h3>
+                                    <button type="button" class="btn btn-primary btn-small edit-profile-btn" id="edit-profile-btn-professional">Editar</button>
+                                </div>
+                                
+                                <div class="trainer-extra-info" style="display: flex; flex-direction: column; gap: 15px;">
                                     <div class="form-group">
                                         <label for="bio">Biografia / Apresentação:</label>
-                                        <textarea id="bio" name="bio" rows="4" placeholder="Escreva uma breve apresentação profissional..." disabled style="resize: vertical;"><?= h($trainer_bio) ?></textarea>
+                                        <textarea id="bio" name="bio" rows="4" placeholder="Escreva uma breve apresentação profissional..." disabled style="resize: vertical; width: 100%;"><?= h($trainer_bio) ?></textarea>
                                     </div>
                                     
                                     <div class="form-group">
                                         <label for="certifications">Certificações e Formação (uma por linha):</label>
-                                        <textarea id="certifications" name="certifications" rows="3" placeholder="Ex: Licenciatura em Ciências do Desporto, Certificação Pilates..." disabled style="resize: vertical;"><?= h($trainer_certs) ?></textarea>
+                                        <textarea id="certifications" name="certifications" rows="3" placeholder="Ex: Licenciatura em Ciências do Desporto, Certificação Pilates..." disabled style="resize: vertical; width: 100%;"><?= h($trainer_certs) ?></textarea>
                                     </div>
                                     
                                     <div class="form-group">
@@ -306,17 +343,15 @@ try {
                                         </div>
                                     </div>
                                 </div>
-                            <?php endif; ?>
-
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary" id="save-btn" style="display: none;">Guardar Alterações</button>
-                                <button type="reset" class="btn btn-secondary btn-small" id="cancel-btn" style="display: none;">Cancelar</button>
+                                <div class="form-actions" style="margin-top: 1.5rem;">
+                                    <button type="submit" class="btn btn-primary" id="save-btn-professional" style="display: none;">Guardar Alterações</button>
+                                    <button type="button" class="btn btn-secondary btn-small" id="cancel-btn-professional" style="display: none;">Cancelar</button>
+                                </div>
                             </div>
-                        </form>
-                    </div>
-                    </div><!-- #pane-dados-pessoais -->
+                        </div>
+                    </form>
 
-                    <?php if ($user['role'] === 'trainer'): ?>
+                    <div id="pane-avaliacoes-aulas" class="tab-pane">
                         <div class="profile-section">
                             <h3>Avaliações das Minhas Aulas</h3>
                             <p class="section-description">Consulte o feedback e as classificações deixadas pelos membros nas aulas que lecionou:</p>
@@ -325,88 +360,89 @@ try {
                             </button>
                             <div id="trainer-reviews-container" style="display: none; margin-top: 20px;"></div>
                         </div>
+                    </div>
                     <?php endif; ?>
 
                     <?php if (isset($user['role']) && $user['role'] !== 'admin'): ?>
-                        <div id="pane-aulas-grupo" class="<?= $user['role'] === 'member' ? 'tab-pane' : '' ?>">
+                        <div id="pane-aulas-grupo" class="<?= ($user['role'] === 'member' || $user['role'] === 'trainer') ? 'tab-pane' : '' ?>">
                             <div class="profile-section">
-                        <h3>As Minhas Aulas Agendadas</h3>
-                        <p class="section-description">Tens inscrições confirmadas nas seguintes aulas:</p>
-                        
-                        <?php if (empty($myClasses)): ?>
-                            <p style="color:#94a3b8; font-style:italic;">Não tens nenhuma inscrição ativa para os próximos dias.</p>
-                        <?php else: ?>
-                            <div class="class-list">
-                                <?php foreach ($myClasses as $c): 
-                                    $timestamp = strtotime($c['scheduled_at']);
-                                    $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-                                    $dia_extenso = $dias_semana[date('w', $timestamp)];
-                                ?>
-                                    <article class="class-item" id="class-item-<?= $c['id'] ?>">
-                                        <div class="class-header">
-                                            <h4 class="class-title"><?= h($c['name']) ?></h4>
-                                            <span class="class-type" style="text-transform: capitalize;"><?= h(strtolower(str_replace(' Express', '', str_replace(' Matinal', '', str_replace(' Intenso', '', str_replace(' Clássico', '', $c['name'])))))) ?></span>
-                                        </div>
-                                        <div class="class-details">
-                                            <p class="class-info">
-                                                <strong>Instrutor:</strong> <?= h($c['instructor_name']) ?>
-                                            </p>
-                                            <p class="class-info">
-                                                <strong>Data:</strong> <?= $dia_extenso ?>, <?= date('d/m/Y', $timestamp) ?> às <?= date('H:i', $timestamp) ?>
-                                            </p>
-                                            <p class="class-info">
-                                                <strong>Localização:</strong> <?= h($c['room']) ?>
-                                            </p>
-                                            <p class="class-info">
-                                                <strong>Duração:</strong> <?= $c['duration_min'] ?> minutos
-                                            </p>
-                                        </div>
-                                        <form method="POST" action="../actions/cancel_booking.php" class="profile-cancel-form" data-title="Cancelar Inscrição" data-message="Deseja realmente cancelar a sua inscrição na aula <?= h($c['name']) ?>?" style="margin: 0; padding: 0; display: inline;">
-                                            <?= get_csrf_input() ?>
-                                            <input type="hidden" name="class_id" value="<?= $c['id'] ?>">
-                                            <input type="hidden" name="redirect_to" value="/pages/profile.php#aulas-grupo">
-                                            <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer;">Cancelar Inscrição</button>
-                                        </form>
-                                    </article>
-                                <?php endforeach; ?>
+                                <h3>As Minhas Aulas Agendadas</h3>
+                                <p class="section-description">Tens inscrições confirmadas nas seguintes aulas:</p>
+                                
+                                <?php if (empty($myClasses)): ?>
+                                    <p style="color:#94a3b8; font-style:italic;">Não tens nenhuma inscrição ativa para os próximos dias.</p>
+                                <?php else: ?>
+                                    <div class="class-list">
+                                        <?php foreach ($myClasses as $c): 
+                                            $timestamp = strtotime($c['scheduled_at']);
+                                            $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                                            $dia_extenso = $dias_semana[date('w', $timestamp)];
+                                        ?>
+                                            <article class="class-item" id="class-item-<?= $c['id'] ?>">
+                                                <div class="class-header">
+                                                    <h4 class="class-title"><?= h($c['name']) ?></h4>
+                                                    <span class="class-type" style="text-transform: capitalize;"><?= h(strtolower(str_replace(' Express', '', str_replace(' Matinal', '', str_replace(' Intenso', '', str_replace(' Clássico', '', $c['name'])))))) ?></span>
+                                                </div>
+                                                <div class="class-details">
+                                                    <p class="class-info">
+                                                        <strong>Instrutor:</strong> <?= h($c['instructor_name']) ?>
+                                                    </p>
+                                                    <p class="class-info">
+                                                        <strong>Data:</strong> <?= $dia_extenso ?>, <?= date('d/m/Y', $timestamp) ?> às <?= date('H:i', $timestamp) ?>
+                                                    </p>
+                                                    <p class="class-info">
+                                                        <strong>Localização:</strong> <?= h($c['room']) ?>
+                                                    </p>
+                                                    <p class="class-info">
+                                                        <strong>Duração:</strong> <?= $c['duration_min'] ?> minutos
+                                                    </p>
+                                                </div>
+                                                <form method="POST" action="../actions/cancel_booking.php" class="profile-cancel-form" data-title="Cancelar Inscrição" data-message="Deseja realmente cancelar a sua inscrição na aula <?= h($c['name']) ?>?" style="margin: 0; padding: 0; display: inline;">
+                                                    <?= get_csrf_input() ?>
+                                                    <input type="hidden" name="class_id" value="<?= $c['id'] ?>">
+                                                    <input type="hidden" name="redirect_to" value="/pages/profile.php#aulas-grupo">
+                                                    <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer;">Cancelar Inscrição</button>
+                                                </form>
+                                            </article>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                        <?php endif; ?>
-                    </div>
 
-                    <?php if ($user['role'] === 'member' && !empty($myWaitlists)): ?>
-                        <div class="profile-section">
-                            <h3>Aulas em Lista de Espera</h3>
-                            <p class="section-description">Estás na lista de espera para as seguintes aulas (serás inscrito automaticamente se surgir uma vaga):</p>
-                            <div class="class-list">
-                                <?php foreach ($myWaitlists as $cw): 
-                                    $timestamp = strtotime($cw['scheduled_at']);
-                                    $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-                                    $dia_extenso = $dias_semana[date('w', $timestamp)];
-                                ?>
-                                    <article class="class-item" style="border-left: 4px solid #f59e0b;">
-                                        <div class="class-header">
-                                            <h4 class="class-title"><?= h($cw['name']) ?></h4>
-                                            <span class="class-type" style="text-transform: capitalize; background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600;">Lista de Espera</span>
-                                        </div>
-                                        <div class="class-details">
-                                            <p class="class-info">
-                                                <strong>Instrutor:</strong> <?= h($cw['instructor_name']) ?>
-                                            </p>
-                                            <p class="class-info">
-                                                <strong>Data:</strong> <?= $dia_extenso ?>, <?= date('d/m/Y', $timestamp) ?> às <?= date('H:i', $timestamp) ?>
-                                            </p>
-                                        </div>
-                                        <form method="POST" action="../actions/cancel_waitlist.php" class="profile-cancel-form" data-title="Sair da Lista de Espera" data-message="Deseja realmente sair da lista de espera para a aula <?= h($cw['name']) ?>?" style="margin: 0; padding: 0; display: inline;">
-                                            <?= get_csrf_input() ?>
-                                            <input type="hidden" name="class_id" value="<?= $cw['id'] ?>">
-                                            <input type="hidden" name="redirect_to" value="/pages/profile.php#aulas-grupo">
-                                            <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Sair da Lista de Espera</button>
-                                        </form>
-                                    </article>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endif; ?>
+                            <?php if (!empty($myWaitlists)): ?>
+                                <div class="profile-section">
+                                    <h3>Aulas em Lista de Espera</h3>
+                                    <p class="section-description">Estás na lista de espera para as seguintes aulas (serás inscrito automaticamente se surgir uma vaga):</p>
+                                    <div class="class-list">
+                                        <?php foreach ($myWaitlists as $cw): 
+                                            $timestamp = strtotime($cw['scheduled_at']);
+                                            $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                                            $dia_extenso = $dias_semana[date('w', $timestamp)];
+                                        ?>
+                                            <article class="class-item" style="border-left: 4px solid #f59e0b;">
+                                                <div class="class-header">
+                                                    <h4 class="class-title"><?= h($cw['name']) ?></h4>
+                                                    <span class="class-type" style="text-transform: capitalize; background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600;">Lista de Espera</span>
+                                                </div>
+                                                <div class="class-details">
+                                                    <p class="class-info">
+                                                        <strong>Instrutor:</strong> <?= h($cw['instructor_name']) ?>
+                                                    </p>
+                                                    <p class="class-info">
+                                                        <strong>Data:</strong> <?= $dia_extenso ?>, <?= date('d/m/Y', $timestamp) ?> às <?= date('H:i', $timestamp) ?>
+                                                    </p>
+                                                </div>
+                                                <form method="POST" action="../actions/cancel_waitlist.php" class="profile-cancel-form" data-title="Sair da Lista de Espera" data-message="Deseja realmente sair da lista de espera para a aula <?= h($cw['name']) ?>?" style="margin: 0; padding: 0; display: inline;">
+                                                    <?= get_csrf_input() ?>
+                                                    <input type="hidden" name="class_id" value="<?= $cw['id'] ?>">
+                                                    <input type="hidden" name="redirect_to" value="/pages/profile.php#aulas-grupo">
+                                                    <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Sair da Lista de Espera</button>
+                                                </form>
+                                            </article>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         </div><!-- #pane-aulas-grupo -->
                     <?php endif; ?>
 
