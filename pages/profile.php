@@ -170,8 +170,55 @@ try {
                     </div>
                 </aside>
 
+                <style>
+                .profile-tabs-nav::-webkit-scrollbar {
+                    display: none; /* Hide scrollbar for horizontal swipe */
+                }
+                .tab-btn:hover {
+                    color: var(--color-primary) !important;
+                }
+                .tab-btn.active {
+                    color: var(--color-primary) !important;
+                    border-bottom-color: var(--color-primary) !important;
+                }
+                .tab-pane {
+                    display: none;
+                    animation: tabFadeIn 0.3s ease;
+                }
+                .tab-pane.active {
+                    display: block;
+                }
+                @keyframes tabFadeIn {
+                    from { opacity: 0; transform: translateY(8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                </style>
+
                 <section class="profile-main">
-                    <div class="profile-section">
+                    <?php if ($user['role'] === 'member'): ?>
+                        <!-- Tabs Navigation Bar -->
+                        <div class="profile-tabs-nav" style="display: flex; gap: 8px; border-bottom: 2px solid #334155; padding-bottom: 0px; margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none;">
+                            <button type="button" class="tab-btn active" data-tab="dados-pessoais" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Dados Pessoais
+                            </button>
+                            <button type="button" class="tab-btn" data-tab="aulas-grupo" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                Aulas de Grupo
+                            </button>
+                            <button type="button" class="tab-btn" data-tab="treino-personalizado" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18.5 5.5 1.5-1.5"/><path d="m5.5 18.5-1.5 1.5"/><path d="M8.5 2 2 8.5"/><path d="M22 15.5 15.5 22"/></svg>
+                                Treino Personalizado (PT)
+                            </button>
+                            <button type="button" class="tab-btn" data-tab="avaliacoes-historico" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></polygon></svg>
+                                Avaliações & Histórico
+                            </button>
+                        </div>
+                    <?php endif; ?>
+
+                    <div id="pane-dados-pessoais" class="<?= $user['role'] === 'member' ? 'tab-pane active' : '' ?>">
+                        <div class="profile-section">
                         <div class="profile-section-header">
                             <h3>Editar Perfil (Base de Dados)</h3>
                             <button type="button" class="btn btn-primary btn-small" id="edit-profile-btn">Editar</button>
@@ -267,6 +314,7 @@ try {
                             </div>
                         </form>
                     </div>
+                    </div><!-- #pane-dados-pessoais -->
 
                     <?php if ($user['role'] === 'trainer'): ?>
                         <div class="profile-section">
@@ -280,7 +328,8 @@ try {
                     <?php endif; ?>
 
                     <?php if (isset($user['role']) && $user['role'] !== 'admin'): ?>
-                        <div class="profile-section">
+                        <div id="pane-aulas-grupo" class="<?= $user['role'] === 'member' ? 'tab-pane' : '' ?>">
+                            <div class="profile-section">
                         <h3>As Minhas Aulas Agendadas</h3>
                         <p class="section-description">Tens inscrições confirmadas nas seguintes aulas:</p>
                         
@@ -312,9 +361,10 @@ try {
                                                 <strong>Duração:</strong> <?= $c['duration_min'] ?> minutos
                                             </p>
                                         </div>
-                                        <form method="POST" action="../actions/cancel_booking.php" onsubmit="return confirm('Deseja realmente cancelar a sua inscrição na aula <?= h($c['name']) ?>?');" style="margin: 0; padding: 0; display: inline;">
+                                        <form method="POST" action="../actions/cancel_booking.php" class="profile-cancel-form" data-title="Cancelar Inscrição" data-message="Deseja realmente cancelar a sua inscrição na aula <?= h($c['name']) ?>?" style="margin: 0; padding: 0; display: inline;">
                                             <?= get_csrf_input() ?>
                                             <input type="hidden" name="class_id" value="<?= $c['id'] ?>">
+                                            <input type="hidden" name="redirect_to" value="/pages/profile.php#aulas-grupo">
                                             <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer;">Cancelar Inscrição</button>
                                         </form>
                                     </article>
@@ -346,9 +396,10 @@ try {
                                                 <strong>Data:</strong> <?= $dia_extenso ?>, <?= date('d/m/Y', $timestamp) ?> às <?= date('H:i', $timestamp) ?>
                                             </p>
                                         </div>
-                                        <form method="POST" action="../actions/cancel_waitlist.php" onsubmit="return confirm('Deseja realmente sair da lista de espera para a aula <?= h($cw['name']) ?>?');" style="margin: 0; padding: 0; display: inline;">
+                                        <form method="POST" action="../actions/cancel_waitlist.php" class="profile-cancel-form" data-title="Sair da Lista de Espera" data-message="Deseja realmente sair da lista de espera para a aula <?= h($cw['name']) ?>?" style="margin: 0; padding: 0; display: inline;">
                                             <?= get_csrf_input() ?>
                                             <input type="hidden" name="class_id" value="<?= $cw['id'] ?>">
+                                            <input type="hidden" name="redirect_to" value="/pages/profile.php#aulas-grupo">
                                             <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Sair da Lista de Espera</button>
                                         </form>
                                     </article>
@@ -356,8 +407,11 @@ try {
                             </div>
                         </div>
                     <?php endif; ?>
+                        </div><!-- #pane-aulas-grupo -->
+                    <?php endif; ?>
 
                     <?php if ($user['role'] === 'member'): ?>
+                        <div id="pane-treino-personalizado" class="tab-pane">
                         <div class="profile-section">
                             <h3>Marcar Treino Personalizado</h3>
                             <p class="section-description">Agende uma sessão individual de 60 minutos com um dos nossos treinadores especializados:</p>
@@ -475,7 +529,7 @@ try {
                                                     </p>
                                                 <?php endif; ?>
                                             </div>
-                                            <form method="POST" action="../actions/cancel_personal_training.php" onsubmit="return confirm('Deseja realmente <?= $pt['status'] === 'rejected' ? 'remover' : 'desmarcar' ?> a sua sessão de Personal Training?');" style="margin: 0; padding: 0; display: inline;">
+                                            <form method="POST" action="../actions/cancel_personal_training.php" class="profile-cancel-form" data-title="<?= $pt['status'] === 'rejected' ? 'Remover do Histórico' : 'Desmarcar Sessão' ?>" data-message="Deseja realmente <?= $pt['status'] === 'rejected' ? 'remover' : 'desmarcar' ?> a sua sessão de Personal Training?" style="margin: 0; padding: 0; display: inline;">
                                                 <?= get_csrf_input() ?>
                                                 <input type="hidden" name="booking_id" value="<?= $pt['id'] ?>">
                                                 <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">
@@ -487,9 +541,12 @@ try {
                                 </div>
                             <?php endif; ?>
                         </div>
+                        </div><!-- #pane-treino-personalizado -->
                     <?php endif; ?>
 
-                    <div class="profile-section">
+                    <?php if (isset($user['role']) && $user['role'] !== 'admin'): ?>
+                        <div id="pane-avaliacoes-historico" class="<?= $user['role'] === 'member' ? 'tab-pane' : '' ?>">
+                            <div class="profile-section">
                         <h3>Histórico de Aulas</h3>
                         <p class="section-description">Deixe a sua opinião sobre as aulas que frequentou:</p>
 
@@ -577,6 +634,7 @@ try {
                             </div>
                         <?php endif; ?>
                     </div>
+                        </div><!-- #pane-avaliacoes-historico -->
                     <?php endif; ?>
                 </section>
             </div>
@@ -641,6 +699,26 @@ try {
         transform: scale(1.2);
     }
     </style>
+
+    <!-- Modal de Confirmação Geral do Perfil (Custom Profile Confirmation Modal) -->
+    <div id="profile-confirm-modal" class="modal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+        <div style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <!-- Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: #0b0f19;">
+                <h3 id="profile-confirm-title" style="margin: 0; color: #cf5a2b; font-size: 1.25em; font-weight: 700;">Confirmar Ação</h3>
+                <button type="button" id="profile-confirm-close" style="background: none; border: none; color: #94a3b8; font-size: 1.8em; cursor: pointer; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">&times;</button>
+            </div>
+            <!-- Body -->
+            <div style="padding: 20px; color: #cbd5e1; font-size: 0.95rem; line-height: 1.5; background: #0f172a;">
+                <p id="profile-confirm-message" style="margin: 0;">Tem a certeza que deseja prosseguir com esta ação?</p>
+            </div>
+            <!-- Footer -->
+            <div style="padding: 15px 20px; border-top: 1px solid #1e293b; display: flex; justify-content: flex-end; gap: 10px; background: #0b0f19;">
+                <button type="button" id="profile-confirm-cancel" class="btn btn-secondary" style="padding: 0.5rem 1.25rem; font-size: 0.9em; margin: 0; border-radius: 6px;">Cancelar</button>
+                <button type="button" id="profile-confirm-proceed" class="btn btn-primary" style="padding: 0.5rem 1.25rem; font-size: 0.9em; margin: 0; border-radius: 6px; background-color: #cf5a2b; color: white; font-weight: bold; border: none; cursor: pointer;">Confirmar</button>
+            </div>
+        </div>
+    </div>
 </main>
 
 <?php 

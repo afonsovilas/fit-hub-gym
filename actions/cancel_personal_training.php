@@ -33,7 +33,7 @@ try {
 
     if ($booking_id <= 0) {
         set_flash('Agendamento inválido.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#treino-personalizado');
     }
 
     // Obter detalhes do agendamento
@@ -49,7 +49,7 @@ try {
 
     if (!$booking) {
         set_flash('O agendamento selecionado não existe.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#treino-personalizado');
     }
 
     // Verificar se o utilizador logado é o aluno ou o treinador deste agendamento
@@ -58,7 +58,7 @@ try {
 
     if (!$is_member && !$is_trainer) {
         set_flash('Não tem permissão para cancelar este agendamento.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#treino-personalizado');
     }
 
     $db->beginTransaction();
@@ -94,4 +94,4 @@ try {
     set_flash('Erro ao desmarcar a sessão: ' . $e->getMessage(), 'error');
 }
 
-redirect('/pages/profile.php');
+redirect('/pages/profile.php#treino-personalizado');

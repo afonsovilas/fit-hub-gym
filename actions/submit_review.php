@@ -22,13 +22,13 @@ if (!isset($_SESSION['user_id'])) {
 
 // Apenas aceitar POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect('/pages/profile.php');
+    redirect('/pages/profile.php#avaliacoes-historico');
 }
 
 // Validar CSRF token
 if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
     set_flash('Token de segurança inválido. Por favor tente novamente.', 'error');
-    redirect('/pages/profile.php');
+    redirect('/pages/profile.php#avaliacoes-historico');
 }
 
 try {
@@ -109,4 +109,4 @@ try {
 }
 
 // Redirecionar de volta para o perfil
-redirect('/pages/profile.php');
+redirect('/pages/profile.php#avaliacoes-historico');

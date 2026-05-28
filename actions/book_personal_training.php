@@ -35,7 +35,7 @@ try {
 
     if ($trainer_id <= 0 || $scheduled_at_raw === '') {
         set_flash('Por favor, selecione um treinador e uma data/hora válida.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#treino-personalizado');
     }
 
     // Validar se o treinador existe e tem o papel correto
@@ -45,25 +45,25 @@ try {
 
     if (!$trainer) {
         set_flash('O treinador selecionado não existe ou não está disponível.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#treino-personalizado');
     }
 
     if (!(bool) $trainer['is_active']) {
         set_flash('O treinador de momento encontra-se inativo.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#treino-personalizado');
     }
 
     // Impedir que o próprio treinador agende uma sessão consigo mesmo
     if ($trainer_id === $member_id) {
         set_flash('Não pode agendar uma sessão consigo mesmo.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#treino-personalizado');
     }
 
     // Validar data futura
     $scheduled_time = strtotime($scheduled_at_raw);
     if ($scheduled_time === false || $scheduled_time < time()) {
         set_flash('A data e hora do agendamento deve ser no futuro.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#treino-personalizado');
     }
 
     // Formatar data para base de dados SQLite (Y-m-d H:i)
@@ -99,4 +99,4 @@ try {
     set_flash('Erro ao agendar a sessão: ' . $e->getMessage(), 'error');
 }
 
-redirect('/pages/profile.php');
+redirect('/pages/profile.php#treino-personalizado');

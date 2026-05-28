@@ -80,9 +80,10 @@ try {
 
     } else {
         // MODO: EDITAR AULA EXISTENTE
-        $stmtCheck = $db->prepare("SELECT id FROM classes WHERE id = ?");
+        $stmtCheck = $db->prepare("SELECT name, capacity FROM classes WHERE id = ?");
         $stmtCheck->execute([$class_id]);
-        if (!$stmtCheck->fetch()) {
+        $oldClass = $stmtCheck->fetch();
+        if (!$oldClass) {
             set_flash('A aula a editar não existe na base de dados.', 'error');
             $db->rollBack();
             redirect('/pages/schedules.php');
@@ -95,8 +96,61 @@ try {
         ");
         $stmtUpdate->execute([$name, $description, $instructor_id, $capacity, $db_scheduled_at, $duration_min, $room, $class_id]);
 
+        // AUTOMATIC PROMOTION ON CAPACITY INCREASE
+        // Check current bookings count
+        $stmtBookingsCount = $db->prepare("SELECT COUNT(*) AS count FROM bookings WHERE class_id = ?");
+        $stmtBookingsCount->execute([$class_id]);
+        $current_bookings = (int) $stmtBookingsCount->fetch()['count'];
+
+        // If new capacity creates open slots, check waitlist
+        $available_slots = $capacity - $current_bookings;
+        if ($available_slots > 0) {
+            // Get waitlisted users ordered by oldest joined
+            $stmtWaitlist = $db->prepare("SELECT user_id FROM class_waitlists WHERE class_id = ? ORDER BY joined_at ASC");
+            $stmtWaitlist->execute([$class_id]);
+            $waitlisted_users = $stmtWaitlist->fetchAll();
+
+            if (!empty($waitlisted_users)) {
+                $limit = min($available_slots, count($waitlisted_users));
+                
+                $stmtPromote = $db->prepare("INSERT INTO bookings (user_id, class_id) VALUES (?, ?)");
+                $stmtRemoveWaitlist = $db->prepare("DELETE FROM class_waitlists WHERE user_id = ? AND class_id = ?");
+                $stmtNotify = $db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+
+                $promoted_count = 0;
+                for ($i = 0; $i < $limit; $i++) {
+                    $waitlisted_user_id = (int) $waitlisted_users[$i]['user_id'];
+
+                    // Safety double check to prevent double bookings
+                    $stmtCheckDouble = $db->prepare("SELECT 1 FROM bookings WHERE user_id = ? AND class_id = ?");
+                    $stmtCheckDouble->execute([$waitlisted_user_id, $class_id]);
+                    if (!$stmtCheckDouble->fetch()) {
+                        // Promote to booking
+                        $stmtPromote->execute([$waitlisted_user_id, $class_id]);
+                        // Remove from waitlist
+                        $stmtRemoveWaitlist->execute([$waitlisted_user_id, $class_id]);
+                        
+                        // Notify user
+                        $notificationMsg = "A capacidade da aula '" . $name . "' foi aumentada e foi inscrito(a) automaticamente a partir da lista de espera!";
+                        $stmtNotify->execute([$waitlisted_user_id, $notificationMsg]);
+                        
+                        $promoted_count++;
+                    }
+                }
+
+                if ($promoted_count > 0) {
+                    set_flash("Aula '" . h($name) . "' atualizada. " . $promoted_count . " membro(s) foram promovidos automaticamente da lista de espera!", 'success');
+                } else {
+                    set_flash("Aula '" . h($name) . "' atualizada com sucesso no catálogo!", 'success');
+                }
+            } else {
+                set_flash("Aula '" . h($name) . "' atualizada com sucesso no catálogo!", 'success');
+            }
+        } else {
+            set_flash("Aula '" . h($name) . "' atualizada com sucesso no catálogo!", 'success');
+        }
+
         $db->commit();
-        set_flash("Aula '" . h($name) . "' atualizada com sucesso no catálogo!", 'success');
     }
 
 } catch (Throwable $e) {

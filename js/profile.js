@@ -514,4 +514,124 @@ document.addEventListener('DOMContentLoaded', function() {
             return dateString;
         }
     }
+
+    // ── Member Profile Tab Switcher ──
+    const tabButtons = document.querySelectorAll('.tab-btn');
+
+    if (tabButtons.length > 0) {
+        function activateTab(tabId) {
+            // Deactivate all buttons
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            const tabPanes = document.querySelectorAll('[id^="pane-"]');
+            tabPanes.forEach(pane => {
+                pane.classList.remove('active');
+                pane.style.display = 'none';
+            });
+
+            const targetBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+            const targetPane = document.getElementById(`pane-${tabId}`);
+
+            if (targetBtn && targetPane) {
+                targetBtn.classList.add('active');
+                targetPane.classList.add('active');
+                targetPane.style.display = 'block';
+                
+                window.history.replaceState(null, null, '#' + tabId);
+            }
+        }
+
+        // Add click events to buttons
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                if (tabId) {
+                    activateTab(tabId);
+                }
+            });
+        });
+
+        // Initialize tab based on URL Hash
+        function initTabFromHash() {
+            const hash = window.location.hash.substring(1); // strip the leading '#'
+            const allowedTabs = ['dados-pessoais', 'aulas-grupo', 'treino-personalizado', 'avaliacoes-historico'];
+            
+            if (hash && allowedTabs.includes(hash)) {
+                activateTab(hash);
+            } else {
+                // If it's a member but no valid hash, set default hash silently
+                if (window.location.hash === '') {
+                    window.history.replaceState(null, null, '#dados-pessoais');
+                }
+                activateTab('dados-pessoais');
+            }
+        }
+
+        // Run initialization
+        initTabFromHash();
+
+        // Listen for popstate/hashchange to allow browser back/forward navigation
+        window.addEventListener('hashchange', initTabFromHash);
+    }
+
+    // ── Profile Forms Confirmation Modals ──
+    const profileCancelForms = document.querySelectorAll('.profile-cancel-form');
+    const profileConfirmModal = document.getElementById('profile-confirm-modal');
+    const profileConfirmTitle = document.getElementById('profile-confirm-title');
+    const profileConfirmMsg = document.getElementById('profile-confirm-message');
+    const profileConfirmCancel = document.getElementById('profile-confirm-cancel');
+    const profileConfirmClose = document.getElementById('profile-confirm-close');
+    const profileConfirmProceed = document.getElementById('profile-confirm-proceed');
+
+    if (profileConfirmModal && profileCancelForms.length > 0) {
+        let activeFormToSubmit = null;
+
+        profileCancelForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                // Prevent standard submit
+                e.preventDefault();
+                activeFormToSubmit = this;
+
+                // Extract custom texts
+                const titleText = this.getAttribute('data-title') || 'Confirmar Ação';
+                const messageText = this.getAttribute('data-message') || 'Tem a certeza que deseja prosseguir com esta ação?';
+
+                // Populate modal
+                profileConfirmTitle.textContent = titleText;
+                profileConfirmMsg.textContent = messageText;
+
+                // Open modal
+                profileConfirmModal.style.display = 'flex';
+            });
+        });
+
+        // Close handlers
+        function closeProfileConfirmModal() {
+            profileConfirmModal.style.display = 'none';
+            activeFormToSubmit = null;
+        }
+
+        if (profileConfirmCancel) profileConfirmCancel.addEventListener('click', closeProfileConfirmModal);
+        if (profileConfirmClose) profileConfirmClose.addEventListener('click', closeProfileConfirmModal);
+
+        // Click outside closes modal
+        profileConfirmModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProfileConfirmModal();
+            }
+        });
+
+        // Proceed handler
+        if (profileConfirmProceed) {
+            profileConfirmProceed.addEventListener('click', function() {
+                if (activeFormToSubmit) {
+                    // Submit form directly, bypassing our interceptor
+                    activeFormToSubmit.submit();
+                }
+                closeProfileConfirmModal();
+            });
+        }
+    }
 });
+
+

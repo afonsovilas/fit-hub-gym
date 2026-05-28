@@ -39,33 +39,33 @@ try {
 
     if ($name === '' || $email === '' || $username === '') {
         set_flash('Nome, Email e Nome de Utilizador são campos obrigatórios.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#dados-pessoais');
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         set_flash('O email inserido não é válido.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#dados-pessoais');
     }
 
     // Validar formato e unicidade do username
     $username = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', $username));
     if (strlen($username) < 3) {
         set_flash('O nome de utilizador deve ter pelo menos 3 caracteres alfanuméricos ou sublinhados.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#dados-pessoais');
     }
 
     $stmtCheckUsername = $db->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
     $stmtCheckUsername->execute([$username, $user_id]);
     if ($stmtCheckUsername->fetch()) {
         set_flash('Este nome de utilizador já se encontra em uso.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#dados-pessoais');
     }
 
     $stmtCheck = $db->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
     $stmtCheck->execute([$email, $user_id]);
     if ($stmtCheck->fetch()) {
         set_flash('Este email já se encontra registado por outro utilizador.', 'error');
-        redirect('/pages/profile.php');
+        redirect('/pages/profile.php#dados-pessoais');
     }
 
     $db->beginTransaction();
@@ -122,13 +122,13 @@ try {
         if ($password !== $password_confirm) {
             $db->rollBack();
             set_flash('A confirmação da nova senha não coincide.', 'error');
-            redirect('/pages/profile.php');
+            redirect('/pages/profile.php#dados-pessoais');
         }
 
         if (strlen($password) < 6) {
             $db->rollBack();
             set_flash('A nova senha deve ter pelo menos 6 caracteres.', 'error');
-            redirect('/pages/profile.php');
+            redirect('/pages/profile.php#dados-pessoais');
         }
 
         $password_hash = password_hash($password, PASSWORD_BCRYPT);
@@ -181,4 +181,4 @@ try {
     set_flash('Erro ao gravar dados na base de dados: ' . $e->getMessage(), 'error');
 }
 
-redirect('/pages/profile.php');
+redirect('/pages/profile.php#dados-pessoais');
