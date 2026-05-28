@@ -102,13 +102,16 @@ textarea {
     transition: background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
-:is(.home-page, .schedules-page) .header {
-    background: transparent;
-    box-shadow: none;
-    border-bottom: 1px solid transparent;
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header {
     position: fixed;
     left: 0;
     width: 100%;
+}
+
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) {
+    background: transparent;
+    box-shadow: none;
+    border-bottom: 1px solid transparent;
 }
 
 .header.scrolled {
@@ -151,7 +154,7 @@ textarea {
     opacity: 0.8;
 }
 
-:is(.home-page, .schedules-page) .header:not(.scrolled) .menu-toggle {
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .menu-toggle {
     color: #ffffff;
 }
 
@@ -175,8 +178,8 @@ textarea {
     color: var(--color-primary);
 }
 
-:is(.home-page, .schedules-page) .site-brand,
-:is(.home-page, .schedules-page) .navbar-logo a {
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .site-brand,
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .navbar-logo a {
     color: #fefefe;
 }
 
@@ -208,12 +211,12 @@ textarea {
     border-bottom-color: var(--color-primary);
 }
 
-:is(.home-page, .schedules-page) .nav-link {
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .nav-link {
     color: rgba(255, 255, 255, 0.96);
 }
 
-:is(.home-page, .schedules-page) .nav-link:hover,
-:is(.home-page, .schedules-page) .nav-link.active {
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .nav-link:hover,
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .nav-link.active {
     color: #ffffff;
     border-bottom-color: rgba(255, 255, 255, 0.95);
 }

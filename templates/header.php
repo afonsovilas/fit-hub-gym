@@ -9,6 +9,10 @@ unset($_utils_path);
 
 $page_title ??= 'FitHub';
 $body_class ??= '';
+
+if (isset($_SESSION['user_id'])) {
+    $body_class = trim($body_class . ' logged-in');
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt">
