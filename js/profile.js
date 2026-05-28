@@ -353,4 +353,165 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+
+    // ── Trainer Reviews Toggle and Asynchronous Loading ──
+    const btnShowReviews = document.getElementById('btn-show-reviews');
+    const reviewsContainer = document.getElementById('trainer-reviews-container');
+
+    if (btnShowReviews && reviewsContainer) {
+        btnShowReviews.addEventListener('click', function() {
+            const trainerId = this.getAttribute('data-trainer-id');
+            
+            if (reviewsContainer.style.display === 'none') {
+                // Show reviews
+                reviewsContainer.style.display = 'block';
+                // Trigger reflow to start transition
+                reviewsContainer.offsetHeight;
+                reviewsContainer.classList.add('reviews-visible');
+                this.textContent = 'Ocultar Avaliações das Minhas Aulas';
+
+                if (reviewsContainer.getAttribute('data-fetched') !== 'true') {
+                    fetchTrainerReviews(trainerId, reviewsContainer);
+                }
+            } else {
+                // Hide reviews
+                reviewsContainer.classList.remove('reviews-visible');
+                this.textContent = 'Ver Avaliações das Minhas Aulas';
+                
+                // Hide elements after transition completes
+                setTimeout(() => {
+                    if (!reviewsContainer.classList.contains('reviews-visible')) {
+                        reviewsContainer.style.display = 'none';
+                    }
+                }, 300);
+            }
+        });
+    }
+
+    function fetchTrainerReviews(trainerId, container) {
+        container.replaceChildren();
+
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'trainer-reviews-loading';
+
+        const spinner = document.createElement('span');
+        spinner.className = 'spinner';
+        loadingDiv.appendChild(spinner);
+
+        const loadingText = document.createElement('p');
+        loadingText.textContent = 'A carregar avaliações...';
+        loadingDiv.appendChild(loadingText);
+
+        container.appendChild(loadingDiv);
+
+        fetch(`../api/api_get_trainer_reviews.php?trainer_id=${encodeURIComponent(trainerId)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na resposta do servidor: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                container.replaceChildren();
+
+                if (!data.success) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'trainer-reviews-empty';
+                    errorDiv.textContent = data.message || 'Erro ao carregar avaliações.';
+                    container.appendChild(errorDiv);
+                    return;
+                }
+
+                const reviews = data.reviews || [];
+                if (reviews.length === 0) {
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.className = 'trainer-reviews-empty';
+                    emptyDiv.textContent = 'Ainda não tem avaliações das suas aulas.';
+                    container.appendChild(emptyDiv);
+                    container.setAttribute('data-fetched', 'true');
+                    return;
+                }
+
+                reviews.forEach(review => {
+                    const card = document.createElement('article');
+                    card.className = 'trainer-review-card';
+
+                    const header = document.createElement('div');
+                    header.className = 'trainer-review-header';
+
+                    const classTitle = document.createElement('h4');
+                    classTitle.className = 'trainer-review-class';
+                    classTitle.textContent = review.class_name;
+                    header.appendChild(classTitle);
+
+                    const dateSpan = document.createElement('span');
+                    dateSpan.className = 'trainer-review-date';
+                    dateSpan.textContent = formatDate(review.created_at);
+                    header.appendChild(dateSpan);
+
+                    card.appendChild(header);
+
+                    const meta = document.createElement('div');
+                    meta.className = 'trainer-review-meta';
+
+                    const memberSpan = document.createElement('span');
+                    memberSpan.className = 'trainer-review-member';
+                    memberSpan.textContent = 'Por: ' + (review.member_name || 'Membro Anónimo');
+                    meta.appendChild(memberSpan);
+
+                    const starsDiv = document.createElement('div');
+                    starsDiv.className = 'trainer-review-stars';
+                    
+                    const rating = parseInt(review.rating) || 0;
+                    for (let i = 1; i <= 5; i++) {
+                        const star = document.createElement('span');
+                        star.textContent = '★';
+                        if (i > rating) {
+                            star.style.color = 'var(--color-border)';
+                        }
+                        starsDiv.appendChild(star);
+                    }
+                    meta.appendChild(starsDiv);
+
+                    card.appendChild(meta);
+
+                    if (review.comment && review.comment.trim() !== '') {
+                        const commentP = document.createElement('p');
+                        commentP.className = 'trainer-review-comment';
+                        commentP.textContent = '“' + review.comment + '”';
+                        card.appendChild(commentP);
+                    }
+
+                    container.appendChild(card);
+                });
+
+                container.setAttribute('data-fetched', 'true');
+            })
+            .catch(err => {
+                console.error('Erro ao carregar avaliações:', err);
+                container.replaceChildren();
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'trainer-reviews-empty';
+                errorDiv.textContent = 'Erro de ligação ao carregar as avaliações.';
+                container.appendChild(errorDiv);
+            });
+    }
+
+    function formatDate(dateString) {
+        try {
+            const date = new Date(dateString.replace(' ', 'T'));
+            if (isNaN(date.getTime())) {
+                return dateString;
+            }
+            return date.toLocaleDateString('pt-PT', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return dateString;
+        }
+    }
 });
