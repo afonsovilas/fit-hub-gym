@@ -4,16 +4,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveBtn = document.getElementById('save-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const profileForm = document.getElementById('profile-form');
-    const formInputs = profileForm.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="file"]');
+    const formInputs = profileForm.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="file"], textarea, input[type="checkbox"]');
 
     // Elements to update in the sidebar
     const profileName = document.querySelector('.profile-name');
     const profileUsername = document.querySelector('.profile-username');
 
     // Store original values
-    const originalValues = {};
+    const originalValues = [];
     formInputs.forEach(input => {
-        originalValues[input.id] = input.value;
+        if (input.type === 'checkbox') {
+            originalValues.push({
+                element: input,
+                checked: input.checked
+            });
+        } else {
+            originalValues.push({
+                element: input,
+                value: input.value
+            });
+        }
     });
 
     // Enable edit mode
@@ -29,8 +39,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cancel edit mode
     cancelBtn.addEventListener('click', function() {
         // Restore original values
-        formInputs.forEach(input => {
-            input.value = originalValues[input.id];
+        originalValues.forEach(item => {
+            if (item.element.type === 'checkbox') {
+                item.element.checked = item.checked;
+            } else {
+                item.element.value = item.value;
+            }
         });
         // Disable inputs
         formInputs.forEach(input => {

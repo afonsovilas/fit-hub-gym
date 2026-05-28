@@ -25,6 +25,11 @@ try {
     // Obter ID do utilizador logado a partir da sessão activa, com fallback para utilizador 9
     $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 9;
 
+    $stmtRole = $db->prepare("SELECT role FROM users WHERE id = ?");
+    $stmtRole->execute([$user_id]);
+    $roleRow = $stmtRole->fetch();
+    $user_role = $roleRow ? $roleRow['role'] : 'member';
+
     $name  = trim($_POST['full-name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $username = trim($_POST['username'] ?? '');
@@ -129,6 +134,36 @@ try {
         $password_hash = password_hash($password, PASSWORD_BCRYPT);
         $stmtPass = $db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
         $stmtPass->execute([$password_hash, $user_id]);
+    }
+
+    // Processar campos adicionais de perfil de Treinador
+    if ($user_role === 'trainer') {
+        $bio = trim($_POST['bio'] ?? '');
+        $certifications = trim($_POST['certifications'] ?? '');
+        $specializations = $_POST['specializations'] ?? [];
+
+        $stmtCheckProfile = $db->prepare("SELECT 1 FROM trainer_profiles WHERE user_id = ?");
+        $stmtCheckProfile->execute([$user_id]);
+        if ($stmtCheckProfile->fetch()) {
+            $stmtUpdateTp = $db->prepare("UPDATE trainer_profiles SET bio = ?, certifications = ? WHERE user_id = ?");
+            $stmtUpdateTp->execute([$bio, $certifications, $user_id]);
+        } else {
+            $stmtInsertTp = $db->prepare("INSERT INTO trainer_profiles (user_id, bio, certifications) VALUES (?, ?, ?)");
+            $stmtInsertTp->execute([$user_id, $bio, $certifications]);
+        }
+
+        $stmtDeleteSpecs = $db->prepare("DELETE FROM trainer_specializations WHERE trainer_id = ?");
+        $stmtDeleteSpecs->execute([$user_id]);
+
+        if (is_array($specializations) && !empty($specializations)) {
+            $stmtInsertSpec = $db->prepare("INSERT INTO trainer_specializations (trainer_id, specialization) VALUES (?, ?)");
+            foreach ($specializations as $spec) {
+                $specClean = trim(strtolower($spec));
+                if ($specClean !== '') {
+                    $stmtInsertSpec->execute([$user_id, $specClean]);
+                }
+            }
+        }
     }
 
     $db->commit();

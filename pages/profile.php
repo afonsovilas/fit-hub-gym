@@ -80,6 +80,27 @@ try {
         ];
     }
 
+    // Fetch trainer profile info if user is a trainer
+    $trainer_bio = '';
+    $trainer_certs = '';
+    $mySpecs = [];
+    if ($user && $user['role'] === 'trainer') {
+        $stmtTp = $db->prepare("SELECT bio, certifications FROM trainer_profiles WHERE user_id = ?");
+        $stmtTp->execute([$user_id]);
+        $tp = $stmtTp->fetch();
+        if ($tp) {
+            $trainer_bio = $tp['bio'] ?? '';
+            $trainer_certs = $tp['certifications'] ?? '';
+        }
+
+        $stmtSpecs = $db->prepare("SELECT specialization FROM trainer_specializations WHERE trainer_id = ?");
+        $stmtSpecs->execute([$user_id]);
+        $specsRaw = $stmtSpecs->fetchAll();
+        foreach ($specsRaw as $spec) {
+            $mySpecs[] = $spec['specialization'];
+        }
+    }
+
 } catch (Throwable $e) {
     $error = $e->getMessage();
 }
@@ -176,9 +197,48 @@ try {
 
                             <div class="form-group" style="margin-top: 15px;">
                                 <label for="avatar">Foto de Perfil (Avatar):</label>
-                                <input type="file" id="avatar" name="avatar" accept="image/*" disabled style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;">
+                                <input type="file" id="avatar" name="avatar" accept="image/*" disabled class="file-input">
                                 <small class="form-hint" style="color: #94a3b8; font-size: 0.8em; margin-top: 4px; display: block;">Envie uma imagem JPG, PNG ou GIF de até 2MB.</small>
                             </div>
+
+                            <?php if ($user['role'] === 'trainer'): ?>
+                                <div class="trainer-extra-info" style="border-top: 1px solid #334155; padding-top: 1.5rem; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 15px;">
+                                    <h4 style="margin: 0; color: #38bdf8; font-size: 1.1rem; font-weight: 600;">Informações de Treinador</h4>
+                                    
+                                    <div class="form-group">
+                                        <label for="bio">Biografia / Apresentação:</label>
+                                        <textarea id="bio" name="bio" rows="4" placeholder="Escreva uma breve apresentação profissional..." disabled style="resize: vertical;"><?= h($trainer_bio) ?></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="certifications">Certificações e Formação (uma por linha):</label>
+                                        <textarea id="certifications" name="certifications" rows="3" placeholder="Ex: Licenciatura em Ciências do Desporto, Certificação Pilates..." disabled style="resize: vertical;"><?= h($trainer_certs) ?></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label style="margin-bottom: 8px; display: block;">Especialidades Ativas:</label>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 8px;">
+                                            <?php 
+                                            $availableSpecs = [
+                                                'yoga' => 'Yoga',
+                                                'spinning' => 'Spinning',
+                                                'hiit' => 'HIIT',
+                                                'pilates' => 'Pilates',
+                                                'boxing' => 'Boxe',
+                                                'personal' => 'Treino Personalizado'
+                                            ];
+                                            foreach ($availableSpecs as $value => $label): 
+                                                $checked = in_array($value, $mySpecs) ? 'checked' : '';
+                                            ?>
+                                                <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; color: #cbd5e1;">
+                                                    <input type="checkbox" name="specializations[]" value="<?= $value ?>" <?= $checked ?> disabled style="width: auto; cursor: pointer; height: 18px; width: 18px; accent-color: #38bdf8;">
+                                                    <?= $label ?>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
 
                             <div class="form-actions">
                                 <button type="submit" class="btn btn-primary" id="save-btn" style="display: none;">Guardar Alterações</button>
