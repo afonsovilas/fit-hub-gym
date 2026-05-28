@@ -299,7 +299,7 @@ try {
                                 <?php if ($is_past): ?>
                                     <span style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); font-weight: 600; padding: 6px 12px; border-radius: 4px; font-size: 0.85em; display: inline-block;">✓ Aula Concluída</span>
                                     <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
-                                        <form method="POST" action="../actions/delete_class.php" onsubmit="return confirm('Deseja realmente remover a aula \'<?= h($class['name']) ?>\'? Isto também removerá inscrições associadas.');" style="margin: 0; padding: 0; display: inline;">
+                                        <form method="POST" action="../actions/delete_class.php" class="delete-class-form" data-class-name="<?= h($class['name']) ?>" style="margin: 0; padding: 0; display: inline;">
                                             <?= get_csrf_input() ?>
                                             <input type="hidden" name="class_id" value="<?= $class['id'] ?>">
                                             <button type="submit" class="btn-action btn-delete" style="padding: 6px 12px; font-size: 0.85em; border-radius: 4px; cursor: pointer; border: 1px solid #f43f5e; background: rgba(244, 63, 94, 0.1); color: #f43f5e; font-weight: 600;" title="Remover aula">
@@ -322,7 +322,7 @@ try {
                                                 title="Editar aula">
                                             ✏️ Editar
                                         </button>
-                                        <form method="POST" action="../actions/delete_class.php" onsubmit="return confirm('Deseja realmente remover a aula \'<?= h($class['name']) ?>\'? Isto também removerá inscrições associadas.');" style="margin: 0; padding: 0; display: inline;">
+                                        <form method="POST" action="../actions/delete_class.php" class="delete-class-form" data-class-name="<?= h($class['name']) ?>" style="margin: 0; padding: 0; display: inline;">
                                             <?= get_csrf_input() ?>
                                             <input type="hidden" name="class_id" value="<?= $class['id'] ?>">
                                             <button type="submit" class="btn-action btn-delete" style="padding: 6px 12px; font-size: 0.85em; border-radius: 4px; cursor: pointer; border: 1px solid #f43f5e; background: rgba(244, 63, 94, 0.1); color: #f43f5e; font-weight: 600;" title="Remover aula">
@@ -383,13 +383,13 @@ try {
 <!-- Modal de Catálogo de Aulas Unificado (Oculto por defeito) -->
 <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
     <style>
-    #class-modal label {
+    #class-modal label, #delete-class-confirm-modal label {
         color: #cbd5e1 !important; /* light slate */
         font-weight: 600;
         margin-bottom: 0.5rem;
         display: block;
     }
-    #class-modal h3, #class-modal h2 {
+    #class-modal h3, #class-modal h2, #delete-class-confirm-modal h3 {
         color: #38bdf8 !important; /* premium cyan */
     }
     #class-modal input, #class-modal select, #class-modal textarea {
@@ -483,6 +483,26 @@ try {
                     <button type="submit" class="btn btn-primary" style="flex: none; width: auto; padding: 0.5rem 1.5rem; margin: 0;">Guardar no Catálogo</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Remoção de Aula (Delete Class Custom Modal) -->
+    <div id="delete-class-confirm-modal" class="modal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+        <div style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <!-- Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: #0b0f19;">
+                <h3 style="margin: 0; color: #cf5a2b; font-size: 1.25em; font-weight: 700;">Confirmar Remoção</h3>
+                <button type="button" id="delete-class-close" style="background: none; border: none; color: #94a3b8; font-size: 1.8em; cursor: pointer; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">&times;</button>
+            </div>
+            <!-- Body -->
+            <div style="padding: 20px; color: #cbd5e1; font-size: 0.95rem; line-height: 1.5; background: #0f172a;">
+                <p id="delete-class-message" style="margin: 0;">Deseja realmente remover esta aula? Isto também removerá todas as inscrições associadas.</p>
+            </div>
+            <!-- Footer -->
+            <div style="padding: 15px 20px; border-top: 1px solid #1e293b; display: flex; justify-content: flex-end; gap: 10px; background: #0b0f19;">
+                <button type="button" id="delete-class-cancel" class="btn btn-secondary" style="padding: 0.5rem 1.25rem; font-size: 0.9em; margin: 0; border-radius: 6px;">Cancelar</button>
+                <button type="button" id="delete-class-proceed" class="btn btn-primary" style="padding: 0.5rem 1.25rem; font-size: 0.9em; margin: 0; border-radius: 6px; background-color: #cf5a2b; color: white; font-weight: bold; border: none; cursor: pointer;">Confirmar</button>
+            </div>
         </div>
     </div>
 

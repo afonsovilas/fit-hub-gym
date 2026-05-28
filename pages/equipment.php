@@ -182,7 +182,7 @@ try {
                                             title="Editar equipamento">
                                         ✏️ Editar
                                     </button>
-                                    <form method="POST" action="../actions/delete_equipment.php" onsubmit="return confirm('Deseja realmente remover o equipamento \'<?= $item_name ?>\'?');" style="margin: 0; padding: 0; display: inline;">
+                                    <form method="POST" action="../actions/delete_equipment.php" class="delete-equipment-form" data-equipment-name="<?= $item_name ?>" style="margin: 0; padding: 0; display: inline;">
                                         <?= get_csrf_input() ?>
                                         <input type="hidden" name="id" value="<?= $item_id ?>">
                                         <button type="submit" class="btn-action btn-delete" style="padding: 6px 12px; font-size: 0.85em; border-radius: 4px; cursor: pointer; border: 1px solid #f43f5e; background: rgba(244, 63, 94, 0.1); color: #f43f5e; font-weight: 600;" title="Remover equipamento">
@@ -262,13 +262,13 @@ try {
 <!-- Modal de Equipamento Unificado (Oculto por defeito) -->
 <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
     <style>
-    #equipment-modal label {
+    #equipment-modal label, #delete-equipment-confirm-modal label {
         color: #cbd5e1 !important;
         font-weight: 600;
         margin-bottom: 0.5rem;
         display: block;
     }
-    #equipment-modal h3, #equipment-modal h2 {
+    #equipment-modal h3, #equipment-modal h2, #delete-equipment-confirm-modal h3 {
         color: #38bdf8 !important;
     }
     #equipment-modal input, #equipment-modal select, #equipment-modal textarea {
@@ -341,6 +341,26 @@ try {
                     <button type="submit" class="btn btn-primary" style="flex: none; width: auto; padding: 0.5rem 1.5rem; margin: 0;">Guardar Equipamento</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Remoção de Equipamento (Delete Equipment Custom Modal) -->
+    <div id="delete-equipment-confirm-modal" class="modal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+        <div style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <!-- Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: #0b0f19;">
+                <h3 style="margin: 0; color: #cf5a2b; font-size: 1.25em; font-weight: 700;">Confirmar Remoção</h3>
+                <button type="button" id="delete-equipment-close" style="background: none; border: none; color: #94a3b8; font-size: 1.8em; cursor: pointer; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">&times;</button>
+            </div>
+            <!-- Body -->
+            <div style="padding: 20px; color: #cbd5e1; font-size: 0.95rem; line-height: 1.5; background: #0f172a;">
+                <p id="delete-equipment-message" style="margin: 0;">Deseja realmente remover este equipamento?</p>
+            </div>
+            <!-- Footer -->
+            <div style="padding: 15px 20px; border-top: 1px solid #1e293b; display: flex; justify-content: flex-end; gap: 10px; background: #0b0f19;">
+                <button type="button" id="delete-equipment-cancel" class="btn btn-secondary" style="padding: 0.5rem 1.25rem; font-size: 0.9em; margin: 0; border-radius: 6px;">Cancelar</button>
+                <button type="button" id="delete-equipment-proceed" class="btn btn-primary" style="padding: 0.5rem 1.25rem; font-size: 0.9em; margin: 0; border-radius: 6px; background-color: #cf5a2b; color: white; font-weight: bold; border: none; cursor: pointer;">Confirmar</button>
+            </div>
         </div>
     </div>
 

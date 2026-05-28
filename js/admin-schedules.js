@@ -133,4 +133,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ── Deletion Custom Modal Logic ──
+    const deleteModal = document.getElementById('delete-class-confirm-modal');
+    const deleteMessage = document.getElementById('delete-class-message');
+    const btnDeleteCancel = document.getElementById('delete-class-cancel');
+    const btnDeleteProceed = document.getElementById('delete-class-proceed');
+    const btnDeleteClose = document.getElementById('delete-class-close');
+
+    let activeFormToDelete = null;
+
+    // Intercept delete form submissions
+    document.querySelectorAll('.delete-class-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            activeFormToDelete = this;
+
+            if (deleteModal && deleteMessage) {
+                const className = this.dataset.className || 'esta aula';
+                deleteMessage.innerHTML = `Deseja realmente remover a aula <strong>"${className}"</strong>?<br><span style="font-size: 0.85em; color: #f87171;">Atenção: Isto também removerá todas as inscrições associadas!</span>`;
+                deleteModal.style.display = 'flex';
+            }
+        });
+    });
+
+    // Close handlers for delete modal
+    function closeDeleteModal() {
+        if (deleteModal) deleteModal.style.display = 'none';
+        activeFormToDelete = null;
+    }
+
+    if (btnDeleteCancel) btnDeleteCancel.addEventListener('click', closeDeleteModal);
+    if (btnDeleteClose) btnDeleteClose.addEventListener('click', closeDeleteModal);
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+    }
+
+    // Proceed with deletion form submit
+    if (btnDeleteProceed) {
+        btnDeleteProceed.addEventListener('click', function() {
+            if (activeFormToDelete) {
+                const form = activeFormToDelete;
+                closeDeleteModal();
+                form.submit();
+            }
+        });
+    }
 });
