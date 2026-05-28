@@ -91,8 +91,31 @@ try {
     $stmtPT->execute([$trainer_id, $startOfWeek, $endOfWeek]);
     $ptBookings = $stmtPT->fetchAll();
 
-    // Merge both group classes and PT sessions
-    $all_sessions = array_merge($classes, $ptBookings);
+    // Query Nutrition Consultation Bookings (accepted and completed)
+    $stmtNutrition = $db->prepare("
+        SELECT 
+            nr.id,
+            'Consulta de Nutrição' AS name,
+            'Consulta de plano alimentar personalizado' AS description,
+            nr.scheduled_date AS scheduled_at,
+            60 AS duration_min,
+            'Gabinete de Nutrição' AS room,
+            1 AS capacity,
+            u.name AS member_name,
+            u.email AS member_email,
+            'nutrition' AS type,
+            nr.status,
+            nr.plan_details
+        FROM nutrition_requests nr
+        JOIN users u ON nr.member_id = u.id
+        WHERE nr.trainer_id = ? AND nr.status IN ('accepted', 'completed') AND nr.scheduled_date >= ? AND nr.scheduled_date <= ?
+        ORDER BY nr.scheduled_date ASC
+    ");
+    $stmtNutrition->execute([$trainer_id, $startOfWeek, $endOfWeek]);
+    $nutritionBookings = $stmtNutrition->fetchAll();
+
+    // Merge both group classes, PT sessions and nutrition consultations
+    $all_sessions = array_merge($classes, $ptBookings, $nutritionBookings);
 
     // Group sessions by day of week
     // Keys: 0=Monday, 1=Tuesday, ..., 5=Saturday
@@ -129,6 +152,17 @@ try {
     ");
     $stmtPendingPt->execute([$trainer_id, date('Y-m-d H:i')]);
     $pendingPts = $stmtPendingPt->fetchAll();
+
+    // Fetch pending nutrition requests
+    $stmtPendingNutrition = $db->prepare("
+        SELECT nr.*, u.name AS member_name, u.email AS member_email, u.avatar AS member_avatar
+        FROM nutrition_requests nr
+        JOIN users u ON nr.member_id = u.id
+        WHERE nr.trainer_id = ? AND nr.status = 'pending'
+        ORDER BY nr.created_at ASC
+    ");
+    $stmtPendingNutrition->execute([$trainer_id]);
+    $pendingNutrition = $stmtPendingNutrition->fetchAll();
 
 } catch (Throwable $e) {
     $error = $e->getMessage();
@@ -190,6 +224,7 @@ try {
                                 <?php else: ?>
                                     <?php foreach ($day_classes as $class):
                                         $is_pt = isset($class['type']) && $class['type'] === 'pt';
+                                        $is_nutrition = isset($class['type']) && $class['type'] === 'nutrition';
                                         $class_id = (int) $class['id'];
                                         $class_name = h($class['name']);
                                         $class_description = h($class['description'] ?? '');
@@ -201,11 +236,15 @@ try {
                                         $class_time = date('H:i', $timestamp);
                                         $class_date_full = date('d/m/Y', $timestamp);
                                         
-                                        $color_class = $is_pt ? 'color-pt' : $color_classes[$color_index % count($color_classes)];
-                                        if (!$is_pt) $color_index++;
+                                        if ($is_nutrition) {
+                                            $color_class = 'color-nutrition';
+                                        } else {
+                                            $color_class = $is_pt ? 'color-pt' : $color_classes[$color_index % count($color_classes)];
+                                            if (!$is_pt) $color_index++;
+                                        }
                                         
                                         $member_count = 0;
-                                        if (!$is_pt) {
+                                        if (!$is_pt && !$is_nutrition) {
                                             try {
                                                 $stmtCount = $db->prepare("
                                                     SELECT COUNT(*) as total FROM bookings WHERE class_id = ?
@@ -218,7 +257,16 @@ try {
                                             }
                                         }
                                     ?>
-                                        <article class="class-block <?= $color_class ?>" id="<?= $is_pt ? 'pt-' : 'class-' ?><?= $class_id ?>" style="<?= $is_pt ? 'border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08);' : '' ?>">
+                                        <article class="class-block <?= $color_class ?>" id="<?= $is_pt ? 'pt-' : ($is_nutrition ? 'nutrition-' : 'class-') ?><?= $class_id ?>" style="<?= $is_pt ? 'border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08);' : ($is_nutrition ? ($class['status'] === 'completed' ? 'border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08); cursor: pointer;' : 'border-left: 4px solid #059669; background: rgba(5, 150, 105, 0.08); cursor: pointer;') : '') ?>"
+                                            <?php if ($is_nutrition): ?>
+                                                data-type="nutrition"
+                                                data-request-id="<?= $class_id ?>"
+                                                data-member-name="<?= h($class['member_name']) ?>"
+                                                data-member-email="<?= h($class['member_email']) ?>"
+                                                data-status="<?= $class['status'] ?>"
+                                                data-plan-details="<?= h($class['plan_details'] ?? '') ?>"
+                                            <?php endif; ?>
+                                        >
                                             <div class="class-block-header">
                                                 <span class="class-time"><?= $class_time ?></span>
                                                 <span class="class-duration"><?= $class_duration ?>m</span>
@@ -232,6 +280,14 @@ try {
                                                     <?php if (!empty($class_description)): ?>
                                                         <p class="class-block-room" style="font-style: italic; color: #94a3b8; font-size: 0.85em; margin-top: 5px; overflow-wrap: break-word; word-break: break-word;">"<?= $class_description ?>"</p>
                                                     <?php endif; ?>
+                                                <?php elseif ($is_nutrition): ?>
+                                                    <p class="class-block-room" style="margin-bottom: 2px;">👤 <strong>Membro:</strong> <?= h($class['member_name']) ?></p>
+                                                    <p class="class-block-room" style="font-size: 0.85em; opacity: 0.8;">✉️ <?= h($class['member_email']) ?></p>
+                                                    <?php if ($class['status'] === 'completed'): ?>
+                                                        <p class="class-block-room" style="margin-top: 5px; font-size: 0.85em; color: #10b981; font-weight: 500;">🍎 Dieta prescrita (Clique para ver/editar)</p>
+                                                    <?php else: ?>
+                                                        <p class="class-block-room" style="margin-top: 5px; font-size: 0.85em; color: #059669; font-weight: 500;">🍎 Clique para prescrever dieta</p>
+                                                    <?php endif; ?>
                                                 <?php else: ?>
                                                     <p class="class-block-room">🏠 <?= $class_room ?></p>
                                                     <p class="class-block-capacity">
@@ -239,8 +295,8 @@ try {
                                                     </p>
                                                 <?php endif; ?>
                                             </div>
-
-                                            <?php if (!$is_pt): ?>
+ 
+                                            <?php if (!$is_pt && !$is_nutrition): ?>
                                                 <button 
                                                     type="button" 
                                                     class="btn btn-small btn-roster"
@@ -257,8 +313,14 @@ try {
                                                         <p>Carregando...</p>
                                                     </div>
                                                 </div>
-                                            <?php else: ?>
+                                            <?php elseif ($is_pt): ?>
                                                 <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.8em; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 8px; text-transform: uppercase;">PT Confirmado</span>
+                                            <?php elseif ($is_nutrition): ?>
+                                                <?php if ($class['status'] === 'completed'): ?>
+                                                    <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.8em; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 8px; text-transform: uppercase;">Concluído</span>
+                                                <?php else: ?>
+                                                    <span class="badge" style="background: rgba(5, 150, 105, 0.2); color: #059669; border: 1px solid rgba(5, 150, 105, 0.4); font-size: 0.8em; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 8px; text-transform: uppercase;">Agendado</span>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </article>
                                     <?php endforeach; ?>
@@ -365,6 +427,65 @@ try {
                     50% { transform: scale(1.08); }
                 }
             </style>
+        <?php endif; ?>
+
+        <?php if (!empty($pendingNutrition)): ?>
+            <section class="pending-requests-section pending-nutrition-section" style="margin-top: 3.5rem; padding-top: 2rem; border-top: 2px dashed var(--color-border); margin-bottom: 2rem;">
+                <div class="section-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 1.6rem; color: var(--color-text); margin: 0; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.8rem; animation: pulse 2s infinite; display: inline-block;">🍎</span> 
+                            Solicitações de Planos de Nutrição
+                        </h2>
+                        <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-top: 4px;">Tem <?= count($pendingNutrition) ?> consulta<?= count($pendingNutrition) > 1 ? 's' : '' ?> de nutrição pendente<?= count($pendingNutrition) > 1 ? 's' : '' ?> a aguardar agendamento:</p>
+                    </div>
+                    <span class="badge-pending-count" style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 16px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <?= count($pendingNutrition) ?> pendente<?= count($pendingNutrition) > 1 ? 's' : '' ?>
+                    </span>
+                </div>
+
+                <div class="pending-requests-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px;">
+                    <?php foreach ($pendingNutrition as $req): 
+                        $rawAvatar = $req['member_avatar'] ? (strpos($req['member_avatar'], 'http') === 0 || strpos($req['member_avatar'], '../') === 0 ? $req['member_avatar'] : '../' . $req['member_avatar']) : '../assets/images/avatars/profile-placeholder.png';
+                    ?>
+                        <article class="pending-request-card" style="background: var(--color-surface); border: 1px solid var(--color-border); padding: 22px; border-radius: 16px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow-soft); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-left: 5px solid #059669; position: relative; overflow: hidden;">
+                            <div style="display: flex; gap: 14px; align-items: center;">
+                                <div style="position: relative;">
+                                    <img src="<?= h($rawAvatar) ?>" alt="Foto de <?= h($req['member_name']) ?>" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(5, 150, 105, 0.15); box-shadow: 0 4px 10px rgba(0,0,0,0.05);" onerror="this.src='../assets/images/avatars/profile-placeholder.png';">
+                                    <span style="position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; background: #eab308; border: 2px solid var(--color-surface); border-radius: 50%;" title="Pendente"></span>
+                                </div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <h4 style="margin: 0; color: var(--color-text); font-size: 1.15rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= h($req['member_name']) ?></h4>
+                                    <span style="font-size: 0.85em; color: var(--color-text-muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= h($req['member_email']) ?></span>
+                                </div>
+                            </div>
+
+                            <form method="POST" action="../actions/accept_nutrition_request.php" class="profile-form accept-nutrition-form" style="gap: 12px; margin: 0; padding: 0; display: flex; flex-direction: column;">
+                                <?= get_csrf_input() ?>
+                                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                                <input type="hidden" name="redirect_to" value="/pages/trainer_schedule.php">
+                                
+                                <div class="form-group" style="margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: flex-end;">
+                                    <div>
+                                        <label for="nut-sched-date-<?= $req['id'] ?>" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 4px; color: var(--color-text);">Data:</label>
+                                        <input type="date" id="nut-sched-date-<?= $req['id'] ?>" min="<?= date('Y-m-d') ?>" required style="width: 100%; padding: 8px; border-radius: 6px; background: var(--color-surface-soft); border: 1px solid var(--color-border); color: #000; color-scheme: light;">
+                                    </div>
+                                    <div>
+                                        <label for="nut-sched-time-<?= $req['id'] ?>" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 4px; color: var(--color-text);">Hora:</label>
+                                        <select id="nut-sched-time-<?= $req['id'] ?>" required style="width: 100%; padding: 8px; border-radius: 6px; background: var(--color-surface-soft); border: 1px solid var(--color-border); color: #000; color-scheme: light;">
+                                            <option value="">-- Selecione data --</option>
+                                        </select>
+                                    </div>
+                                    <input type="hidden" id="scheduled_date_<?= $req['id'] ?>" name="scheduled_date">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="margin-top: 5px; width: 100%; background: #059669; border-color: #059669; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2); font-weight: 600; padding: 10px 16px; border-radius: 8px; cursor: pointer;">
+                                    Aceitar e Agendar
+                                </button>
+                            </form>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            </section>
         <?php endif; ?>
     </div>
 </main>
@@ -543,10 +664,48 @@ try {
         }
     }
 
+    function openNutritionModal(requestId, memberName, memberEmail, planDetails = '', isCompleted = false) {
+        const modal = document.getElementById('prescribe-nutrition-modal');
+        const reqInput = document.getElementById('nutrition-request-id');
+        const nameSpan = document.getElementById('nutrition-member-name');
+        const emailSpan = document.getElementById('nutrition-member-email');
+        const detailsInput = document.getElementById('nutrition-details-input');
+        const errorDiv = document.getElementById('nutrition-modal-error');
+        const titleSpan = document.getElementById('nutrition-modal-title');
+        const submitBtn = document.getElementById('nutrition-submit-btn');
+        
+        if (modal && reqInput && nameSpan && emailSpan && detailsInput) {
+            reqInput.value = requestId;
+            nameSpan.textContent = memberName;
+            emailSpan.textContent = memberEmail;
+            detailsInput.value = planDetails;
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+            
+            if (titleSpan) {
+                titleSpan.innerHTML = isCompleted ? '<span>🍎</span> Editar Plano de Nutrição' : '<span>🍎</span> Prescrever Plano de Nutrição';
+            }
+            if (submitBtn) {
+                submitBtn.textContent = isCompleted ? 'Gravar Alterações' : 'Gravar e Concluir';
+            }
+            
+            modal.style.display = 'flex';
+            setTimeout(() => detailsInput.focus(), 50);
+        }
+    }
+
+    function closeNutritionModal() {
+        const modal = document.getElementById('prescribe-nutrition-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closeRosterModal();
             closeRejectModal();
+            closeNutritionModal();
         }
     });
 
@@ -558,6 +717,246 @@ try {
                 if (event.target === rejectModal) {
                     closeRejectModal();
                 }
+            });
+        }
+
+        const nutritionModal = document.getElementById('prescribe-nutrition-modal');
+        if (nutritionModal) {
+            nutritionModal.addEventListener('click', function(event) {
+                if (event.target === nutritionModal) {
+                    closeNutritionModal();
+                }
+            });
+        }
+
+        const nutritionForm = document.getElementById('nutrition-plan-form');
+        if (nutritionForm) {
+            nutritionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const requestId = document.getElementById('nutrition-request-id').value;
+                const planDetails = document.getElementById('nutrition-details-input').value;
+                const csrfToken = document.getElementById('nutrition-csrf-token').value;
+                const errorDiv = document.getElementById('nutrition-modal-error');
+                const submitBtn = form.querySelector('button[type="submit"]');
+
+                const isEdit = submitBtn.textContent === 'Gravar Alterações' || submitBtn.textContent === 'A guardar...';
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'A guardar...';
+                errorDiv.style.display = 'none';
+
+                fetch('<?= BASE_URL_PATH ?>api/api_save_nutrition_plan.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'request_id=' + encodeURIComponent(requestId) + 
+                          '&plan_details=' + encodeURIComponent(planDetails) + 
+                          '&csrf_token=' + encodeURIComponent(csrfToken)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Erro no servidor: ' + response.status);
+                        }).catch(() => {
+                            throw new Error('Erro no servidor ao guardar o plano.');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        throw new Error(data.message || 'Erro desconhecido.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao guardar plano de nutrição:', error);
+                    errorDiv.textContent = error.message;
+                    errorDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = isEdit ? 'Gravar Alterações' : 'Gravar e Concluir';
+                });
+            });
+        }
+
+        const nutritionBlocks = document.querySelectorAll('.class-block[data-type="nutrition"]');
+        nutritionBlocks.forEach(block => {
+            block.addEventListener('click', function() {
+                const requestId = this.dataset.requestId;
+                const memberName = this.dataset.memberName;
+                const memberEmail = this.dataset.memberEmail;
+                const planDetails = this.dataset.planDetails || '';
+                const isCompleted = this.dataset.status === 'completed';
+                openNutritionModal(requestId, memberName, memberEmail, planDetails, isCompleted);
+            });
+        });
+
+        // Dynamic hours filtering for pending nutrition forms in schedule page
+        const acceptNutritionForms = document.querySelectorAll('.accept-nutrition-form');
+        acceptNutritionForms.forEach(form => {
+            const dateInput = form.querySelector('input[type="date"]');
+            const timeSelect = form.querySelector('select');
+            const hiddenInput = form.querySelector('input[name="scheduled_date"]');
+
+            if (dateInput && timeSelect && hiddenInput) {
+                dateInput.addEventListener('change', function() {
+                    updateTimeOptions(this, timeSelect);
+                    updateHiddenDateTime(dateInput, timeSelect, hiddenInput);
+                });
+
+                timeSelect.addEventListener('change', function() {
+                    updateHiddenDateTime(dateInput, timeSelect, hiddenInput);
+                });
+
+                form.addEventListener('submit', function() {
+                    updateHiddenDateTime(dateInput, timeSelect, hiddenInput);
+                });
+
+                if (dateInput.value) {
+                    updateTimeOptions(dateInput, timeSelect);
+                    updateHiddenDateTime(dateInput, timeSelect, hiddenInput);
+                }
+            }
+        });
+
+        function updateHiddenDateTime(dateInput, timeSelect, hiddenInput) {
+            let timeVal = timeSelect.value;
+            if (!timeVal && timeSelect.options && timeSelect.options.length > 0) {
+                for (let i = 0; i < timeSelect.options.length; i++) {
+                    if (timeSelect.options[i].value) {
+                        timeVal = timeSelect.options[i].value;
+                        break;
+                    }
+                }
+            }
+            if (dateInput.value && timeVal) {
+                hiddenInput.value = `${dateInput.value}T${timeVal}`;
+            } else {
+                hiddenInput.value = '';
+            }
+        }
+
+        function getValidTimesForDate(dateStr) {
+            if (!dateStr) return [];
+            const dateParts = dateStr.split('-');
+            const year = parseInt(dateParts[0]);
+            const month = parseInt(dateParts[1]) - 1;
+            const day = parseInt(dateParts[2]);
+            const date = new Date(year, month, day);
+            
+            // Check holiday
+            const mStr = String(month + 1).padStart(2, '0');
+            const dStr = String(day).padStart(2, '0');
+            const md = `${mStr}-${dStr}`;
+            
+            const fixedHolidays = [
+                '01-01', '04-25', '05-01', '06-10', '08-15', '10-05', '11-01', '12-01', '12-08', '12-25'
+            ];
+            
+            let isHoliday = fixedHolidays.includes(md);
+            if (!isHoliday) {
+                // Meeus/Jones/Butcher Easter calculation
+                const a = year % 19;
+                const b = Math.floor(year / 100);
+                const c = year % 100;
+                const d = Math.floor(b / 4);
+                const e = b % 4;
+                const f = Math.floor((b + 8) / 25);
+                const g = Math.floor((b - f + 1) / 3);
+                const h = (19 * a + b - d - g + 15) % 30;
+                const i = Math.floor(c / 4);
+                const k = c % 4;
+                const l = (32 + 2 * e + 2 * i - h - k) % 7;
+                const m = Math.floor((a + 11 * h + 22 * l) / 451);
+                const easterMonth = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+                const easterDay = ((h + l - 7 * m + 114) % 31) + 1;
+                
+                const easter = new Date(year, easterMonth, easterDay);
+                const goodFriday = new Date(year, easterMonth, easterDay - 2);
+                const corpusChristi = new Date(year, easterMonth, easterDay + 60);
+                
+                const checkYMD = `${year}-${mStr}-${dStr}`;
+                const formatYMD = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                
+                if (checkYMD === formatYMD(easter) || checkYMD === formatYMD(goodFriday) || checkYMD === formatYMD(corpusChristi)) {
+                    isHoliday = true;
+                }
+            }
+            
+            const dayOfWeek = date.getDay();
+            let startHour, endHour;
+            
+            if (isHoliday) {
+                startHour = 9;
+                endHour = 19; // Closes at 20:00, last session starts at 19:00
+            } else if (dayOfWeek === 0) {
+                startHour = 8;
+                endHour = 20; // Closes at 21:00, last session starts at 20:00
+            } else if (dayOfWeek === 6) {
+                startHour = 7;
+                endHour = 21; // Closes at 22:00, last session starts at 21:00
+            } else {
+                startHour = 6;
+                endHour = 22; // Closes at 23:00, last session starts at 22:00
+            }
+            
+            const times = [];
+            for (let h = startHour; h <= endHour; h++) {
+                for (let m = 0; m < 60; m += 15) {
+                    if (h === endHour && m > 0) break;
+                    times.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                }
+            }
+            
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            if (dateStr === todayStr) {
+                const currentHour = now.getHours();
+                const currentMin = now.getMinutes();
+                const currentTimeVal = currentHour * 100 + currentMin;
+                return times.filter(t => {
+                    const parts = t.split(':');
+                    const val = parseInt(parts[0]) * 100 + parseInt(parts[1]);
+                    return val > currentTimeVal;
+                });
+            }
+            
+            return times;
+        }
+
+        function updateTimeOptions(dateInput, timeSelect, selectedTime = '') {
+            const dateStr = dateInput.value;
+            timeSelect.innerHTML = '';
+            
+            if (!dateStr) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '-- Selecione a data --';
+                timeSelect.appendChild(opt);
+                return;
+            }
+            
+            const validTimes = getValidTimesForDate(dateStr);
+            
+            if (validTimes.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '-- Sem horários disponíveis --';
+                timeSelect.appendChild(opt);
+                return;
+            }
+            
+            validTimes.forEach((time, index) => {
+                const opt = document.createElement('option');
+                opt.value = time;
+                opt.textContent = time;
+                if (time === selectedTime || (selectedTime === '' && index === 0)) {
+                    opt.selected = true;
+                }
+                timeSelect.appendChild(opt);
             });
         }
     });
@@ -603,6 +1002,49 @@ try {
     </div>
 </div>
 
+<!-- Custom Modal for Prescribing Nutrition Plan -->
+<div id="prescribe-nutrition-modal" class="modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+    <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; max-width: 600px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.4); display: flex; flex-direction: column; overflow: hidden; max-height: 90vh; animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+        <div style="padding: 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: var(--color-surface-soft);">
+            <h3 id="nutrition-modal-title" style="margin: 0; color: #059669; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);">
+                <span>🍎</span> Prescrever Plano de Nutrição
+            </h3>
+            <button type="button" onclick="closeNutritionModal()" style="background: none; border: none; color: var(--color-text-muted); font-size: 1.8rem; cursor: pointer; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#059669'" onmouseout="this.style.color='var(--color-text-muted)'">&times;</button>
+        </div>
+        <div style="padding: 20px; overflow-y: auto;">
+            <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 1.2rem; line-height: 1.5; margin-top: 0;">
+                Membro: <strong id="nutrition-member-name" style="color: var(--color-text);"></strong> (<span id="nutrition-member-email"></span>)
+            </p>
+            <form id="nutrition-plan-form" style="display: flex; flex-direction: column; gap: 15px; margin: 0;">
+                <input type="hidden" name="csrf_token" id="nutrition-csrf-token" value="<?= get_csrf_token() ?>">
+                <input type="hidden" name="request_id" id="nutrition-request-id" value="">
+                
+                <label for="nutrition-details-input" style="font-weight: 600; color: var(--color-text); font-size: 0.9rem;">Detalhes da Dieta / Recomendações:</label>
+                <textarea 
+                    name="plan_details" 
+                    id="nutrition-details-input" 
+                    required 
+                    placeholder="Indique a dieta, refeições, calorias, macros ou outras recomendações detalhadas para o membro..." 
+                    style="width: 100%; min-height: 200px; padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-surface-soft); color: var(--color-text); font-family: inherit; font-size: 0.95rem; resize: vertical; outline: none; transition: border-color 0.2s;"
+                    onfocus="this.style.borderColor='#059669'"
+                    onblur="this.style.borderColor='var(--color-border)'"
+                ></textarea>
+                
+                <div id="nutrition-modal-error" style="color: #ef4444; font-size: 0.9rem; display: none;"></div>
+                
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 5px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeNutritionModal()" style="padding: 10px 20px; font-weight: 600; border-radius: 8px; font-size: 0.95rem; cursor: pointer; border: 1px solid var(--color-border); background: var(--color-surface-soft); color: var(--color-text);">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="nutrition-submit-btn" class="btn" style="background: #059669; color: #fff; border: none; padding: 10px 20px; font-weight: 600; border-radius: 8px; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25); transition: background-color 0.2s;">
+                        Gravar e Concluir
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     @keyframes modalFadeIn {
         from { transform: scale(0.95); opacity: 0; }
@@ -611,14 +1053,17 @@ try {
 </style>
 
 <!-- Floating bottom-left toast indicator if there are pending requests -->
-<?php if (!empty($pendingPts)): ?>
+<?php 
+$total_pending = count($pendingPts) + count($pendingNutrition);
+if ($total_pending > 0): 
+?>
     <div id="pending-pt-floating-toast" style="position: fixed; bottom: 25px; left: 25px; background: var(--color-surface); border: 1px solid var(--color-border); border-left: 5px solid var(--color-primary); padding: 16px 20px; border-radius: 16px; box-shadow: var(--shadow-card); display: flex; align-items: center; gap: 14px; z-index: 998; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); animation: slideUpToast 0.5s cubic-bezier(0.4, 0, 0.2, 1);">
         <div style="background: rgba(207, 90, 43, 0.08); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
             <span style="animation: pulse 2s infinite; display: inline-block;">⏳</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 2px;">
             <span style="font-weight: 700; font-size: 0.95rem; color: var(--color-text); font-family: var(--font-heading);">Pedidos Pendentes</span>
-            <span style="font-size: 0.82rem; color: var(--color-text-muted);">Tem <?= count($pendingPts) ?> treino<?= count($pendingPts) > 1 ? 's' : '' ?> a aguardar resposta.</span>
+            <span style="font-size: 0.82rem; color: var(--color-text-muted);">Tem <?= $total_pending ?> pedido<?= $total_pending > 1 ? 's' : '' ?> a aguardar resposta.</span>
         </div>
         <div style="margin-left: 8px; color: var(--color-primary); font-weight: 700; font-size: 1.1rem; transition: transform 0.2s;" class="toast-arrow">
             &rarr;

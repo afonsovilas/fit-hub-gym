@@ -48,8 +48,15 @@ try {
     $_SESSION['user_role'] = $user['role'];
     $_SESSION['user_name'] = $user['name'];
 
+    $redirect_to = trim($_POST['redirect_to'] ?? '');
+    if ($redirect_to !== '' && strpos($redirect_to, '/') === 0 && strpos($redirect_to, '//') !== 0) {
+        // Safe local redirect
+    } else {
+        $redirect_to = '/pages/profile.php';
+    }
+
     set_flash("Sessão iniciada com sucesso! Bem-vindo(a), " . h($user['name']) . "!", 'success');
-    redirect('/pages/profile.php');
+    redirect($redirect_to);
 
 } catch (Throwable $e) {
     error_log('[DB LOGIN ERROR] ' . $e->getMessage());

@@ -211,6 +211,13 @@ textarea {
     border-bottom-color: var(--color-primary);
 }
 
+/* Active tab button styling */
+.tab-btn.active {
+    color: #000 !important; /* black text for active tab */
+    border-bottom-color: var(--color-primary) !important;
+    font-weight: 600;
+}
+
 :is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .nav-link {
     color: rgba(255, 255, 255, 0.96);
 }
@@ -2781,6 +2788,15 @@ textarea {
 
 .color-5 .class-block-header {
     color: #5b21b6;
+}
+
+.color-nutrition {
+    border-color: #059669;
+    background: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 100%);
+}
+
+.color-nutrition .class-block-header {
+    color: #065f46;
 }
 
 /* Class Block Header (Time and Duration) */

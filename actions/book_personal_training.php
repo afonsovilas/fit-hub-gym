@@ -66,6 +66,13 @@ try {
         redirect('/pages/profile.php#treino-personalizado');
     }
 
+    // Validar horário de funcionamento e intervalos de 15 minutos (com duração de 60 min)
+    $time_validation = validate_schedule_time($scheduled_at_raw, 60);
+    if (!$time_validation['success']) {
+        set_flash($time_validation['message'], 'error');
+        redirect('/pages/profile.php#treino-personalizado');
+    }
+
     // Formatar data para base de dados SQLite (Y-m-d H:i)
     $scheduled_at = date('Y-m-d H:i:s', $scheduled_time);
 

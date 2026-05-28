@@ -18,7 +18,12 @@ require_once BASE_PATH . '/templates/navbar.php';
 require_once BASE_PATH . '/src/csrf.php';
 
 if (isset($_SESSION['user_id'])) {
-    redirect('/pages/profile.php');
+    $redirect_to = trim($_GET['redirect_to'] ?? '');
+    if ($redirect_to !== '' && strpos($redirect_to, '/') === 0 && strpos($redirect_to, '//') !== 0) {
+        redirect($redirect_to);
+    } else {
+        redirect('/pages/profile.php');
+    }
 }
 ?>
 
@@ -32,6 +37,12 @@ if (isset($_SESSION['user_id'])) {
         
         <form action="../actions/login_action.php" method="POST" style="display: flex; flex-direction: column; gap: 18px;">
             <?= get_csrf_input() ?>
+            <?php
+            $redirect_to = $_GET['redirect_to'] ?? '';
+            if ($redirect_to !== '' && strpos($redirect_to, '/') === 0 && strpos($redirect_to, '//') !== 0):
+            ?>
+                <input type="hidden" name="redirect_to" value="<?= h($redirect_to) ?>">
+            <?php endif; ?>
             
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 <label for="email" style="font-weight: 600; color: #e2e8f0; font-size: 0.95em;">Endereço de Email:</label>

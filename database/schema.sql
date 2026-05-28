@@ -3,6 +3,7 @@
 
 PRAGMA foreign_keys = ON;
 
+DROP TABLE IF EXISTS nutrition_requests;
 DROP TABLE IF EXISTS progress_logs;
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS personal_training_bookings;
@@ -164,6 +165,21 @@ CREATE TABLE IF NOT EXISTS progress_logs (
 
 
 -- ──────────────────────────────────────────────────────────────────────────────
+-- 13. Pedidos de Planos de Nutrição (nutrition_requests) - Extra
+-- ──────────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS nutrition_requests (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    trainer_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status         TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'accepted', 'completed')),
+    scheduled_date TEXT,
+    plan_details   TEXT,
+    created_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+
+
+-- ──────────────────────────────────────────────────────────────────────────────
 -- DADOS PILOTO / SEED DATA
 -- ──────────────────────────────────────────────────────────────────────────────
 
@@ -190,7 +206,9 @@ INSERT INTO trainer_specializations (trainer_id, specialization) VALUES
 (2, 'personal'),
 (3, 'hiit'),
 (3, 'boxing'),
-(4, 'personal');
+(4, 'personal'),
+(1, 'nutricao'),
+(2, 'nutricao');
 
 -- Inserir Staff
 INSERT INTO users (id, name, email, username, password_hash, role, phone, avatar, is_active) VALUES

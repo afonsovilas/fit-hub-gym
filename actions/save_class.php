@@ -65,6 +65,13 @@ try {
         redirect('/pages/schedules.php');
     }
 
+    // Validar horário de funcionamento e intervalos de 15 minutos (com duração da aula)
+    $time_validation = validate_schedule_time($db_scheduled_at, $duration_min);
+    if (!$time_validation['success']) {
+        set_flash($time_validation['message'], 'error');
+        redirect('/pages/schedules.php');
+    }
+
     $db->beginTransaction();
 
     if ($class_id <= 0) {

@@ -113,3 +113,112 @@ function redirect(string $url): never
     header('Location: ' . $url);
     exit;
 }
+
+/**
+ * Valida se um determinado horário está em intervalos de 15 minutos
+ * e dentro das horas de abertura/fecho do ginásio no respetivo dia.
+ *
+ * @param string $datetime_str  Data e hora a validar (ex: Y-m-d H:i ou Y-m-d\TH:i).
+ * @return array{success: bool, message?: string}
+ */
+function validate_schedule_time(string $datetime_str, int $duration_min = 0): array
+{
+    $timestamp = strtotime($datetime_str);
+    if ($timestamp === false) {
+        return ['success' => false, 'message' => 'Data e hora inválidas.'];
+    }
+    
+    // 1. Validar intervalos de 15 minutos
+    $minute = (int) date('i', $timestamp);
+    if ($minute % 15 !== 0) {
+        return [
+            'success' => false, 
+            'message' => 'O horário deve ser agendado em intervalos de 15 minutos (ex: :00, :15, :30, :45).'
+        ];
+    }
+    
+    // 2. Determinar se é feriado em Portugal
+    $day_month = date('m-d', $timestamp);
+    $year = (int) date('Y', $timestamp);
+    
+    // Feriados Nacionais Fixos
+    $fixed_holidays = [
+        '01-01', // Ano Novo
+        '04-25', // Dia da Liberdade
+        '05-01', // Dia do Trabalhador
+        '06-10', // Dia de Portugal
+        '08-15', // Assunção de Nossa Senhora
+        '10-05', // Implantação da República
+        '11-01', // Dia de Todos os Santos
+        '12-01', // Restauração da Independência
+        '12-08', // Dia da Imaculada Conceição
+        '12-25', // Natal
+    ];
+    
+    $is_holiday = in_array($day_month, $fixed_holidays);
+    if (!$is_holiday) {
+        // Feriados Nacionais Móveis (Páscoa, Sexta-feira Santa, Corpo de Deus)
+        $easter_time = easter_date($year);
+        $easter_dt = new DateTime();
+        $easter_dt->setTimestamp($easter_time);
+        $easter_dt->setTime(0, 0, 0);
+        
+        $good_friday = clone $easter_dt;
+        $good_friday->modify('-2 days');
+        
+        $corpus_christi = clone $easter_dt;
+        $corpus_christi->modify('+60 days');
+        
+        $check_date = date('Y-m-d', $timestamp);
+        if ($check_date === $easter_dt->format('Y-m-d') || 
+            $check_date === $good_friday->format('Y-m-d') || 
+            $check_date === $corpus_christi->format('Y-m-d')) {
+            $is_holiday = true;
+        }
+    }
+    
+    // 3. Obter limites de horário com base no dia
+    $day_of_week = (int) date('w', $timestamp); // 0 = Domingo, 6 = Sábado, 1-5 = Segunda a Sexta
+    $time_str = date('H:i', $timestamp);
+    
+    if ($is_holiday) {
+        $open = '09:00';
+        $close = '20:00';
+        $day_name = 'Feriado';
+    } elseif ($day_of_week === 0) {
+        $open = '08:00';
+        $close = '21:00';
+        $day_name = 'Domingo';
+    } elseif ($day_of_week === 6) {
+        $open = '07:00';
+        $close = '22:00';
+        $day_name = 'Sábado';
+    } else {
+        $open = '06:00';
+        $close = '23:00';
+        $day_name = 'Segunda a Sexta';
+    }
+    
+    if ($time_str < $open || $time_str > $close) {
+        return [
+            'success' => false, 
+            'message' => "O horário de funcionamento ao $day_name é das $open às $close. A hora de início ($time_str) não pode ser anterior à de abertura nem posterior à de fecho."
+        ];
+    }
+
+    // 4. Validar se a sessão termina antes do fecho do ginásio
+    if ($duration_min > 0) {
+        $end_timestamp = $timestamp + ($duration_min * 60);
+        $date_str = date('Y-m-d', $timestamp);
+        $close_timestamp = strtotime("$date_str $close");
+        if ($end_timestamp > $close_timestamp) {
+            $max_start_time = date('H:i', $close_timestamp - ($duration_min * 60));
+            return [
+                'success' => false,
+                'message' => "Para uma sessão de $duration_min minutos, o horário de início não pode ser posterior a $max_start_time (fecho do ginásio às $close)."
+            ];
+        }
+    }
+    
+    return ['success' => true];
+}

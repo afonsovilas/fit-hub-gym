@@ -548,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize tab based on URL Hash
         function initTabFromHash() {
             const hash = window.location.hash.substring(1); // strip the leading '#'
-            const allowedTabs = ['dados-pessoais', 'aulas-grupo', 'treino-personalizado', 'avaliacoes-historico', 'dados-profissionais', 'avaliacoes-aulas'];
+            const allowedTabs = ['dados-pessoais', 'aulas-grupo', 'treino-personalizado', 'avaliacoes-historico', 'dados-profissionais', 'avaliacoes-aulas', 'nutricao'];
             
             if (hash && allowedTabs.includes(hash)) {
                 activateTab(hash);
@@ -625,6 +625,209 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeProfileConfirmModal();
             });
         }
+    }
+
+    // ── Diet Plan View Modal ──
+    const btnViewDiets = document.querySelectorAll('.btn-view-diet');
+    const dietModal = document.getElementById('diet-plan-modal');
+    const dietModalBody = document.getElementById('diet-modal-body');
+    const dietModalClose = document.getElementById('diet-modal-close');
+    const dietModalOk = document.getElementById('diet-modal-ok');
+
+    if (dietModal && btnViewDiets.length > 0) {
+        btnViewDiets.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const planText = this.getAttribute('data-plan') || '';
+                
+                // Set text securely
+                dietModalBody.textContent = planText !== '' ? planText : 'Sem detalhes do plano alimentar registados.';
+                
+                // Show modal
+                dietModal.style.display = 'flex';
+            });
+        });
+
+        function closeDietModal() {
+            dietModal.style.display = 'none';
+        }
+
+        if (dietModalClose) dietModalClose.addEventListener('click', closeDietModal);
+        if (dietModalOk) dietModalOk.addEventListener('click', closeDietModal);
+
+        dietModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDietModal();
+            }
+        });
+    }
+
+    // ── Dynamic Hours Filtering & Auto-population for PT bookings ──
+    const ptDateInput = document.getElementById('pt-date');
+    const ptTimeSelect = document.getElementById('pt-time');
+    const ptHiddenInput = document.getElementById('pt-datetime');
+
+    if (ptDateInput && ptTimeSelect && ptHiddenInput) {
+        const ptForm = ptDateInput.closest('form');
+
+        ptDateInput.addEventListener('change', function() {
+            updateTimeOptions(this, ptTimeSelect);
+            updateHiddenDateTime(ptDateInput, ptTimeSelect, ptHiddenInput);
+        });
+        
+        ptTimeSelect.addEventListener('change', function() {
+            updateHiddenDateTime(ptDateInput, ptTimeSelect, ptHiddenInput);
+        });
+
+        if (ptForm) {
+            ptForm.addEventListener('submit', function() {
+                updateHiddenDateTime(ptDateInput, ptTimeSelect, ptHiddenInput);
+            });
+        }
+
+        // Initialize if date is already set
+        if (ptDateInput.value) {
+            updateTimeOptions(ptDateInput, ptTimeSelect);
+            updateHiddenDateTime(ptDateInput, ptTimeSelect, ptHiddenInput);
+        }
+    }
+
+    function updateHiddenDateTime(dateInput, timeSelect, hiddenInput) {
+        let timeVal = timeSelect.value;
+        if (!timeVal && timeSelect.options && timeSelect.options.length > 0) {
+            for (let i = 0; i < timeSelect.options.length; i++) {
+                if (timeSelect.options[i].value) {
+                    timeVal = timeSelect.options[i].value;
+                    break;
+                }
+            }
+        }
+        if (dateInput.value && timeVal) {
+            hiddenInput.value = `${dateInput.value}T${timeVal}`;
+        } else {
+            hiddenInput.value = '';
+        }
+    }
+
+    function getValidTimesForDate(dateStr) {
+        if (!dateStr) return [];
+        const dateParts = dateStr.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1;
+        const day = parseInt(dateParts[2]);
+        const date = new Date(year, month, day);
+        
+        // Check holiday
+        const mStr = String(month + 1).padStart(2, '0');
+        const dStr = String(day).padStart(2, '0');
+        const md = `${mStr}-${dStr}`;
+        
+        const fixedHolidays = [
+            '01-01', '04-25', '05-01', '06-10', '08-15', '10-05', '11-01', '12-01', '12-08', '12-25'
+        ];
+        
+        let isHoliday = fixedHolidays.includes(md);
+        if (!isHoliday) {
+            // Meeus/Jones/Butcher Easter calculation
+            const a = year % 19;
+            const b = Math.floor(year / 100);
+            const c = year % 100;
+            const d = Math.floor(b / 4);
+            const e = b % 4;
+            const f = Math.floor((b + 8) / 25);
+            const g = Math.floor((b - f + 1) / 3);
+            const h = (19 * a + b - d - g + 15) % 30;
+            const i = Math.floor(c / 4);
+            const k = c % 4;
+            const l = (32 + 2 * e + 2 * i - h - k) % 7;
+            const m = Math.floor((a + 11 * h + 22 * l) / 451);
+            const easterMonth = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+            const easterDay = ((h + l - 7 * m + 114) % 31) + 1;
+            
+            const easter = new Date(year, easterMonth, easterDay);
+            const goodFriday = new Date(year, easterMonth, easterDay - 2);
+            const corpusChristi = new Date(year, easterMonth, easterDay + 60);
+            
+            const checkYMD = `${year}-${mStr}-${dStr}`;
+            const formatYMD = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            
+            if (checkYMD === formatYMD(easter) || checkYMD === formatYMD(goodFriday) || checkYMD === formatYMD(corpusChristi)) {
+                isHoliday = true;
+            }
+        }
+        
+        const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday, 1-5 = Weekdays
+        let startHour, endHour;
+        
+        if (isHoliday) {
+            startHour = 9;
+            endHour = 19; // Closes at 20:00, last session starts at 19:00
+        } else if (dayOfWeek === 0) { // Sunday
+            startHour = 8;
+            endHour = 20; // Closes at 21:00, last session starts at 20:00
+        } else if (dayOfWeek === 6) { // Saturday
+            startHour = 7;
+            endHour = 21; // Closes at 22:00, last session starts at 21:00
+        } else { // Mon-Fri
+            startHour = 6;
+            endHour = 22; // Closes at 23:00, last session starts at 22:00
+        }
+        
+        const times = [];
+        for (let h = startHour; h <= endHour; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                if (h === endHour && m > 0) break; // Don't allow beyond closing hour
+                times.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+            }
+        }
+        
+        // If selected date is today, filter out past times
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        if (dateStr === todayStr) {
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+            const currentTimeVal = currentHour * 100 + currentMin;
+            return times.filter(t => {
+                const parts = t.split(':');
+                const val = parseInt(parts[0]) * 100 + parseInt(parts[1]);
+                return val > currentTimeVal;
+            });
+        }
+        
+        return times;
+    }
+
+    function updateTimeOptions(dateInput, timeSelect, selectedTime = '') {
+        const dateStr = dateInput.value;
+        timeSelect.innerHTML = '';
+        
+        if (!dateStr) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '-- Selecione a data --';
+            timeSelect.appendChild(opt);
+            return;
+        }
+        
+        const validTimes = getValidTimesForDate(dateStr);
+        
+        if (validTimes.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '-- Sem horários disponíveis --';
+            timeSelect.appendChild(opt);
+            return;
+        }
+        
+        validTimes.forEach((time, index) => {
+            const opt = document.createElement('option');
+            opt.value = time;
+            opt.textContent = time;
+            if (time === selectedTime || (selectedTime === '' && index === 0)) {
+                opt.selected = true;
+            }
+            timeSelect.appendChild(opt);
+        });
     }
 });
 

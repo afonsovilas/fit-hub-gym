@@ -451,9 +451,18 @@ try {
                 </div>
 
                 <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="form-group">
-                        <label for="form-scheduled-at">Data e Horário *</label>
-                        <input type="datetime-local" id="form-scheduled-at" name="scheduled_at" min="<?= date('Y-m-d\TH:i') ?>" required>
+                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 0;">
+                        <div>
+                            <label for="form-scheduled-date">Data *</label>
+                            <input type="date" id="form-scheduled-date" min="<?= date('Y-m-d') ?>" required style="width: 100%;">
+                        </div>
+                        <div>
+                            <label for="form-scheduled-time">Horário *</label>
+                            <select id="form-scheduled-time" required style="width: 100%;">
+                                <option value="">-- Selecione data --</option>
+                            </select>
+                        </div>
+                        <input type="hidden" id="form-scheduled-at" name="scheduled_at">
                     </div>
                     <div class="form-group">
                         <label for="form-duration">Duração (Minutos) *</label>

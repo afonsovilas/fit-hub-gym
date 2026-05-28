@@ -78,10 +78,10 @@ require_once __DIR__ . '/templates/navbar.php';
                     <h3>Treinadores</h3>
                     <p>Conheça os nossos especialistas</p>
                 </a>
-                <a href="#" class="quick-card">
-                    <div class="quick-icon">📋</div>
-                    <h3>Planos de Treino</h3>
-                    <p>Conheça os nossos planos</p>
+                <a href="actions/access_nutrition.php" class="quick-card">
+                    <div class="quick-icon">🍎</div>
+                    <h3>Planos de Nutrição</h3>
+                    <p>Solicite o seu plano personalizado</p>
                 </a>
             </div>
         </div>

@@ -55,9 +55,10 @@ A estrutura da página admin-staff.html tem um design ligeiramente diferente, pr
 - [x] **Sistema de Marcação de Treinos Personalizados (PT)**:
   - Formulário interativo no perfil do aluno para agendamento individual com treinadores específicos, com espaço para notas e objetivos.
   - Área de gestão de solicitações pendentes no horário do treinador com botões rápidos de ação de confirmação ou recusa.
-  - **Alerta Flutuante Inteligente (Bottom-Left Toast)**: Balão flutuante no canto inferior esquerdo do horário do treinador sinalizando pedidos pendentes.
-  - Exibição do motivo da recusa em cartão de alerta no perfil do aluno caso o treino seja recusado.
-  - Integração visual completa dos treinos confirmados no calendário semanal do treinador.
+- [x] **Sistema de Marcação de Consultas de Nutrição:**
+  - Formulário no perfil do aluno para solicitar consulta com nutricionista, incluindo notas e objetivos.
+  - Área de gestão de solicitações pendentes para o nutricionista com botões de aceitação ou recusa e notificação ao aluno.
+
 
 ## Running
 
