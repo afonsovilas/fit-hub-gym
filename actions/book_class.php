@@ -23,7 +23,6 @@ csrf_protect();
 try {
     $db = get_db();
 
-    // Simulação do utilizador logado (Aluno Piloto - ID 9) com suporte a sessões futuras
     $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 9;
 
     $class_id = isset($_POST['class_id']) ? (int) $_POST['class_id'] : 0;
@@ -33,12 +32,18 @@ try {
         redirect('/pages/schedules.php');
     }
 
-    $stmtClass = $db->prepare("SELECT name, capacity, instructor_id FROM classes WHERE id = ?");
+    $stmtClass = $db->prepare("SELECT name, capacity, instructor_id, scheduled_at FROM classes WHERE id = ?");
     $stmtClass->execute([$class_id]);
     $class = $stmtClass->fetch();
 
     if (!$class) {
         set_flash('A aula selecionada não existe.', 'error');
+        redirect('/pages/schedules.php');
+    }
+
+    // Impedir inscrição em aulas passadas
+    if (strtotime($class['scheduled_at']) < time()) {
+        set_flash("Não se pode inscrever numa aula que já passou!", 'error');
         redirect('/pages/schedules.php');
     }
 

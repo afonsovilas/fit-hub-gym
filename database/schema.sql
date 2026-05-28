@@ -133,8 +133,9 @@ CREATE TABLE IF NOT EXISTS personal_training_bookings (
     trainer_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     scheduled_at TEXT   NOT NULL,
     status      TEXT    NOT NULL DEFAULT 'pending'
-                        CHECK(status IN ('pending', 'confirmed', 'cancelled')),
+                        CHECK(status IN ('pending', 'confirmed', 'cancelled', 'rejected')),
     notes       TEXT,
+    rejection_reason TEXT,
     created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 

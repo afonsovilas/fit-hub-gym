@@ -39,16 +39,47 @@ try {
     $class = $stmtClass->fetch();
     $class_name = $class ? $class['name'] : 'Aula';
 
+    $db->beginTransaction();
+
     $stmtDelete = $db->prepare("DELETE FROM bookings WHERE user_id = ? AND class_id = ?");
     $stmtDelete->execute([$user_id, $class_id]);
 
     if ($stmtDelete->rowCount() > 0) {
         set_flash("Inscrição na aula de '" . h($class_name) . "' cancelada com sucesso!", 'success');
+
+        // Promoção automática da lista de espera
+        $stmtWait = $db->prepare("SELECT id, user_id FROM class_waitlists WHERE class_id = ? ORDER BY joined_at ASC LIMIT 1");
+        $stmtWait->execute([$class_id]);
+        $nextInLine = $stmtWait->fetch();
+
+        if ($nextInLine) {
+            $waitlist_entry_id = (int) $nextInLine['id'];
+            $promoted_user_id = (int) $nextInLine['user_id'];
+
+            // Promover: inserir em bookings
+            $stmtPromote = $db->prepare("INSERT INTO bookings (user_id, class_id) VALUES (?, ?)");
+            $stmtPromote->execute([$promoted_user_id, $class_id]);
+
+            // Remover da lista de espera
+            $stmtRemoveWait = $db->prepare("DELETE FROM class_waitlists WHERE id = ?");
+            $stmtRemoveWait->execute([$waitlist_entry_id]);
+
+            // Enviar notificação ao utilizador promovido
+            $stmtNotify = $db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+            $notificationMsg = "Foi promovido(a) da lista de espera e inscrito(a) na aula de '" . $class_name . "'!";
+            $stmtNotify->execute([$promoted_user_id, $notificationMsg]);
+        }
+
+        $db->commit();
     } else {
+        $db->rollBack();
         set_flash("Não se encontra inscrito na aula de '" . h($class_name) . "'.", 'warning');
     }
 
 } catch (Throwable $e) {
+    if (isset($db) && $db->inTransaction()) {
+        $db->rollBack();
+    }
     error_log('[DB CANCEL BOOKING ERROR] ' . $e->getMessage());
     set_flash('Erro ao cancelar a inscrição: ' . $e->getMessage(), 'error');
 }

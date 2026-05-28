@@ -30,6 +30,10 @@ try {
         ? $db->prepare("SELECT 1 FROM bookings WHERE user_id = ? AND class_id = ?") 
         : null;
 
+    $stmtCheckWaitlist = $user_id > 0 
+        ? $db->prepare("SELECT 1 FROM class_waitlists WHERE user_id = ? AND class_id = ?") 
+        : null;
+
     $filter_type        = $_GET['class-type'] ?? '';
     $filter_trainer     = $_GET['trainer'] ?? '';
     $filter_day         = $_GET['day'] ?? '';
@@ -218,9 +222,16 @@ try {
                             $is_booked = (bool) $stmtCheckBooked->fetch();
                         }
 
+                        $is_waitlisted = false;
+                        if ($user_id > 0 && $stmtCheckWaitlist) {
+                            $stmtCheckWaitlist->execute([$user_id, $class['id']]);
+                            $is_waitlisted = (bool) $stmtCheckWaitlist->fetch();
+                        }
+
                         $is_own_class = ($user_id > 0 && (int) $class['instructor_id'] === $user_id);
 
                         $timestamp = strtotime($class['scheduled_at']);
+                        $is_past = $timestamp < time();
                         $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
                         $dia_extenso = $dias_semana[date('w', $timestamp)];
                         $hora_inicio = date('H:i', $timestamp);
@@ -329,7 +340,24 @@ try {
                                                 <button type="submit" class="btn btn-secondary btn-small" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">Cancelar Inscrição</button>
                                             </form>
                                         <?php elseif ($cheia): ?>
-                                            <button type="button" class="btn btn-primary btn-small" disabled>Aula Cheia</button>
+                                            <?php if ($user_id > 0): ?>
+                                                <?php if ($is_waitlisted): ?>
+                                                    <form method="POST" action="../actions/cancel_waitlist.php" style="margin: 0; padding: 0; display: inline;">
+                                                        <?= get_csrf_input() ?>
+                                                        <input type="hidden" name="class_id" value="<?= $class['id'] ?>">
+                                                        <input type="hidden" name="redirect_to" value="/pages/schedules.php">
+                                                        <button type="submit" class="btn btn-secondary btn-small" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Sair da Lista de Espera</button>
+                                                    </form>
+                                                <?php else: ?>
+                                                    <form method="POST" action="../actions/join_waitlist.php" style="margin: 0; padding: 0; display: inline;">
+                                                        <?= get_csrf_input() ?>
+                                                        <input type="hidden" name="class_id" value="<?= $class['id'] ?>">
+                                                        <button type="submit" class="btn btn-secondary btn-small" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">Lista de Espera</button>
+                                                    </form>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <a href="login.php" class="btn btn-secondary btn-small" style="text-decoration: none; display: inline-block; text-align: center; line-height: 1.8; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);" onclick="showToast('Inicie sessão para entrar na lista de espera!', 'error');">Lista de Espera</a>
+                                            <?php endif; ?>
                                         <?php elseif ($user_id > 0): ?>
                                             <form method="POST" action="../actions/book_class.php" style="margin: 0; padding: 0; display: inline;">
                                                 <?= get_csrf_input() ?>
@@ -354,7 +382,6 @@ try {
 
 <!-- Modal de Catálogo de Aulas Unificado (Oculto por defeito) -->
 <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
-    <!-- Estilos Premium de Acessibilidade para o Modal Escuro -->
     <style>
     #class-modal label {
         color: #cbd5e1 !important; /* light slate */

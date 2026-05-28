@@ -44,10 +44,10 @@ try {
         FROM bookings b
         JOIN classes c ON b.class_id = c.id
         JOIN users u ON c.instructor_id = u.id
-        WHERE b.user_id = ?
+        WHERE b.user_id = ? AND c.scheduled_at >= ?
         ORDER BY c.scheduled_at ASC
     ");
-    $stmtMyClasses->execute([$user_id]);
+    $stmtMyClasses->execute([$user_id, date('Y-m-d H:i')]);
     $myClasses = $stmtMyClasses->fetchAll();
 
     // Fetch past classes for review history
@@ -56,10 +56,10 @@ try {
         FROM bookings b
         JOIN classes c ON b.class_id = c.id
         JOIN users u ON c.instructor_id = u.id
-        WHERE b.user_id = ? AND c.scheduled_at < datetime('now')
+        WHERE b.user_id = ? AND c.scheduled_at < ?
         ORDER BY c.scheduled_at DESC
     ");
-    $stmtPastClasses->execute([$user_id]);
+    $stmtPastClasses->execute([$user_id, date('Y-m-d H:i')]);
     $pastClasses = $stmtPastClasses->fetchAll();
 
     // Fetch reviews for past classes
@@ -78,6 +78,21 @@ try {
             'rating' => $review['rating'],
             'comment' => $review['comment']
         ];
+    }
+
+    // Fetch my waitlisted classes
+    $myWaitlists = [];
+    if ($user && $user['role'] === 'member') {
+        $stmtMyWaitlists = $db->prepare("
+            SELECT c.*, u.name AS instructor_name 
+            FROM class_waitlists cw
+            JOIN classes c ON cw.class_id = c.id
+            JOIN users u ON c.instructor_id = u.id
+            WHERE cw.user_id = ? AND c.scheduled_at >= datetime('now')
+            ORDER BY c.scheduled_at ASC
+        ");
+        $stmtMyWaitlists->execute([$user_id]);
+        $myWaitlists = $stmtMyWaitlists->fetchAll();
     }
 
     // Fetch trainer profile info if user is a trainer
@@ -290,6 +305,172 @@ try {
                             </div>
                         <?php endif; ?>
                     </div>
+
+                    <?php if ($user['role'] === 'member' && !empty($myWaitlists)): ?>
+                        <div class="profile-section">
+                            <h3>Aulas em Lista de Espera</h3>
+                            <p class="section-description">Estás na lista de espera para as seguintes aulas (serás inscrito automaticamente se surgir uma vaga):</p>
+                            <div class="class-list">
+                                <?php foreach ($myWaitlists as $cw): 
+                                    $timestamp = strtotime($cw['scheduled_at']);
+                                    $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                                    $dia_extenso = $dias_semana[date('w', $timestamp)];
+                                ?>
+                                    <article class="class-item" style="border-left: 4px solid #f59e0b;">
+                                        <div class="class-header">
+                                            <h4 class="class-title"><?= h($cw['name']) ?></h4>
+                                            <span class="class-type" style="text-transform: capitalize; background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600;">Lista de Espera</span>
+                                        </div>
+                                        <div class="class-details">
+                                            <p class="class-info">
+                                                <strong>Instrutor:</strong> <?= h($cw['instructor_name']) ?>
+                                            </p>
+                                            <p class="class-info">
+                                                <strong>Data:</strong> <?= $dia_extenso ?>, <?= date('d/m/Y', $timestamp) ?> às <?= date('H:i', $timestamp) ?>
+                                            </p>
+                                        </div>
+                                        <form method="POST" action="../actions/cancel_waitlist.php" onsubmit="return confirm('Deseja realmente sair da lista de espera para a aula <?= h($cw['name']) ?>?');" style="margin: 0; padding: 0; display: inline;">
+                                            <?= get_csrf_input() ?>
+                                            <input type="hidden" name="class_id" value="<?= $cw['id'] ?>">
+                                            <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Sair da Lista de Espera</button>
+                                        </form>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($user['role'] === 'member'): ?>
+                        <div class="profile-section">
+                            <h3>Marcar Treino Personalizado</h3>
+                            <p class="section-description">Agende uma sessão individual de 60 minutos com um dos nossos treinadores especializados:</p>
+                            
+                            <form method="POST" action="../actions/book_personal_training.php" class="profile-form" style="gap: 15px;">
+                                <?= get_csrf_input() ?>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="pt-trainer">Selecionar Treinador:</label>
+                                        <select id="pt-trainer" name="trainer_id" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff;">
+                                            <option value="">-- Escolha um treinador --</option>
+                                            <?php 
+                                            // Fetch active trainers from database
+                                            try {
+                                                $stmtPtTrainers = $db->query("SELECT id, name FROM users WHERE role = 'trainer' AND is_active = 1 ORDER BY name ASC");
+                                                $ptTrainers = $stmtPtTrainers->fetchAll();
+                                                foreach ($ptTrainers as $ptTrainer) {
+                                                    echo '<option value="' . $ptTrainer['id'] . '">' . h($ptTrainer['name']) . '</option>';
+                                                }
+                                            } catch (Throwable $e) {}
+                                            ?>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="pt-datetime">Data e Hora:</label>
+                                        <input type="datetime-local" id="pt-datetime" name="scheduled_at" required min="<?= date('Y-m-d\TH:i') ?>" style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff; color-scheme: dark;">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="pt-notes">Notas / Objetivos do Treino:</label>
+                                    <textarea id="pt-notes" name="notes" rows="2" placeholder="Ex: Foco em pernas, recuperação de lesão, etc." style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff; resize: vertical;"></textarea>
+                                </div>
+                                
+                                <div class="form-actions" style="margin-top: 10px;">
+                                    <button type="submit" class="btn btn-primary btn-small">Confirmar Agendamento</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="profile-section">
+                            <h3>Sessões de Personal Training Agendadas</h3>
+                            <p class="section-description">Suas solicitações e sessões individuais agendadas:</p>
+                            
+                            <?php 
+                            try {
+                                $stmtMyPt = $db->prepare("
+                                    SELECT ptb.*, u.name AS trainer_name, u.phone AS trainer_phone
+                                    FROM personal_training_bookings ptb
+                                    JOIN users u ON ptb.trainer_id = u.id
+                                    WHERE ptb.member_id = ? AND ptb.status IN ('pending', 'confirmed', 'rejected') AND ptb.scheduled_at >= ?
+                                    ORDER BY ptb.scheduled_at ASC
+                                ");
+                                $stmtMyPt->execute([$user_id, date('Y-m-d H:i')]);
+                                $myPts = $stmtMyPt->fetchAll();
+                            } catch (Throwable $e) {
+                                $myPts = [];
+                            }
+                            
+                            if (empty($myPts)): 
+                            ?>
+                                <p style="color:#94a3b8; font-style:italic;">Não tens nenhuma sessão de Personal Training agendada.</p>
+                            <?php else: ?>
+                                <div class="class-list">
+                                    <?php foreach ($myPts as $pt): 
+                                        $ptTimestamp = strtotime($pt['scheduled_at']);
+                                        $dias_semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                                        $ptDiaExtenso = $dias_semana[date('w', $ptTimestamp)];
+                                        
+                                        $status_styles = [
+                                            'confirmed' => [
+                                                'border' => '#10b981',
+                                                'bg' => 'rgba(16, 185, 129, 0.15)',
+                                                'color' => '#10b981',
+                                                'text' => 'Confirmado'
+                                            ],
+                                            'pending' => [
+                                                'border' => '#f59e0b',
+                                                'bg' => 'rgba(245, 158, 11, 0.15)',
+                                                'color' => '#f59e0b',
+                                                'text' => 'Pendente de Confirmação'
+                                            ],
+                                            'rejected' => [
+                                                'border' => '#ef4444',
+                                                'bg' => 'rgba(239, 68, 68, 0.15)',
+                                                'color' => '#f87171',
+                                                'text' => 'Recusado pelo Treinador'
+                                            ]
+                                        ];
+                                        
+                                        $style = $status_styles[$pt['status']] ?? $status_styles['pending'];
+                                    ?>
+                                        <article class="class-item" style="border-left: 4px solid <?= $style['border'] ?>;">
+                                            <div class="class-header">
+                                                <h4 class="class-title">Sessão Personal Training</h4>
+                                                <span class="class-type" style="text-transform: capitalize; background: <?= $style['bg'] ?>; color: <?= $style['color'] ?>; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600;"><?= $style['text'] ?></span>
+                                            </div>
+                                            <div class="class-details">
+                                                <p class="class-info">
+                                                    <strong>Treinador:</strong> <?= h($pt['trainer_name']) ?> (<?= h($pt['trainer_phone'] ?? 'Sem telefone') ?>)
+                                                </p>
+                                                <p class="class-info">
+                                                    <strong>Data:</strong> <?= $ptDiaExtenso ?>, <?= date('d/m/Y', $ptTimestamp) ?> às <?= date('H:i', $ptTimestamp) ?>
+                                                </p>
+                                                <?php if (!empty($pt['notes'])): ?>
+                                                    <p class="class-info">
+                                                        <strong>Minhas Notas:</strong> <em>"<?= h($pt['notes']) ?>"</em>
+                                                    </p>
+                                                <?php endif; ?>
+                                                <?php if ($pt['status'] === 'rejected' && !empty($pt['rejection_reason'])): ?>
+                                                    <p class="class-info" style="color: #f87171; background: rgba(239,68,68,0.08); padding: 8px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.15); margin-top: 6px;">
+                                                        <strong>Motivo da Recusa:</strong> <em>"<?= h($pt['rejection_reason']) ?>"</em>
+                                                    </p>
+                                                <?php endif; ?>
+                                            </div>
+                                            <form method="POST" action="../actions/cancel_personal_training.php" onsubmit="return confirm('Deseja realmente <?= $pt['status'] === 'rejected' ? 'remover' : 'desmarcar' ?> a sua sessão de Personal Training?');" style="margin: 0; padding: 0; display: inline;">
+                                                <?= get_csrf_input() ?>
+                                                <input type="hidden" name="booking_id" value="<?= $pt['id'] ?>">
+                                                <button type="submit" class="btn btn-small btn-cancel" style="cursor: pointer; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                                    <?= $pt['status'] === 'rejected' ? 'Remover do Histórico' : 'Desmarcar Sessão' ?>
+                                                </button>
+                                            </form>
+                                        </article>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
 
                     <div class="profile-section">
                         <h3>Histórico de Aulas</h3>
