@@ -18,6 +18,7 @@ $active_page = 'equipment';
 
 require_once BASE_PATH . '/templates/header.php';
 require_once BASE_PATH . '/templates/navbar.php';
+require_once BASE_PATH . '/src/csrf.php';
 require_once BASE_PATH . '/database/connection.php';
 
 $equipment = [];
@@ -96,19 +97,28 @@ try {
                     </div>
                 </div>
 
-                <!-- Filter Options (Optional) -->
-                <div class="equipment-filter">
-                    <form method="GET" class="filter-form">
-                        <div class="filter-group">
-                            <label for="filter-status">Filtrar por Estado:</label>
-                            <select id="filter-status" name="status" onchange="filterEquipment(this.value)">
-                                <option value="">Todos</option>
-                                <option value="available">Disponível</option>
-                                <option value="in_use">Em Uso</option>
-                                <option value="maintenance">Manutenção</option>
-                            </select>
+                <div class="equipment-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    <!-- Filtro por Estado -->
+                    <div class="equipment-filter" style="margin: 0;">
+                        <form method="GET" class="filter-form" style="margin: 0; padding: 0;">
+                            <div class="filter-group" style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                                <label for="filter-status" style="font-weight: 600; margin: 0;">Filtrar por Estado:</label>
+                                <select id="filter-status" name="status" onchange="filterEquipment(this.value)" style="padding: 0.5rem 1rem; border-radius: 8px;">
+                                    <option value="">Todos</option>
+                                    <option value="available">Disponível</option>
+                                    <option value="in_use">Em Uso</option>
+                                    <option value="maintenance">Manutenção</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Botão Adicionar (Apenas Admin) -->
+                    <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+                        <div class="admin-toolbar" style="margin: 0; display: flex; align-items: center;">
+                            <button type="button" class="btn btn-primary" id="btn-create-equipment" style="margin: 0; padding: 0.6rem 1.5rem; font-weight: 600; font-size: 0.95em;">➕ Adicionar Equipamento</button>
                         </div>
-                    </form>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Equipment Grid -->
@@ -159,6 +169,28 @@ try {
                                     ?>
                                 </span>
                             </div>
+
+                            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+                                <div class="equipment-actions" style="display: flex; gap: 8px; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 12px; justify-content: flex-end;">
+                                    <button type="button" class="btn-action btn-edit" 
+                                            data-id="<?= $item_id ?>"
+                                            data-name="<?= $item_name ?>"
+                                            data-category="<?= $item_category ?>"
+                                            data-status="<?= $item_status ?>"
+                                            data-description="<?= $item_description ?>"
+                                            style="padding: 6px 12px; font-size: 0.85em; border-radius: 4px; cursor: pointer; border: 1px solid #334155; background: #1e293b; color: #cbd5e1; font-weight: 600;"
+                                            title="Editar equipamento">
+                                        ✏️ Editar
+                                    </button>
+                                    <form method="POST" action="../actions/delete_equipment.php" onsubmit="return confirm('Deseja realmente remover o equipamento \'<?= $item_name ?>\'?');" style="margin: 0; padding: 0; display: inline;">
+                                        <?= get_csrf_input() ?>
+                                        <input type="hidden" name="id" value="<?= $item_id ?>">
+                                        <button type="submit" class="btn-action btn-delete" style="padding: 6px 12px; font-size: 0.85em; border-radius: 4px; cursor: pointer; border: 1px solid #f43f5e; background: rgba(244, 63, 94, 0.1); color: #f43f5e; font-weight: 600;" title="Remover equipamento">
+                                            ❌ Remover
+                                        </button>
+                                    </form>
+                                </div>
+                            <?php endif; ?>
                         </article>
                     <?php endforeach; ?>
                 </div>
@@ -226,3 +258,91 @@ try {
 </script>
 
 <?php require_once BASE_PATH . '/templates/footer.php'; ?>
+
+<!-- Modal de Equipamento Unificado (Oculto por defeito) -->
+<?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+    <style>
+    #equipment-modal label {
+        color: #cbd5e1 !important;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    #equipment-modal h3, #equipment-modal h2 {
+        color: #38bdf8 !important;
+    }
+    #equipment-modal input, #equipment-modal select, #equipment-modal textarea {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        color: #ffffff !important;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    #equipment-modal input:focus, #equipment-modal select:focus, #equipment-modal textarea:focus {
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+        outline: none;
+    }
+    #equipment-modal input::placeholder {
+        color: #64748b !important;
+    }
+    #equipment-modal select option {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+    }
+    </style>
+
+    <div id="equipment-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+        <div style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; max-width: 550px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; max-height: 90vh;">
+            
+            <!-- Modal Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: #0b0f19;">
+                <h3 id="form-title" style="margin: 0; color: #38bdf8; font-size: 1.4em; font-weight: 700;">Novo Equipamento</h3>
+                <button type="button" id="btn-close-modal" style="background: none; border: none; color: #94a3b8; font-size: 1.8em; cursor: pointer; line-height: 1; transition: color 0.2s;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#94a3b8'">&times;</button>
+            </div>
+
+            <!-- Modal Body (Formulário) -->
+            <form method="POST" class="staff-form admin-form" id="equipment-form" action="../actions/save_equipment.php" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; margin: 0;">
+                <?= get_csrf_input() ?>
+                <input type="hidden" name="equipment_id" id="form-equipment-id" value="">
+
+                <div class="form-group">
+                    <label for="form-name">Nome do Equipamento *</label>
+                    <input type="text" id="form-name" name="name" placeholder="Ex: Passadeira Matrix C" required>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="form-category">Categoria *</label>
+                        <select id="form-category" name="category" required>
+                            <option value="">-- Categoria --</option>
+                            <option value="Cardio">Cardio</option>
+                            <option value="Strength">Força (Strength)</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="form-status">Estado *</label>
+                        <select id="form-status" name="status" required>
+                            <option value="available">Disponível</option>
+                            <option value="in_use">Em Uso</option>
+                            <option value="maintenance">Manutenção</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="form-description">Descrição / Notas</label>
+                    <textarea id="form-description" name="description" rows="3" placeholder="Notas sobre o estado do equipamento..."></textarea>
+                </div>
+
+                <div class="form-actions" style="border-top: 1px solid #1e293b; padding-top: 15px; margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-form" style="flex: none; width: auto; padding: 0.5rem 1.5rem; margin: 0;">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex: none; width: auto; padding: 0.5rem 1.5rem; margin: 0;">Guardar Equipamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="<?= BASE_URL_PATH ?>js/admin-equipment.js"></script>
+<?php endif; ?>
