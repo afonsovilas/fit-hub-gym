@@ -46,17 +46,31 @@ A estrutura da página admin-staff.html tem um design ligeiramente diferente, pr
 - [x] Elevate a user to admin status.
 - [x] Oversee and ensure the smooth operation of the entire system.
 
-**Extra:**
-- [x] Front-end responsive pages for home, schedules, and admin/staff management.
+**Extra / Funcionalidades Avançadas:**
+- [x] **Sistema de Lista de Espera Automatizado para Aulas de Grupo**:
+  - Utilizadores podem juntar-se à lista de espera quando as vagas de uma aula estiverem cheias.
+  - Promoção automática do primeiro utilizador da lista de espera para inscrito quando um aluno cancela a sua inscrição.
+  - Notificação no dashboard do aluno informando que foi promovido e inscrito com sucesso.
+  - Secção dedicada no perfil do aluno para gerir e sair de listas de espera ativas.
+- [x] **Sistema de Marcação de Treinos Personalizados (PT)**:
+  - Formulário interativo no perfil do aluno para agendamento individual com treinadores específicos, com espaço para notas e objetivos.
+  - Área de gestão de solicitações pendentes no horário do treinador com botões rápidos de ação de confirmação ou recusa.
+  - **Alerta Flutuante Inteligente (Bottom-Left Toast)**: Balão flutuante no canto inferior esquerdo do horário do treinador sinalizando pedidos pendentes.
+  - Exibição do motivo da recusa em cartão de alerta no perfil do aluno caso o treino seja recusado.
+  - Integração visual completa dos treinos confirmados no calendário semanal do treinador.
 
 ## Running
 
+Para iniciar o servidor local:
+```bash
 php -S localhost:9000
+```
 
 ## Credentials
 
-All default pilot accounts use the common password: `123456`
+Todas as contas piloto pré-carregadas utilizam a palavra-passe comum: `123456`
 - **Membro**: `aluno@fithub.pt`
 - **Treinador**: `joao@fithub.pt`
 - **Administrador**: `admin@fithub.pt`
 - **Staff**: `rita@fithub.pt`
+
