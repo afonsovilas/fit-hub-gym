@@ -212,7 +212,13 @@ try {
 
                             <div class="form-group" style="margin-top: 15px;">
                                 <label for="avatar">Foto de Perfil (Avatar):</label>
-                                <input type="file" id="avatar" name="avatar" accept="image/*" disabled class="file-input">
+                                <div style="display: flex; gap: 15px; align-items: center; margin-top: 5px; flex-wrap: wrap;">
+                                    <input type="file" id="avatar" name="avatar" accept="image/*" disabled class="file-input" style="flex: 1; min-width: 200px;">
+                                    <div id="avatar-preview-container" style="display: none; align-items: center; gap: 8px; cursor: pointer;" title="Clique para ajustar o recorte novamente">
+                                        <img id="avatar-preview-img" src="" alt="Previsualização" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-primary); box-shadow: 0 4px 10px rgba(207, 90, 43, 0.2);">
+                                        <span style="font-size: 0.85em; color: var(--color-text-muted); font-weight: 500;">(Pré-visualização)</span>
+                                    </div>
+                                </div>
                                 <small class="form-hint" style="color: #94a3b8; font-size: 0.8em; margin-top: 4px; display: block;">Envie uma imagem JPG, PNG ou GIF de até 2MB.</small>
                             </div>
 
@@ -565,6 +571,65 @@ try {
             </div>
         <?php endif; ?>
     </div>
+
+    <!-- Modal de Recorte de Imagem (Avatar Cropper Modal) -->
+    <div id="avatar-cropper-modal" class="modal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(15, 23, 42, 0.85); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px);">
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); overflow: hidden; display: flex; flex-direction: column; animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <!-- Header -->
+            <div style="padding: 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #fff; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary);"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
+                    Ajustar Foto de Perfil
+                </h3>
+                <button type="button" id="cropper-close-btn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; transition: color 0.2s;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <!-- Body -->
+            <div style="padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                <!-- Viewport (Circular crop mask) -->
+                <div id="cropper-viewport" style="position: relative; width: 280px; height: 280px; overflow: hidden; border-radius: 50%; border: 3px solid var(--color-primary); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); background-color: #0f172a; cursor: grab; display: flex; align-items: center; justify-content: center;">
+                    <img id="cropper-preview-img" src="" alt="Ajustar imagem" style="position: absolute; left: 0; top: 0; transform-origin: 0 0; user-select: none; pointer-events: none; max-width: none;">
+                </div>
+                
+                <p style="color: #94a3b8; font-size: 0.85rem; text-align: center; margin: 0; line-height: 1.4;">
+                    Arraste a foto para centrar e utilize a barra deslizante abaixo para aproximar.
+                </p>
+
+                <!-- Zoom Control -->
+                <div style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 0 10px;">
+                    <span style="color: #94a3b8; font-size: 0.9rem; font-weight: bold;">-</span>
+                    <input type="range" id="cropper-zoom-slider" min="1" max="4" step="0.01" value="1" style="flex: 1; height: 6px; border-radius: 3px; background: #334155; outline: none; cursor: pointer; accent-color: var(--color-primary);">
+                    <span style="color: #94a3b8; font-size: 0.9rem; font-weight: bold;">+</span>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div style="padding: 20px; border-top: 1px solid #334155; background: #1e293b; display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" id="cropper-cancel-btn" class="btn btn-secondary btn-small" style="margin: 0; padding: 8px 16px;">Cancelar</button>
+                <button type="button" id="cropper-confirm-btn" class="btn btn-primary btn-small" style="margin: 0; padding: 8px 20px; background: var(--color-primary); border-color: var(--color-primary);">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    #avatar-cropper-modal input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--color-primary);
+        cursor: pointer;
+        transition: transform 0.1s ease;
+    }
+    #avatar-cropper-modal input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+    }
+    </style>
 </main>
 
 <?php 
