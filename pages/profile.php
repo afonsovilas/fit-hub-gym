@@ -355,10 +355,7 @@ try {
                         <div class="profile-section">
                             <h3>Avaliações das Minhas Aulas</h3>
                             <p class="section-description">Consulte o feedback e as classificações deixadas pelos membros nas aulas que lecionou:</p>
-                            <button type="button" class="btn btn-primary" id="btn-show-reviews" data-trainer-id="<?= h($user['id']) ?>">
-                                Ver Avaliações das Minhas Aulas
-                            </button>
-                            <div id="trainer-reviews-container" style="display: none; margin-top: 20px;"></div>
+                            <div id="trainer-reviews-container" data-trainer-id="<?= h($user['id']) ?>" style="margin-top: 20px;"></div>
                         </div>
                     </div>
                     <?php endif; ?>

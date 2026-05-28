@@ -369,39 +369,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ── Trainer Reviews Toggle and Asynchronous Loading ──
-    const btnShowReviews = document.getElementById('btn-show-reviews');
-    const reviewsContainer = document.getElementById('trainer-reviews-container');
-
-    if (btnShowReviews && reviewsContainer) {
-        btnShowReviews.addEventListener('click', function() {
-            const trainerId = this.getAttribute('data-trainer-id');
-            
-            if (reviewsContainer.style.display === 'none') {
-                // Show reviews
-                reviewsContainer.style.display = 'block';
-                // Trigger reflow to start transition
-                reviewsContainer.offsetHeight;
-                reviewsContainer.classList.add('reviews-visible');
-                this.textContent = 'Ocultar Avaliações das Minhas Aulas';
-
-                if (reviewsContainer.getAttribute('data-fetched') !== 'true') {
-                    fetchTrainerReviews(trainerId, reviewsContainer);
-                }
-            } else {
-                // Hide reviews
-                reviewsContainer.classList.remove('reviews-visible');
-                this.textContent = 'Ver Avaliações das Minhas Aulas';
-                
-                // Hide elements after transition completes
-                setTimeout(() => {
-                    if (!reviewsContainer.classList.contains('reviews-visible')) {
-                        reviewsContainer.style.display = 'none';
-                    }
-                }, 300);
-            }
-        });
-    }
 
     function fetchTrainerReviews(trainerId, container) {
         container.replaceChildren();
@@ -553,6 +520,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 targetPane.style.display = 'block';
                 
                 window.history.replaceState(null, null, '#' + tabId);
+
+                // Auto-load trainer reviews when switching to the reviews tab
+                if (tabId === 'avaliacoes-aulas') {
+                    const reviewsContainer = document.getElementById('trainer-reviews-container');
+                    if (reviewsContainer) {
+                        const trainerId = reviewsContainer.getAttribute('data-trainer-id');
+                        reviewsContainer.classList.add('reviews-visible');
+                        if (reviewsContainer.getAttribute('data-fetched') !== 'true') {
+                            fetchTrainerReviews(trainerId, reviewsContainer);
+                        }
+                    }
+                }
             }
         }
 
