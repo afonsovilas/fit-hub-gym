@@ -405,10 +405,10 @@ require_once BASE_PATH . '/templates/navbar.php';
                                                     
                                                     <div class="form-group" style="margin: 0;">
                                                         <label style="font-weight: 600; font-size: 0.85em; color: #cbd5e1; display: block; margin-bottom: 4px;">Classificação (1 a 5 estrelas):</label>
-                                                        <div class="star-rating" style="display: flex; gap: 6px; flex-direction: row-reverse; justify-content: flex-end;">
+                                                        <div class="rating-input">
                                                             <?php for ($i = 5; $i >= 1; $i--): ?>
-                                                                <input type="radio" id="star-<?= $pc['id'] ?>-<?= $i ?>" name="rating" value="<?= $i ?>" class="rating-radio" required style="display: none;">
-                                                                <label for="star-<?= $pc['id'] ?>-<?= $i ?>" class="rating-label" style="font-size: 1.5em; color: #475569; cursor: pointer; transition: color 0.15s;">★</label>
+                                                                <input type="radio" id="star-<?= $pc['id'] ?>-<?= $i ?>" name="rating" value="<?= $i ?>" class="rating-radio" required>
+                                                                <label for="star-<?= $pc['id'] ?>-<?= $i ?>" class="rating-label">★</label>
                                                             <?php endfor; ?>
                                                         </div>
                                                     </div>
