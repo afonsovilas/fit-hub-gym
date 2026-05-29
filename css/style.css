@@ -321,6 +321,7 @@ textarea {
 
 .btn-primary:hover:not(:disabled) {
     background-color: var(--color-primary-strong);
+    color: white;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
@@ -332,6 +333,7 @@ textarea {
 
 .btn-secondary:hover:not(:disabled) {
     background-color: #5A6268;
+    color: white;
     transform: translateY(-2px);
 }
 
@@ -352,6 +354,7 @@ textarea {
 
 .btn-signup:hover:not(:disabled) {
     background-color: var(--color-primary-strong);
+    color: white;
     transform: translateY(-4px);
     box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
 }
@@ -2889,6 +2892,7 @@ textarea {
 
 .btn-roster:hover {
     background: rgba(0, 0, 0, 0.2);
+    color: var(--color-text);
 }
 
 /* ── Roster Container in Class Block ── */
@@ -3202,6 +3206,7 @@ textarea {
 }
 
 .admin-toolbar .btn-primary:hover {
+    color: white;
     transform: translateY(-2px);
     box-shadow: var(--shadow-card);
 }
@@ -3286,6 +3291,7 @@ textarea {
 }
 
 .form-actions .btn-primary:hover {
+    color: white;
     transform: translateY(-2px);
     box-shadow: var(--shadow-card);
 }
@@ -3298,6 +3304,7 @@ textarea {
 
 .form-actions .btn-secondary:hover {
     background: var(--color-border);
+    color: var(--color-text);
 }
 
 /* ── Admin Table ── */
@@ -3443,6 +3450,7 @@ textarea {
 
 .btn-action:hover {
     background: var(--color-border);
+    color: var(--color-text);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -3455,6 +3463,7 @@ textarea {
 
 .btn-edit:hover {
     background: #bfdbfe;
+    color: #1e40af;
 }
 
 .btn-toggle-status {
@@ -3465,6 +3474,7 @@ textarea {
 
 .btn-toggle-status:hover {
     background: #fcd34d;
+    color: #92400e;
 }
 
 .btn-make-admin {
@@ -3475,6 +3485,7 @@ textarea {
 
 .btn-make-admin:hover {
     background: #fbcfe8;
+    color: #be185d;
 }
 
 /* ── Responsive Design for Admin ── */
