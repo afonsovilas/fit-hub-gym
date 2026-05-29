@@ -10,6 +10,30 @@ $active_page = 'home';
 
 require_once __DIR__ . '/templates/header.php';
 require_once __DIR__ . '/templates/navbar.php';
+require_once __DIR__ . '/database/connection.php';
+
+$num_members = 0;
+$num_classes = 0;
+$num_trainers = 0;
+$num_equipment = 0;
+
+try {
+    $db = get_db();
+    
+    $stmtMembers = $db->query("SELECT COUNT(*) FROM users WHERE role = 'member' AND is_active = 1");
+    $num_members = (int) $stmtMembers->fetchColumn();
+
+    $stmtClasses = $db->query("SELECT COUNT(*) FROM classes");
+    $num_classes = (int) $stmtClasses->fetchColumn();
+
+    $stmtTrainers = $db->query("SELECT COUNT(*) FROM users WHERE role = 'trainer' AND is_active = 1");
+    $num_trainers = (int) $stmtTrainers->fetchColumn();
+
+    $stmtEquipment = $db->query("SELECT COUNT(*) FROM equipment");
+    $num_equipment = (int) $stmtEquipment->fetchColumn();
+} catch (Throwable $e) {
+    error_log('[INDEX STATS ERROR] ' . $e->getMessage());
+}
 ?>
 
 <main>
@@ -40,19 +64,19 @@ require_once __DIR__ . '/templates/navbar.php';
                 </div>
                 <div class="about-stats">
                     <div class="stat-box">
-                        <h3>150+</h3>
+                        <h3><?= h($num_members) ?></h3>
                         <p>Membros</p>
                     </div>
                     <div class="stat-box">
-                        <h3>20+</h3>
+                        <h3><?= h($num_classes) ?></h3>
                         <p>Aulas</p>
                     </div>
                     <div class="stat-box">
-                        <h3>15+</h3>
+                        <h3><?= h($num_trainers) ?></h3>
                         <p>Treinadores</p>
                     </div>
                     <div class="stat-box">
-                        <h3>50+</h3>
+                        <h3><?= h($num_equipment) ?></h3>
                         <p>Equipamentos</p>
                     </div>
                 </div>
