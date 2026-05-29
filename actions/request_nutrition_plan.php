@@ -72,9 +72,9 @@ try {
     // Insert nutrition request
     $stmtInsert = $db->prepare("
         INSERT INTO nutrition_requests (member_id, trainer_id, status, created_at)
-        VALUES (?, ?, 'pending', datetime('now'))
+        VALUES (?, ?, 'pending', ?)
     ");
-    $stmtInsert->execute([$member_id, $trainer_id]);
+    $stmtInsert->execute([$member_id, $trainer_id, date('Y-m-d H:i:s')]);
 
     // Notify the trainer
     $stmtNotify = $db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");

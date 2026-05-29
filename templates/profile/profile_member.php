@@ -56,10 +56,10 @@ $stmtMyWaitlists = $db->prepare("
     FROM class_waitlists cw
     JOIN classes c ON cw.class_id = c.id
     JOIN users u ON c.instructor_id = u.id
-    WHERE cw.user_id = ? AND c.scheduled_at >= datetime('now')
+    WHERE cw.user_id = ? AND c.scheduled_at >= ?
     ORDER BY c.scheduled_at ASC
 ");
-$stmtMyWaitlists->execute([$user_id]);
+$stmtMyWaitlists->execute([$user_id, date('Y-m-d H:i')]);
 $myWaitlists = $stmtMyWaitlists->fetchAll();
 
 $stmtNutTrainers = $db->query("

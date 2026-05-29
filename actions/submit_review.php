@@ -63,9 +63,9 @@ try {
     // Validar que a aula já ocorreu
     $stmtCheckPastClass = $db->prepare("
         SELECT 1 FROM classes 
-        WHERE id = ? AND scheduled_at < datetime('now')
+        WHERE id = ? AND scheduled_at < ?
     ");
-    $stmtCheckPastClass->execute([$class_id]);
+    $stmtCheckPastClass->execute([$class_id, date('Y-m-d H:i:s')]);
     
     if (!$stmtCheckPastClass->fetch()) {
         throw new Exception('Apenas pode avaliar aulas que já ocorreram.');

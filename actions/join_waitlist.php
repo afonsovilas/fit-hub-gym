@@ -84,8 +84,8 @@ try {
     }
 
     // Inserir na lista de espera
-    $stmtInsert = $db->prepare("INSERT INTO class_waitlists (user_id, class_id, joined_at) VALUES (?, ?, datetime('now'))");
-    $stmtInsert->execute([$user_id, $class_id]);
+    $stmtInsert = $db->prepare("INSERT INTO class_waitlists (user_id, class_id, joined_at) VALUES (?, ?, ?)");
+    $stmtInsert->execute([$user_id, $class_id, date('Y-m-d H:i:s')]);
 
     $db->commit();
     set_flash("Adicionado(a) à lista de espera de '" . h($class['name']) . "' com sucesso!", 'success');

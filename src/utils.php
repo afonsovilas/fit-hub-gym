@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+date_default_timezone_set('Europe/Lisbon');
+
 if (!defined('BASE_PATH')) {
     define('BASE_PATH', dirname(__DIR__));
 }

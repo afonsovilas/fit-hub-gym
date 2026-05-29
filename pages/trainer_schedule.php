@@ -141,6 +141,7 @@ try {
             return $time_a - $time_b;
         });
     }
+    unset($day_classes);
 
     // Fetch pending PT sessions
     $stmtPendingPt = $db->prepare("
@@ -207,124 +208,123 @@ try {
                         $color_classes = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
                         $color_index = 0;
                         
-                        // Day headers
-                        foreach ($dias_semana_pt as $index => $dia_nome): 
+                        foreach ($dias_semana_pt as $day_index => $dia_nome): 
+                            $day_classes = $classes_by_day[$day_index] ?? [];
                         ?>
-                            <div class="day-header">
-                                <h3><?= $dia_nome ?></h3>
-                            </div>
-                        <?php endforeach; ?>
-
-                        <?php foreach ($classes_by_day as $day_index => $day_classes): ?>
-                            <div class="day-column" data-day="<?= $day_index ?>">
-                                <?php if (empty($day_classes)): ?>
-                                    <div class="no-classes">
-                                        <p>Sem aulas</p>
-                                    </div>
-                                <?php else: ?>
-                                    <?php foreach ($day_classes as $class):
-                                        $is_pt = isset($class['type']) && $class['type'] === 'pt';
-                                        $is_nutrition = isset($class['type']) && $class['type'] === 'nutrition';
-                                        $class_id = (int) $class['id'];
-                                        $class_name = h($class['name']);
-                                        $class_description = h($class['description'] ?? '');
-                                        $class_room = h($class['room']);
-                                        $class_capacity = (int) $class['capacity'];
-                                        $class_duration = (int) $class['duration_min'];
-                                        
-                                        $timestamp = strtotime($class['scheduled_at']);
-                                        $class_time = date('H:i', $timestamp);
-                                        $class_date_full = date('d/m/Y', $timestamp);
-                                        
-                                        if ($is_nutrition) {
-                                            $color_class = 'color-nutrition';
-                                        } else {
-                                            $color_class = $is_pt ? 'color-pt' : $color_classes[$color_index % count($color_classes)];
-                                            if (!$is_pt) $color_index++;
-                                        }
-                                        
-                                        $member_count = 0;
-                                        if (!$is_pt && !$is_nutrition) {
-                                            try {
-                                                $stmtCount = $db->prepare("
-                                                    SELECT COUNT(*) as total FROM bookings WHERE class_id = ?
-                                                ");
-                                                $stmtCount->execute([$class_id]);
-                                                $countResult = $stmtCount->fetch();
-                                                $member_count = $countResult['total'] ?? 0;
-                                            } catch (Throwable $e) {
-                                                $member_count = 0;
-                                            }
-                                        }
-                                    ?>
-                                        <article class="class-block <?= $color_class ?>" id="<?= $is_pt ? 'pt-' : ($is_nutrition ? 'nutrition-' : 'class-') ?><?= $class_id ?>" style="<?= $is_pt ? 'border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08);' : ($is_nutrition ? ($class['status'] === 'completed' ? 'border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08); cursor: pointer;' : 'border-left: 4px solid #059669; background: rgba(5, 150, 105, 0.08); cursor: pointer;') : '') ?>"
-                                            <?php if ($is_nutrition): ?>
-                                                data-type="nutrition"
-                                                data-request-id="<?= $class_id ?>"
-                                                data-member-name="<?= h($class['member_name']) ?>"
-                                                data-member-email="<?= h($class['member_email']) ?>"
-                                                data-status="<?= $class['status'] ?>"
-                                                data-plan-details="<?= h($class['plan_details'] ?? '') ?>"
-                                            <?php endif; ?>
-                                        >
-                                            <div class="class-block-header">
-                                                <span class="class-time"><?= $class_time ?></span>
-                                                <span class="class-duration"><?= $class_duration ?>m</span>
-                                            </div>
+                            <div class="day-container">
+                                <div class="day-header">
+                                    <h3><?= $dia_nome ?></h3>
+                                </div>
+                                <div class="day-column" data-day="<?= $day_index ?>">
+                                    <?php if (empty($day_classes)): ?>
+                                        <div class="no-classes">
+                                            <p>Sem aulas</p>
+                                        </div>
+                                    <?php else: ?>
+                                        <?php foreach ($day_classes as $class):
+                                            $is_pt = isset($class['type']) && $class['type'] === 'pt';
+                                            $is_nutrition = isset($class['type']) && $class['type'] === 'nutrition';
+                                            $class_id = (int) $class['id'];
+                                            $class_name = h($class['name']);
+                                            $class_description = h($class['description'] ?? '');
+                                            $class_room = h($class['room']);
+                                            $class_capacity = (int) $class['capacity'];
+                                            $class_duration = (int) $class['duration_min'];
                                             
-                                            <div class="class-block-content">
-                                                <h4 class="class-block-title"><?= $class_name ?></h4>
-                                                <?php if ($is_pt): ?>
-                                                    <p class="class-block-room" style="margin-bottom: 2px;">👤 <strong>Membro:</strong> <?= h($class['member_name']) ?></p>
-                                                    <p class="class-block-room" style="font-size: 0.85em; opacity: 0.8;">✉️ <?= h($class['member_email']) ?></p>
-                                                    <?php if (!empty($class_description)): ?>
-                                                        <p class="class-block-room" style="font-style: italic; color: #94a3b8; font-size: 0.85em; margin-top: 5px; overflow-wrap: break-word; word-break: break-word;">"<?= $class_description ?>"</p>
-                                                    <?php endif; ?>
-                                                <?php elseif ($is_nutrition): ?>
-                                                    <p class="class-block-room" style="margin-bottom: 2px;">👤 <strong>Membro:</strong> <?= h($class['member_name']) ?></p>
-                                                    <p class="class-block-room" style="font-size: 0.85em; opacity: 0.8;">✉️ <?= h($class['member_email']) ?></p>
-                                                    <?php if ($class['status'] === 'completed'): ?>
-                                                        <p class="class-block-room" style="margin-top: 5px; font-size: 0.85em; color: #10b981; font-weight: 500;">🍎 Dieta prescrita (Clique para ver/editar)</p>
-                                                    <?php else: ?>
-                                                        <p class="class-block-room" style="margin-top: 5px; font-size: 0.85em; color: #059669; font-weight: 500;">🍎 Clique para prescrever dieta</p>
-                                                    <?php endif; ?>
-                                                <?php else: ?>
-                                                    <p class="class-block-room">🏠 <?= $class_room ?></p>
-                                                    <p class="class-block-capacity">
-                                                        <span class="capacity-badge"><?= $member_count ?>/<?= $class_capacity ?> alunos</span>
-                                                    </p>
+                                            $timestamp = strtotime($class['scheduled_at']);
+                                            $class_time = date('H:i', $timestamp);
+                                            $class_date_full = date('d/m/Y', $timestamp);
+                                            
+                                            if ($is_nutrition) {
+                                                $color_class = 'color-nutrition';
+                                            } else {
+                                                $color_class = $is_pt ? 'color-pt' : $color_classes[$color_index % count($color_classes)];
+                                                if (!$is_pt) $color_index++;
+                                            }
+                                            
+                                            $member_count = 0;
+                                            if (!$is_pt && !$is_nutrition) {
+                                                try {
+                                                    $stmtCount = $db->prepare("
+                                                        SELECT COUNT(*) as total FROM bookings WHERE class_id = ?
+                                                    ");
+                                                    $stmtCount->execute([$class_id]);
+                                                    $countResult = $stmtCount->fetch();
+                                                    $member_count = $countResult['total'] ?? 0;
+                                                } catch (Throwable $e) {
+                                                    $member_count = 0;
+                                                }
+                                            }
+                                        ?>
+                                            <article class="class-block <?= $color_class ?>" id="<?= $is_pt ? 'pt-' : ($is_nutrition ? 'nutrition-' : 'class-') ?><?= $class_id ?>" style="<?= $is_pt ? 'border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08);' : ($is_nutrition ? ($class['status'] === 'completed' ? 'border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.08); cursor: pointer;' : 'border-left: 4px solid #059669; background: rgba(5, 150, 105, 0.08); cursor: pointer;') : '') ?>"
+                                                <?php if ($is_nutrition): ?>
+                                                    data-type="nutrition"
+                                                    data-request-id="<?= $class_id ?>"
+                                                    data-member-name="<?= h($class['member_name']) ?>"
+                                                    data-member-email="<?= h($class['member_email']) ?>"
+                                                    data-status="<?= $class['status'] ?>"
+                                                    data-plan-details="<?= h($class['plan_details'] ?? '') ?>"
                                                 <?php endif; ?>
-                                            </div>
- 
-                                            <?php if (!$is_pt && !$is_nutrition): ?>
-                                                <button 
-                                                    type="button" 
-                                                    class="btn btn-small btn-roster"
-                                                    data-class-id="<?= $class_id ?>"
-                                                    data-class-name="<?= $class_name ?>"
-                                                    aria-label="Ver roster de alunos para <?= $class_name ?>"
-                                                >
-                                                    👥 Alunos
-                                                </button>
-                                                
-                                                <div class="roster-container" id="roster-<?= $class_id ?>" style="display: none;">
-                                                    <div class="roster-loading">
-                                                        <span class="spinner"></span>
-                                                        <p>Carregando...</p>
-                                                    </div>
+                                            >
+                                                <div class="class-block-header">
+                                                    <span class="class-time"><?= $class_time ?></span>
+                                                    <span class="class-duration"><?= $class_duration ?>m</span>
                                                 </div>
-                                            <?php elseif ($is_pt): ?>
-                                                <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.8em; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 8px; text-transform: uppercase;">PT Confirmado</span>
-                                            <?php elseif ($is_nutrition): ?>
-                                                <?php if ($class['status'] === 'completed'): ?>
-                                                    <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.8em; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 8px; text-transform: uppercase;">Concluído</span>
-                                                <?php else: ?>
-                                                    <span class="badge" style="background: rgba(5, 150, 105, 0.2); color: #059669; border: 1px solid rgba(5, 150, 105, 0.4); font-size: 0.8em; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 8px; text-transform: uppercase;">Agendado</span>
+                                                
+                                                <div class="class-block-content">
+                                                    <h4 class="class-block-title"><?= $class_name ?></h4>
+                                                    <?php if ($is_pt): ?>
+                                                        <p class="class-block-room" style="margin-bottom: 2px;">👤 <strong>Membro:</strong> <?= h($class['member_name']) ?></p>
+                                                        <p class="class-block-room" style="font-size: 0.85em; opacity: 0.8;">✉️ <?= h($class['member_email']) ?></p>
+                                                        <?php if (!empty($class_description)): ?>
+                                                            <p class="class-block-room" style="font-style: italic; color: #94a3b8; font-size: 0.85em; margin-top: 5px; overflow-wrap: break-word; word-break: break-word;">"<?= $class_description ?>"</p>
+                                                        <?php endif; ?>
+                                                    <?php elseif ($is_nutrition): ?>
+                                                        <p class="class-block-room" style="margin-bottom: 2px;">👤 <strong>Membro:</strong> <?= h($class['member_name']) ?></p>
+                                                        <p class="class-block-room" style="font-size: 0.85em; opacity: 0.8;">✉️ <?= h($class['member_email']) ?></p>
+                                                        <?php if ($class['status'] === 'completed'): ?>
+                                                            <p class="class-block-room" style="margin-top: 5px; font-size: 0.85em; color: #10b981; font-weight: 500;">🍎 Dieta prescrita (Clique para ver/editar)</p>
+                                                        <?php else: ?>
+                                                            <p class="class-block-room" style="margin-top: 5px; font-size: 0.85em; color: #059669; font-weight: 500;">🍎 Clique para prescrever dieta</p>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <p class="class-block-room">🏠 <?= $class_room ?></p>
+                                                        <p class="class-block-capacity">
+                                                            <span class="capacity-badge"><?= $member_count ?>/<?= $class_capacity ?> alunos</span>
+                                                        </p>
+                                                    <?php endif; ?>
+                                                </div>
+     
+                                                <?php if (!$is_pt && !$is_nutrition): ?>
+                                                    <button 
+                                                        type="button" 
+                                                        class="btn btn-small btn-roster"
+                                                        data-class-id="<?= $class_id ?>"
+                                                        data-class-name="<?= $class_name ?>"
+                                                        aria-label="Ver roster de alunos para <?= $class_name ?>"
+                                                    >
+                                                        👥 Alunos
+                                                    </button>
+                                                    
+                                                    <div class="roster-container" id="roster-<?= $class_id ?>" style="display: none;">
+                                                        <div class="roster-loading">
+                                                            <span class="spinner"></span>
+                                                            <p>Carregando...</p>
+                                                        </div>
+                                                    </div>
+                                                <?php elseif ($is_pt): ?>
+                                                    <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.8em; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 8px; text-transform: uppercase;">PT Confirmado</span>
+                                                <?php elseif ($is_nutrition): ?>
+                                                    <?php if ($class['status'] === 'completed'): ?>
+                                                        <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.8em; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 8px; text-transform: uppercase;">Concluído</span>
+                                                    <?php else: ?>
+                                                        <span class="badge" style="background: rgba(5, 150, 105, 0.2); color: #059669; border: 1px solid rgba(5, 150, 105, 0.4); font-size: 0.8em; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 8px; text-transform: uppercase;">Agendado</span>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
-                                            <?php endif; ?>
-                                        </article>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                            </article>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         <?php endforeach; ?>
                     </div>

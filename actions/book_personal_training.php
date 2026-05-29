@@ -86,9 +86,9 @@ try {
     // Inserir agendamento
     $stmtInsert = $db->prepare("
         INSERT INTO personal_training_bookings (member_id, trainer_id, scheduled_at, status, notes, created_at)
-        VALUES (?, ?, ?, 'pending', ?, datetime('now'))
+        VALUES (?, ?, ?, 'pending', ?, ?)
     ");
-    $stmtInsert->execute([$member_id, $trainer_id, $scheduled_at, $notes]);
+    $stmtInsert->execute([$member_id, $trainer_id, $scheduled_at, $notes, date('Y-m-d H:i:s')]);
 
     // Enviar notificação para o Treinador
     $stmtNotify = $db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
