@@ -1,0 +1,164 @@
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--color-primary-strong);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-light-rgb), 0.3);
+}
+
+.btn-secondary {
+    background-color: var(--color-secondary);
+    color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--color-grey-dark-hover);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.btn-signup {
+    background-color: var(--color-primary);
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(var(--color-primary-light-rgb), 0.4);
+    letter-spacing: 0.5px;
+}
+
+.btn-signup:hover:not(:disabled) {
+    background-color: var(--color-primary-strong);
+    color: white;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(var(--color-primary-light-rgb), 0.5);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: transform 0.3s ease;
+}
+
+.btn-icon:hover {
+    transform: scale(1.2);
+}
+
+.btn-edit {
+    color: var(--color-primary-light);
+}
+
+.btn-delete {
+    color: var(--color-danger);
+}
+
+.btn-cancel {
+    background-color: var(--color-alert-error-bg);
+    color: var(--color-alert-error-text);
+    align-self: flex-start;
+}
+
+.btn-cancel:hover:not(:disabled) {
+    background-color: var(--color-alert-error-border);
+    color: var(--color-alert-error-text);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--color-danger-rgb), 0.2);
+}
+
+/* Tab button active state */
+.tab-btn.active {
+    color: var(--color-black-rgb) !important;
+    border-bottom-color: var(--color-primary) !important;
+    font-weight: 600;
+}
+
+.btn-action {
+    display: inline-block;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.25rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    background: var(--color-surface-soft);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.btn-action:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(var(--color-black-rgb), 0.1);
+}
+
+.btn-edit {
+    background: #dbeafe; /* mapped to light blue bg */
+    color: var(--color-badge-blue-text);
+    border-color: var(--color-badge-bluelight-border);
+}
+
+.btn-edit:hover {
+    background: var(--color-badge-bluelight-border);
+    color: var(--color-badge-blue-text);
+}
+
+.btn-toggle-status {
+    background: var(--color-schedule-purple-bg-start); /* #faf5ff */
+    color: var(--color-badge-orange-text);
+    border-color: var(--color-badge-yellow-border);
+}
+
+.btn-toggle-status:hover {
+    background: var(--color-badge-yellow-border);
+    color: var(--color-badge-orange-text);
+}
+
+.btn-make-admin {
+    background: var(--color-badge-pink-border); /* #fbcfe8 */
+    color: var(--color-badge-pink-text);
+    border-color: var(--color-badge-pink-border);
+}
+
+.btn-make-admin:hover {
+    background: var(--color-badge-pink-border);
+    color: var(--color-badge-pink-text);
+}

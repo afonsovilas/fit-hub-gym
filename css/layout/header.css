@@ -1,0 +1,240 @@
+.header {
+    background: var(--color-surface);
+    box-shadow: 0 8px 18px rgba(var(--color-text-rgb), 0.12);
+    border-bottom: 1px solid rgba(var(--color-black-rgb), 0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header {
+    position: fixed;
+    left: 0;
+    width: 100%;
+}
+
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) {
+    background: transparent;
+    box-shadow: none;
+    border-bottom: 1px solid transparent;
+}
+
+.header.scrolled {
+    background: var(--color-surface);
+    box-shadow: 0 8px 18px rgba(var(--color-text-rgb), 0.12);
+    border-bottom: 1px solid rgba(var(--color-black-rgb), 0.06);
+}
+
+.navbar {
+    padding: 0.85rem 0;
+}
+
+.navbar-container {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    min-height: 64px;
+}
+
+.menu-toggle {
+    appearance: none;
+    border: none;
+    background: transparent;
+    display: none;
+    color: var(--color-text);
+    font-size: 1.9rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    justify-self: start;
+    transition: color 0.3s ease, opacity 0.3s ease;
+    opacity: 0.95;
+}
+
+.header.scrolled .menu-toggle {
+    color: var(--color-text);
+    opacity: 0.8;
+}
+
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .menu-toggle {
+    color: var(--color-surface);
+}
+
+.site-brand {
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0;
+    transition: color 0.3s ease;
+}
+
+.navbar-logo {
+    grid-column: 1;
+    justify-self: start;
+}
+
+.navbar-logo a {
+    color: var(--color-primary);
+}
+
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .site-brand,
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .navbar-logo a {
+    color: var(--color-surface);
+}
+
+.header.scrolled .site-brand,
+.header.scrolled .navbar-logo a {
+    color: var(--color-primary);
+}
+
+.navbar-menu {
+    display: flex;
+    grid-column: 3;
+    gap: 1.2rem;
+    align-items: center;
+    justify-self: end;
+    flex-wrap: nowrap;
+}
+
+.nav-link {
+    color: var(--color-text);
+    font-weight: 500;
+    padding: 0.5rem 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .nav-link {
+    color: rgba(var(--color-white-rgb), 0.96);
+}
+
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .nav-link:hover,
+:is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .nav-link.active {
+    color: var(--color-surface);
+    border-bottom-color: rgba(var(--color-white-rgb), 0.95);
+}
+
+.header.scrolled .nav-link {
+    color: var(--color-text);
+}
+
+.header.scrolled .nav-link:hover,
+.header.scrolled .nav-link.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+/* Page Header Common Structure */
+.page-header {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-dark-bg);
+    color: var(--color-surface);
+    padding: 4rem 1rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.page-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(140deg, rgba(9, 9, 10, 0.38), rgba(var(--color-primary-rgb), 0.18));
+}
+
+.page-header .container {
+    position: relative;
+    z-index: 1;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    opacity: 0.95;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0.65rem 0;
+    }
+
+    .navbar-container {
+        min-height: 56px;
+        grid-template-columns: auto 1fr auto;
+    }
+
+    .navbar-menu {
+        display: none;
+        grid-column: 1 / -1;
+    }
+
+    .navbar-menu.is-open {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        align-items: stretch;
+        justify-self: stretch;
+        padding: 0.5rem 1rem 0.8rem;
+        background: var(--color-surface);
+        border-bottom: 1px solid rgba(var(--color-black-rgb), 0.08);
+        box-shadow: 0 10px 20px rgba(var(--color-text-rgb), 0.15);
+        z-index: 101;
+    }
+
+    .navbar-menu.is-open .nav-link {
+        color: var(--color-text);
+        display: block;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid rgba(var(--color-black-rgb), 0.08);
+    }
+
+    .navbar-menu.is-open li:last-child .nav-link {
+        border-bottom: 0;
+    }
+
+    .navbar-container {
+        position: relative;
+    }
+
+    .navbar-logo {
+        grid-column: 2;
+        justify-self: center;
+    }
+
+    .site-brand {
+        font-size: 1.15rem;
+    }
+
+    .menu-toggle {
+        grid-column: 1;
+        display: inline-flex;
+        font-size: 1.6rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .navbar-menu {
+        gap: 1.5rem;
+    }
+}

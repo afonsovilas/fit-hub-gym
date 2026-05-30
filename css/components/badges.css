@@ -1,0 +1,115 @@
+.status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status.active {
+    background-color: var(--color-alert-success-bg);
+    color: var(--color-alert-success-text);
+}
+
+.status.inactive {
+    background-color: var(--color-alert-error-bg);
+    color: var(--color-alert-error-text);
+}
+
+.available {
+    color: var(--color-success);
+    font-weight: 600;
+}
+
+.full {
+    color: var(--color-danger);
+    font-weight: 600;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-active {
+    background-color: var(--color-alert-success-bg);
+    color: var(--color-alert-success-text);
+}
+
+.status-inactive {
+    background-color: var(--color-alert-error-bg);
+    color: var(--color-alert-error-text);
+}
+
+.review-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--color-review-green-start) 0%, var(--color-indicator-available) 100%);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.role-member {
+    background: #dbeafe; /* Mapped as light blue */
+    color: var(--color-badge-blue-text);
+    border: 1px solid var(--color-badge-bluelight-border);
+}
+
+.role-trainer {
+    background: var(--color-schedule-yellow-bg-end);
+    color: var(--color-badge-orange-text);
+    border: 1px solid var(--color-badge-yellow-border);
+}
+
+.role-staff {
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
+.role-admin {
+    background: var(--color-badge-pink-border);
+    color: var(--color-badge-pink-text);
+    border: 1px solid var(--color-badge-pink-border);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-active {
+    background: var(--color-badge-teal-bg);
+    color: var(--color-badge-green-text);
+    border: 1px solid var(--color-badge-green-border);
+}
+
+.status-inactive {
+    background: var(--color-alert-error-bg);
+    color: var(--color-badge-red-text);
+    border: 1px solid #fecaca;
+}
