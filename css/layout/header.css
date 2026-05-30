@@ -209,6 +209,14 @@
         border-bottom: 1px solid rgba(var(--color-black-rgb), 0.08);
     }
 
+    :is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .navbar-menu.is-open .nav-link {
+        color: var(--color-text) !important;
+    }
+
+    :is(.home-page, .schedules-page, .equipment-page, .trainers-page):not(.logged-in) .header:not(.scrolled) .navbar-menu.is-open .nav-link:hover {
+        color: var(--color-primary) !important;
+    }
+
     .navbar-menu.is-open li:last-child .nav-link {
         border-bottom: 0;
     }

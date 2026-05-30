@@ -23,6 +23,13 @@
     gap: 0;
     margin-bottom: 2rem;
     border-bottom: 2px solid var(--color-border-light);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.admin-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .tab-button {
@@ -35,6 +42,7 @@
     color: var(--color-text-muted-alt);
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .tab-button:hover {

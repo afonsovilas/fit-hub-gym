@@ -235,7 +235,7 @@ require_once BASE_PATH . '/templates/navbar.php';
                                     </select>
                                 </div>
                                 
-                                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group profile-booking-grid">
                                      <div>
                                          <label for="pt-date">Data:</label>
                                          <input type="date" id="pt-date" min="<?= date('Y-m-d') ?>" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; color: #fff; color-scheme: dark;">

@@ -6,17 +6,27 @@
 
 .profile-wrapper {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 2rem;
-    padding: 2rem 0;
+    padding: 2rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .profile-sidebar {
     grid-column: 1;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    min-width: 0;
 }
 
 .profile-main {
     grid-column: 1;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    min-width: 0;
 }
 
 .profile-card {
@@ -98,10 +108,12 @@
 .profile-detail {
     display: flex;
     justify-content: flex-start;
-    align-items: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
     padding: 0.75rem 0;
-    gap: 0;
+    gap: 0.25rem 0;
     font-size: 0.95rem;
+    word-break: break-all;
 }
 
 .detail-label {
@@ -561,24 +573,33 @@
     color: var(--color-text-muted);
 }
 
-@media (min-width: 768px) {
-    /* Profile Page - Tablet Layout */
+@media (min-width: 1100px) {
+    /* Profile Page - Desktop Layout */
     .profile-wrapper {
-        grid-template-columns: 300px 1fr;
-        gap: 2rem;
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 2.5rem;
         align-items: start;
+        padding: 2rem 0;
     }
 
     .profile-sidebar {
         grid-column: 1;
         position: sticky;
         top: 80px;
+        margin: 0;
+        max-width: 300px;
+        min-width: 0;
     }
 
     .profile-main {
         grid-column: 2;
+        margin: 0;
+        max-width: none;
+        min-width: 0;
     }
+}
 
+@media (min-width: 768px) {
     .class-item .class-info {
         flex-direction: row;
     }
@@ -601,5 +622,91 @@
 
     .rating-label {
         font-size: 1.3rem;
+    }
+}
+
+/* Scrollable Horizontal Tabs Layout */
+.profile-tabs-nav {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #334155;
+    padding-bottom: 0px;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.profile-tabs-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.profile-tabs-nav .tab-btn {
+    white-space: nowrap;
+}
+
+/* Dynamic grid for personal trainer bookings */
+.profile-booking-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* Responsive Portrait Mobile Viewport adjustments */
+@media (max-width: 480px) {
+    /* Set safety margins so cards do not touch the screen edges */
+    .profile-wrapper {
+        padding: 1rem 0.75rem !important;
+        gap: 1.25rem !important;
+    }
+
+    /* Make cards take full width instead of fixed 360px so they align perfectly */
+    .profile-sidebar {
+        max-width: 100% !important;
+    }
+
+    .profile-main {
+        max-width: 100% !important;
+        margin-bottom: 1rem !important;
+    }
+
+    /* Reduce card padding on mobile to save horizontal space */
+    .profile-card, 
+    .profile-section {
+        padding: 1.25rem !important;
+    }
+
+    /* Stack labels and values inside profile details to prevent horizontal overflow */
+    .profile-detail {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.15rem !important;
+    }
+
+    .detail-label {
+        min-width: auto !important;
+        margin-bottom: 0.15rem !important;
+        display: block !important;
+    }
+
+    /* Adjust avatar photo and details for compact mobile layout */
+    .profile-photo {
+        width: 100px !important;
+        height: 100px !important;
+    }
+
+    .profile-name {
+        font-size: 1.4rem !important;
+    }
+
+    /* Scale down the tab navigation buttons slightly so they fit and scroll beautifully */
+    .profile-tabs-nav .tab-btn {
+        padding: 8px 12px !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Style the dynamic pt-booking grid to stack inputs vertically on narrow screens */
+    .profile-booking-grid {
+        grid-template-columns: 1fr !important;
     }
 }

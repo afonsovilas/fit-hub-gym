@@ -100,9 +100,8 @@
     box-shadow: 0 4px 12px rgba(var(--color-danger-rgb), 0.2);
 }
 
-/* Tab button active state */
 .tab-btn.active {
-    color: var(--color-black-rgb) !important;
+    color: var(--color-primary) !important;
     border-bottom-color: var(--color-primary) !important;
     font-weight: 600;
 }
