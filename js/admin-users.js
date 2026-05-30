@@ -3,7 +3,7 @@
  *
  * Admin User Dashboard Refactoring - Frontend Logic
  * Handles:
- * - Client-side dynamic tab filtering (Todos, Membros, Treinadores, Staff, Admins)
+ * - Client-side dynamic tab filtering (Todos, Membros, Treinadores, Admins)
  * - Dynamic Form Panel toggling based on chosen user role
  * - Form populating from metadata data-attributes during edits inside Modal
  * - Modal display, close controls, and overlay backdrop clicks
@@ -28,11 +28,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Dynamic Panels
     const trainerPanel = document.getElementById('trainer-fields-panel');
-    const staffPanel = document.getElementById('staff-fields-panel');
-
-    // Inputs inside panels
-    const inputPosition = document.getElementById('form-position');
-    const inputDepartment = document.getElementById('form-department');
 
     // CSRF Token from DOM
     const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
@@ -61,32 +56,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Toggles visibility and required validation of role-specific panels
-     */
+     * Toggles visibility of role-specific panels
+      */
     function toggleRolePanels(role) {
-        if (!trainerPanel || !staffPanel) return;
+        if (!trainerPanel) return;
 
         if (role === 'trainer') {
             trainerPanel.style.display = 'block';
-            staffPanel.style.display = 'none';
-
-            // Disable staff validation
-            if (inputPosition) inputPosition.required = false;
-            if (inputDepartment) inputDepartment.required = false;
-        } else if (role === 'staff') {
-            trainerPanel.style.display = 'none';
-            staffPanel.style.display = 'block';
-
-            // Enable staff validation
-            if (inputPosition) inputPosition.required = true;
-            if (inputDepartment) inputDepartment.required = true;
         } else {
             // Member or Admin
             trainerPanel.style.display = 'none';
-            staffPanel.style.display = 'none';
-
-            if (inputPosition) inputPosition.required = false;
-            if (inputDepartment) inputDepartment.required = false;
         }
     }
 
@@ -103,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const roleNames = {
                 'member': 'Membro',
                 'trainer': 'Treinador',
-                'staff': 'Pessoal',
                 'admin': 'Administrador'
             };
 
@@ -198,7 +176,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const roleNames = {
                         'member': 'Membro',
                         'trainer': 'Treinador',
-                        'staff': 'Pessoal',
                         'admin': 'Administrador'
                     };
                     const roleName = roleNames[roleFilter] || 'Utilizador';
@@ -358,10 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('#trainer-fields-panel input[type="checkbox"]').forEach(cb => {
                 cb.checked = specsArray.includes(cb.value.toLowerCase());
             });
-
-        } else if (role === 'staff') {
-            if (inputPosition) inputPosition.value = button.dataset.position || '';
-            if (inputDepartment) inputDepartment.value = button.dataset.department || '';
         }
 
         // Display Modal
@@ -413,7 +386,5 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('Erro ao conectar com o servidor.', 'error');
         });
     }
-
-
 
 });

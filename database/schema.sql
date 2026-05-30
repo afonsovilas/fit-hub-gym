@@ -12,7 +12,6 @@ DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS classes;
 DROP TABLE IF EXISTS equipment;
-DROP TABLE IF EXISTS staff_profiles;
 DROP TABLE IF EXISTS trainer_specializations;
 DROP TABLE IF EXISTS trainer_profiles;
 DROP TABLE IF EXISTS users;
@@ -27,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
     username      TEXT    UNIQUE,
     password_hash TEXT    NOT NULL,
     role          TEXT    NOT NULL DEFAULT 'member'
-                          CHECK(role IN ('member', 'trainer', 'staff', 'admin')),
+                          CHECK(role IN ('member', 'trainer', 'admin')),
     phone         TEXT,
     avatar        TEXT,
     is_active     INTEGER NOT NULL DEFAULT 1 
@@ -51,15 +50,6 @@ CREATE TABLE IF NOT EXISTS trainer_specializations (
     trainer_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     specialization TEXT NOT NULL,
     PRIMARY KEY (trainer_id, specialization)
-);
-
--- ──────────────────────────────────────────────────────────────────────────────
--- 4. Perfis de Staff (staff_profiles)
--- ──────────────────────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS staff_profiles (
-    user_id    INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    position   TEXT NOT NULL,
-    department TEXT NOT NULL
 );
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -209,18 +199,6 @@ INSERT INTO trainer_specializations (trainer_id, specialization) VALUES
 (4, 'personal'),
 (1, 'nutricao'),
 (2, 'nutricao');
-
--- Inserir Staff
-INSERT INTO users (id, name, email, username, password_hash, role, phone, avatar, is_active) VALUES
-(5, 'Rita Oliveira', 'rita@fithub.pt', 'ritaoliveira', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'staff', '+351 921 111 222', 'assets/images/staff/rita.jpg', 1),
-(6, 'Paulo Costa', 'paulo@fithub.pt', 'paulocosta', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'staff', '+351 922 222 333', 'assets/images/staff/paulo.jpg', 1),
-(7, 'Teresa Sousa', 'teresa@fithub.pt', 'teresasousa', '$2y$10$/n8a2FkYESFRYPFGVr2yXesHeM6JTY4wYdWcL7mu/j9z82mH.ZyeO', 'staff', '+351 923 333 444', 'assets/images/staff/teresa.jpg', 1);
-
--- Inserir Perfis de Staff
-INSERT INTO staff_profiles (user_id, position, department) VALUES
-(5, 'front-desk-agent', 'member-support'),
-(6, 'facilities-technician', 'facilities'),
-(7, 'hygiene-assistant', 'operations');
 
 -- Inserir Administrador
 INSERT INTO users (id, name, email, username, password_hash, role, phone, is_active) VALUES

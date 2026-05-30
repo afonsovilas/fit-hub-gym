@@ -35,7 +35,6 @@ try {
     echo " - Admin: admin@fithub.pt" . PHP_EOL;
     echo " - Membro: aluno@fithub.pt" . PHP_EOL;
     echo " - Treinador: joao@fithub.pt" . PHP_EOL;
-    echo " - Staff: rita@fithub.pt" . PHP_EOL;
     echo "=================================================" . PHP_EOL;
 
 } catch (Throwable $e) {

@@ -79,12 +79,6 @@
     border: 1px solid var(--color-badge-yellow-border);
 }
 
-.role-staff {
-    background: #e0e7ff;
-    color: #3730a3;
-    border: 1px solid #c7d2fe;
-}
-
 .role-admin {
     background: var(--color-badge-pink-border);
     color: var(--color-badge-pink-text);

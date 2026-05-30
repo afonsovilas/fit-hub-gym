@@ -1,6 +1,6 @@
 <?php
 /**
- * pages/admin/staff.php
+ * pages/admin/users.php
  *
  * Painel Administrativo de Gestão de Utilizadores (FitHub).
  * Vista unificada e dinâmica com filtros client-side e formulário reativo por cargo.
@@ -33,15 +33,12 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 try {
     $db = get_db();
 
-    // Query unificada de alta performance trazendo todos os utilizadores e seus respetivos perfis associados
     $stmtUsers = $db->query("
         SELECT u.id, u.name, u.email, u.phone, u.username, u.role, u.is_active, u.created_at,
                tp.bio, tp.certifications,
-               (SELECT GROUP_CONCAT(specialization, ' / ') FROM trainer_specializations WHERE trainer_id = u.id) AS specializations,
-               sp.position, sp.department
+               (SELECT GROUP_CONCAT(specialization, ' / ') FROM trainer_specializations WHERE trainer_id = u.id) AS specializations
         FROM users u
         LEFT JOIN trainer_profiles tp ON u.id = tp.user_id
-        LEFT JOIN staff_profiles sp ON u.id = sp.user_id
         ORDER BY u.created_at DESC
     ");
     $users = $stmtUsers->fetchAll();
@@ -56,7 +53,6 @@ function translate_role(string $role): string {
         'member'  => 'Membro',
         'trainer' => 'Treinador',
         'admin'   => 'Administrador',
-        'staff'   => 'Pessoal',
     ];
     return $roles[$role] ?? $role;
 }
@@ -66,7 +62,7 @@ function translate_role(string $role): string {
     <section class="page-header page-header--admin">
         <div class="container">
             <h1>Gestão de Utilizadores</h1>
-            <p>Administre membros, treinadores, pessoal e administradores da plataforma FitHub</p>
+            <p>Administre membros, treinadores e administradores da plataforma FitHub</p>
         </div>
     </section>
 
@@ -74,12 +70,10 @@ function translate_role(string $role): string {
         <div class="container">
             <?php render_flash(); ?>
 
-            <!-- Separadores de Categoria (Filtro Client-Side instantâneo) -->
             <div class="admin-tabs" role="tablist" aria-label="Categorias de gestão de utilizadores">
                 <button type="button" class="tab-button active" data-tab="all" role="tab" id="tab-all" aria-selected="true">👥 Todos</button>
                 <button type="button" class="tab-button" data-tab="member" role="tab" id="tab-member" aria-selected="false">👤 Membros</button>
                 <button type="button" class="tab-button" data-tab="trainer" role="tab" id="tab-trainer" aria-selected="false">💪 Treinadores</button>
-                <button type="button" class="tab-button" data-tab="staff" role="tab" id="tab-staff" aria-selected="false">💼 Staff</button>
                 <button type="button" class="tab-button" data-tab="admin" role="tab" id="tab-admin" aria-selected="false">👑 Admins</button>
             </div>
 
@@ -87,17 +81,16 @@ function translate_role(string $role): string {
                 <div class="flash flash--error">Erro de base de dados: <?= h($error) ?></div>
             <?php endif; ?>
 
-            <!-- Estilos Premium de Acessibilidade para o Modal Escuro -->
             <style>
             #user-modal label {
-                color: #cbd5e1 !important; /* light slate */
+                color: #cbd5e1 !important;
                 font-weight: 600;
             }
             #user-modal h3, #user-modal h2 {
-                color: #38bdf8 !important; /* premium cyan */
+                color: #38bdf8 !important;
             }
             #user-modal input, #user-modal select, #user-modal textarea {
-                background-color: #1e293b !important; /* dark slate background */
+                background-color: #1e293b !important;
                 border: 1px solid #334155 !important;
                 color: #ffffff !important;
                 transition: all 0.3s ease;
@@ -111,7 +104,7 @@ function translate_role(string $role): string {
                 color: #64748b !important;
             }
             #user-modal select option {
-                background-color: #0f172a !important; /* keep select dropdown options dark */
+                background-color: #0f172a !important;
                 color: #ffffff !important;
             }
             #user-modal .checkbox-group {
@@ -122,8 +115,8 @@ function translate_role(string $role): string {
                 margin-top: 10px !important;
             }
             #user-modal .checkbox-group legend {
-                background-color: #38bdf8 !important; /* Inverted background color: premium cyan pill */
-                color: #0f172a !important; /* Deep dark slate text for absolute high contrast */
+                background-color: #38bdf8 !important;
+                color: #0f172a !important;
                 font-weight: bold !important;
                 padding: 4px 12px !important;
                 border-radius: 999px !important;
@@ -182,7 +175,6 @@ function translate_role(string $role): string {
                                     <option value="">-- Selecione uma função --</option>
                                     <option value="member">Membro</option>
                                     <option value="trainer">Treinador</option>
-                                    <option value="staff">Pessoal (Staff)</option>
                                     <option value="admin">Administrador</option>
                                 </select>
                             </div>
@@ -234,34 +226,6 @@ function translate_role(string $role): string {
                             </div>
                         </div>
 
-                        <!-- PAINEL DINÂMICO: Campos de Staff (Oculto por defeito) -->
-                        <div id="staff-fields-panel" style="display: none; border-top: 1px solid var(--color-border); padding-top: 1.5rem; margin-top: 1rem;">
-                            <h3 style="color: var(--color-primary); margin-bottom: 1rem;">Perfil Operacional (Staff)</h3>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="form-position">Posição *</label>
-                                    <select id="form-position" name="position">
-                                        <option value="">-- Selecione uma posição --</option>
-                                        <option value="front-desk-agent">Front Desk Agent</option>
-                                        <option value="facilities-technician">Técnico de Manutenção</option>
-                                        <option value="hygiene-assistant">Assistente de Limpeza</option>
-                                        <option value="operations-coordinator">Coordenador Operacional</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="form-department">Departamento *</label>
-                                    <select id="form-department" name="department">
-                                        <option value="">-- Selecione um departamento --</option>
-                                        <option value="member-support">Atendimento ao Cliente</option>
-                                        <option value="operations">Operações</option>
-                                        <option value="facilities">Infraestruturas</option>
-                                        <option value="admin">Administração</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Nota informativa sobre restrições de Username -->
                         <div style="border-top: 1px solid #1e293b; padding-top: 12px; margin-top: 10px;">
                             <p style="color: #94a3b8; font-size: 0.8em; margin: 0; line-height: 1.4;">
@@ -278,7 +242,6 @@ function translate_role(string $role): string {
                 </div>
             </div>
 
-            <!-- Listagem Geral de Utilizadores -->
             <section class="list-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
                     <h2 style="margin: 0;">Todos os Utilizadores</h2>
@@ -340,8 +303,6 @@ function translate_role(string $role): string {
                                                     data-bio="<?= h($user['bio'] ?? '') ?>"
                                                     data-certifications="<?= h($user['certifications'] ?? '') ?>"
                                                     data-specializations="<?= h($user['specializations'] ?? '') ?>"
-                                                    data-position="<?= h($user['position'] ?? '') ?>"
-                                                    data-department="<?= h($user['department'] ?? '') ?>"
                                                     title="Editar utilizador">
                                                 ✏️ Editar
                                             </button>

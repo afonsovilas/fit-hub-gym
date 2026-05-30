@@ -599,7 +599,6 @@ try {
             if (memberRole !== 'member') {
                 const roleLabels = {
                     'trainer': 'Treinador',
-                    'staff': 'Staff',
                     'admin': 'Admin'
                 };
                 const label = roleLabels[memberRole] || memberRole;
@@ -607,8 +606,6 @@ try {
                 let badgeStyle = 'background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3);';
                 if (memberRole === 'trainer') {
                     badgeStyle = 'background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);';
-                } else if (memberRole === 'staff') {
-                    badgeStyle = 'background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);';
                 } else if (memberRole === 'admin') {
                     badgeStyle = 'background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);';
                 }

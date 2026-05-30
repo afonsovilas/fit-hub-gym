@@ -112,7 +112,6 @@ try {
         }
         .badge-member { background: #3b82f6; color: #fff; }
         .badge-trainer { background: #10b981; color: #fff; }
-        .badge-staff { background: #8b5cf6; color: #fff; }
         .badge-admin { background: #ef4444; color: #fff; }
         .badge-active { background: rgba(16, 185, 129, 0.2); color: #34d399; }
         .badge-inactive { background: rgba(239, 68, 68, 0.2); color: #f87171; }

@@ -59,7 +59,7 @@ $base = defined('BASE_URL_PATH') ? BASE_URL_PATH : '';
                     
                     <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
                         <li>
-                            <a href="<?= h($base) ?>pages/admin/staff.php"
+                            <a href="<?= h($base) ?>pages/admin/users.php"
                                class="nav-link<?= $nav_class('admin') ?>">Gestão</a>
                         </li>
                     <?php endif; ?>

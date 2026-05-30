@@ -2,7 +2,7 @@
 /**
  * actions/save_user.php
  *
- * Processador unificado para criação ou atualização de qualquer utilizador (Membro, Treinador, Staff, Admin).
+ * Processador unificado para criação ou atualização de qualquer utilizador (Membro, Treinador, Admin).
  * Gere dados gerais e dados específicos de perfis no SQLite.
  * Segurança: Autenticação obrigatória, apenas Administradores, proteção CSRF e validações estritas.
  */
@@ -43,41 +43,29 @@ try {
     $certifications = trim($_POST['certifications'] ?? '');
     $specs          = $_POST['specializations'] ?? [];
 
-    // Dados de Staff
-    $position   = trim($_POST['position'] ?? '');
-    $department = trim($_POST['department'] ?? '');
-
     // Validações gerais básicas
     if ($name === '' || $email === '' || $username === '' || $role === '') {
         set_flash('Por favor, preencha todos os campos obrigatórios (*).', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         set_flash('O endereço de email introduzido não é válido.', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     // Validar username (letras, números e sublinhados)
     $clean_username = preg_replace('/[^a-zA-Z0-9_]/', '', $username);
     if ($username !== $clean_username) {
         set_flash('O nome de utilizador apenas pode conter letras, números e sublinhados (_).', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     // Validar role permitido
-    $allowed_roles = ['member', 'trainer', 'staff', 'admin'];
+    $allowed_roles = ['member', 'trainer', 'admin'];
     if (!in_array($role, $allowed_roles, true)) {
         set_flash('A função selecionada é inválida.', 'error');
-        redirect('/pages/admin/staff.php');
-    }
-
-    // Validações de campos obrigatórios específicas por role
-    if ($role === 'staff') {
-        if ($position === '' || $department === '') {
-            set_flash('Para o Pessoal (Staff), a posição e o departamento são obrigatórios.', 'error');
-            redirect('/pages/admin/staff.php');
-        }
+        redirect('/pages/admin/users.php');
     }
 
     $db->beginTransaction();
@@ -91,13 +79,13 @@ try {
         if ($password === '') {
             set_flash('A palavra-passe é obrigatória para novos utilizadores.', 'error');
             $db->rollBack();
-            redirect('/pages/admin/staff.php');
+            redirect('/pages/admin/users.php');
         }
 
         if (strlen($password) < 6) {
             set_flash('A palavra-passe deve conter pelo menos 6 caracteres.', 'error');
             $db->rollBack();
-            redirect('/pages/admin/staff.php');
+            redirect('/pages/admin/users.php');
         }
 
         // Verificar email único
@@ -106,7 +94,7 @@ try {
         if ($stmtCheckEmail->fetch()) {
             set_flash('Este email já se encontra registado por outra conta.', 'error');
             $db->rollBack();
-            redirect('/pages/admin/staff.php');
+            redirect('/pages/admin/users.php');
         }
 
         // Verificar username único
@@ -115,7 +103,7 @@ try {
         if ($stmtCheckUser->fetch()) {
             set_flash('Este nome de utilizador já se encontra registado por outra conta.', 'error');
             $db->rollBack();
-            redirect('/pages/admin/staff.php');
+            redirect('/pages/admin/users.php');
         }
 
         $password_hash = password_hash($password, PASSWORD_BCRYPT);
@@ -143,10 +131,6 @@ try {
                     }
                 }
             }
-        } elseif ($role === 'staff') {
-            // Perfil do staff
-            $stmtProfile = $db->prepare("INSERT INTO staff_profiles (user_id, position, department) VALUES (?, ?, ?)");
-            $stmtProfile->execute([$new_id, $position, $department]);
         }
 
         $db->commit();
@@ -164,7 +148,7 @@ try {
         if (!$existing_user) {
             set_flash('O utilizador a editar não existe na base de dados.', 'error');
             $db->rollBack();
-            redirect('/pages/admin/staff.php');
+            redirect('/pages/admin/users.php');
         }
 
         $old_role = $existing_user['role'];
@@ -175,7 +159,7 @@ try {
         if ($stmtCheckEmail->fetch()) {
             set_flash('Este email já está a ser utilizado por outra conta.', 'error');
             $db->rollBack();
-            redirect('/pages/admin/staff.php');
+            redirect('/pages/admin/users.php');
         }
 
         // Verificar username único
@@ -184,7 +168,7 @@ try {
         if ($stmtCheckUser->fetch()) {
             set_flash('Este nome de utilizador já está a ser utilizado por outra conta.', 'error');
             $db->rollBack();
-            redirect('/pages/admin/staff.php');
+            redirect('/pages/admin/users.php');
         }
 
         // Atualizar dados gerais do utilizador
@@ -200,7 +184,7 @@ try {
             if (strlen($password) < 6) {
                 set_flash('A nova palavra-passe deve conter pelo menos 6 caracteres.', 'error');
                 $db->rollBack();
-                redirect('/pages/admin/staff.php');
+                redirect('/pages/admin/users.php');
             }
             $password_hash = password_hash($password, PASSWORD_BCRYPT);
             $stmtUpdatePass = $db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
@@ -212,8 +196,6 @@ try {
             if ($old_role === 'trainer') {
                 $db->prepare("DELETE FROM trainer_profiles WHERE user_id = ?")->execute([$user_id]);
                 $db->prepare("DELETE FROM trainer_specializations WHERE trainer_id = ?")->execute([$user_id]);
-            } elseif ($old_role === 'staff') {
-                $db->prepare("DELETE FROM staff_profiles WHERE user_id = ?")->execute([$user_id]);
             }
         }
 
@@ -247,24 +229,6 @@ try {
                     }
                 }
             }
-
-        } elseif ($role === 'staff') {
-            $stmtCheckProfile = $db->prepare("SELECT 1 FROM staff_profiles WHERE user_id = ?");
-            $stmtCheckProfile->execute([$user_id]);
-            if ($stmtCheckProfile->fetch()) {
-                $stmtUpdateProfile = $db->prepare("
-                    UPDATE staff_profiles 
-                    SET position = ?, department = ? 
-                    WHERE user_id = ?
-                ");
-                $stmtUpdateProfile->execute([$position, $department, $user_id]);
-            } else {
-                $stmtInsertProfile = $db->prepare("
-                    INSERT INTO staff_profiles (user_id, position, department) 
-                    VALUES (?, ?, ?)
-                ");
-                $stmtInsertProfile->execute([$user_id, $position, $department]);
-            }
         }
 
         $db->commit();
@@ -279,4 +243,4 @@ try {
     set_flash('Erro ao guardar utilizador: ' . $e->getMessage(), 'error');
 }
 
-redirect('/pages/admin/staff.php');
+redirect('/pages/admin/users.php');

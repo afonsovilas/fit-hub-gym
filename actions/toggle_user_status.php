@@ -2,7 +2,7 @@
 /**
  * actions/toggle_user_status.php
  *
- * Ativa ou desativa a conta de um treinador ou membro de staff.
+ * Ativa ou desativa a conta de um utilizador.
  * Protegido com CSRF.
  */
 
@@ -26,7 +26,7 @@ try {
 
     if ($target_id <= 0) {
         set_flash('ID de utilizador inválido.', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     $stmt = $db->prepare("SELECT name, is_active, role FROM users WHERE id = ?");
@@ -35,17 +35,17 @@ try {
 
     if (!$user) {
         set_flash('O utilizador não existe na base de dados.', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     if ($target_id === (int) $_SESSION['user_id']) {
         set_flash('Não é permitido desativar a sua própria conta de administrador!', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     if ($target_id === 8) {
         set_flash('Não é permitido desativar a conta do administrador principal.', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     $new_status = $user['is_active'] ? 0 : 1;
@@ -61,4 +61,4 @@ try {
     set_flash('Erro ao alterar o estado do utilizador: ' . $e->getMessage(), 'error');
 }
 
-redirect('/pages/admin/staff.php');
+redirect('/pages/admin/users.php');

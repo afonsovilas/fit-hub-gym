@@ -2,7 +2,7 @@
 /**
  * actions/update_user.php
  *
- * Processa a atualização de dados de Treinadores e Staff pela Administração.
+ * Processa a atualização de dados de Treinadores e Membros pela Administração.
  * Protegido por CSRF e com verificação de role admin.
  */
 
@@ -35,12 +35,12 @@ try {
 
     if ($user_id <= 0 || $name === '' || $email === '') {
         set_flash('O ID, Nome e Email são campos obrigatórios.', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         set_flash('O email inserido não é válido.', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     // Verificar se o email já está em uso por outra conta
@@ -48,7 +48,7 @@ try {
     $stmtCheck->execute([$email, $user_id]);
     if ($stmtCheck->fetch()) {
         set_flash('Este email já se encontra em uso por outro utilizador.', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     $stmtRole = $db->prepare("SELECT role FROM users WHERE id = ?");
@@ -57,7 +57,7 @@ try {
 
     if (!$user) {
         set_flash('O utilizador a editar não existe.', 'error');
-        redirect('/pages/admin/staff.php');
+        redirect('/pages/admin/users.php');
     }
 
     $role = $user['role'];
@@ -105,32 +105,6 @@ try {
                 }
             }
         }
-    } elseif ($role === 'staff') {
-        $position = trim($_POST['position'] ?? '');
-        $department = trim($_POST['department'] ?? '');
-
-        if ($position === '' || $department === '') {
-            $db->rollBack();
-            set_flash('Posição e Departamento são obrigatórios para funcionários do Staff.', 'error');
-            redirect('/pages/admin/staff.php');
-        }
-
-        $stmtCheckStaff = $db->prepare("SELECT 1 FROM staff_profiles WHERE user_id = ?");
-        $stmtCheckStaff->execute([$user_id]);
-        if ($stmtCheckStaff->fetch()) {
-            $stmtUpdateStaff = $db->prepare("
-                UPDATE staff_profiles 
-                SET position = ?, department = ? 
-                WHERE user_id = ?
-            ");
-            $stmtUpdateStaff->execute([$position, $department, $user_id]);
-        } else {
-            $stmtInsertStaff = $db->prepare("
-                INSERT INTO staff_profiles (user_id, position, department) 
-                VALUES (?, ?, ?)
-            ");
-            $stmtInsertStaff->execute([$user_id, $position, $department]);
-        }
     }
 
     $db->commit();
@@ -144,4 +118,4 @@ try {
     set_flash('Erro ao atualizar utilizador: ' . $e->getMessage(), 'error');
 }
 
-redirect('/pages/admin/staff.php');
+redirect('/pages/admin/users.php');
