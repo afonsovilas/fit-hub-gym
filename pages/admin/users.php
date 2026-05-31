@@ -211,6 +211,10 @@ function translate_role(string $role): string {
                                             <input type="checkbox" id="spec-personal" name="specializations[]" value="personal">
                                             <span>Personal Training</span>
                                         </label>
+                                        <label class="checkbox-item" for="spec-nutricao" style="display: flex; align-items: center; gap: 8px; color: #cbd5e1; cursor: pointer;">
+                                            <input type="checkbox" id="spec-nutricao" name="specializations[]" value="nutricao">
+                                            <span>Nutrição</span>
+                                        </label>
                                     </div>
                                 </fieldset>
                             </div>
