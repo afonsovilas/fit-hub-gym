@@ -180,7 +180,7 @@ try {
                                             data-description="<?= $item_description ?>"
                                             style="padding: 6px 12px; font-size: 0.85em; border-radius: 4px; cursor: pointer; border: 1px solid #334155; background: #1e293b; color: #cbd5e1; font-weight: 600;"
                                             title="Editar equipamento">
-                                        ✏️ Editar
+                                        Editar
                                     </button>
                                     <form method="POST" action="../actions/delete_equipment.php" class="delete-equipment-form" data-equipment-name="<?= $item_name ?>" style="margin: 0; padding: 0; display: inline;">
                                         <?= get_csrf_input() ?>

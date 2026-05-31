@@ -320,7 +320,7 @@ try {
                                                 data-room="<?= h($class['room']) ?>"
                                                 style="padding: 6px 12px; font-size: 0.85em; border-radius: 4px; cursor: pointer; border: 1px solid #334155; background: #1e293b; color: #cbd5e1; font-weight: 600;"
                                                 title="Editar aula">
-                                            ✏️ Editar
+                                            Editar
                                         </button>
                                         <form method="POST" action="../actions/delete_class.php" class="delete-class-form" data-class-name="<?= h($class['name']) ?>" style="margin: 0; padding: 0; display: inline;">
                                             <?= get_csrf_input() ?>

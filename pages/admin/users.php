@@ -71,10 +71,10 @@ function translate_role(string $role): string {
             <?php render_flash(); ?>
 
             <div class="admin-tabs" role="tablist" aria-label="Categorias de gestão de utilizadores">
-                <button type="button" class="tab-button active" data-tab="all" role="tab" id="tab-all" aria-selected="true">👥 Todos</button>
-                <button type="button" class="tab-button" data-tab="member" role="tab" id="tab-member" aria-selected="false">👤 Membros</button>
-                <button type="button" class="tab-button" data-tab="trainer" role="tab" id="tab-trainer" aria-selected="false">💪 Treinadores</button>
-                <button type="button" class="tab-button" data-tab="admin" role="tab" id="tab-admin" aria-selected="false">👑 Admins</button>
+                <button type="button" class="tab-button active" data-tab="all" role="tab" id="tab-all" aria-selected="true">Todos</button>
+                <button type="button" class="tab-button" data-tab="member" role="tab" id="tab-member" aria-selected="false">Membros</button>
+                <button type="button" class="tab-button" data-tab="trainer" role="tab" id="tab-trainer" aria-selected="false">Treinadores</button>
+                <button type="button" class="tab-button" data-tab="admin" role="tab" id="tab-admin" aria-selected="false">Admins</button>
             </div>
 
             <?php if (isset($error)): ?>
@@ -304,15 +304,15 @@ function translate_role(string $role): string {
                                                     data-certifications="<?= h($user['certifications'] ?? '') ?>"
                                                     data-specializations="<?= h($user['specializations'] ?? '') ?>"
                                                     title="Editar utilizador">
-                                                ✏️ Editar
+                                                Editar
                                             </button>
                                             <?php if ($user_id !== (int) $_SESSION['user_id']): ?>
                                                 <button type="button" class="btn-action btn-toggle-status" data-user-id="<?= $user_id ?>" data-current-status="<?= $is_active ?>" title="<?= $is_active ? 'Desativar' : 'Ativar' ?> utilizador">
-                                                    <?= $is_active ? '🔒 Desativar' : '🔓 Ativar' ?>
+                                                    <?= $is_active ? 'Desativar' : 'Ativar' ?>
                                                 </button>
                                             <?php else: ?>
                                                 <button type="button" class="btn-action btn-toggle-status" disabled style="opacity: 0.5; cursor: not-allowed;" title="Não pode desativar a sua própria conta de administrador">
-                                                    🔒 Desativar
+                                                    Desativar
                                                 </button>
                                             <?php endif; ?>
                                         </td>
