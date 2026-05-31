@@ -62,7 +62,6 @@ try {
 
     if ($filter_day !== '') {
         $day_map = [
-            'sunday'    => '0',
             'monday'    => '1',
             'tuesday'   => '2',
             'wednesday' => '3',
@@ -161,7 +160,6 @@ try {
                         <option value="thursday" <?= $filter_day === 'thursday' ? 'selected' : '' ?>>Quinta</option>
                         <option value="friday" <?= $filter_day === 'friday' ? 'selected' : '' ?>>Sexta</option>
                         <option value="saturday" <?= $filter_day === 'saturday' ? 'selected' : '' ?>>Sábado</option>
-                        <option value="sunday" <?= $filter_day === 'sunday' ? 'selected' : '' ?>>Domingo</option>
                     </select>
                 </div>
 

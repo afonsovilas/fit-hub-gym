@@ -699,8 +699,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (ptForm) {
-            ptForm.addEventListener('submit', function() {
+            ptForm.addEventListener('submit', function(e) {
                 updateHiddenDateTime(ptDateInput, ptTimeSelect, ptHiddenInput);
+                const dateVal = ptDateInput.value;
+                if (dateVal) {
+                    const dateParts = dateVal.split('-');
+                    const year = parseInt(dateParts[0]);
+                    const month = parseInt(dateParts[1]) - 1;
+                    const day = parseInt(dateParts[2]);
+                    const selectedDate = new Date(year, month, day);
+                    
+                    if (selectedDate.getDay() === 0) { // Sunday
+                        e.preventDefault();
+                        if (typeof showToast === 'function') {
+                            showToast('O FitHub encontra-se encerrado aos Domingos. Por favor, selecione outro dia (Segunda a Sábado).', 'error');
+                        } else {
+                            alert('O FitHub encontra-se encerrado aos Domingos. Por favor, selecione outro dia (Segunda a Sábado).');
+                        }
+                        ptDateInput.value = '';
+                        ptTimeSelect.innerHTML = '<option value="">-- Selecione data --</option>';
+                        ptHiddenInput.value = '';
+                    }
+                }
             });
         }
 
@@ -776,14 +796,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday, 1-5 = Weekdays
+        if (dayOfWeek === 0) {
+            return []; // Sunday is closed!
+        }
         let startHour, endHour;
         
         if (isHoliday) {
             startHour = 9;
             endHour = 19; // Closes at 20:00, last session starts at 19:00
-        } else if (dayOfWeek === 0) { // Sunday
-            startHour = 8;
-            endHour = 20; // Closes at 21:00, last session starts at 20:00
         } else if (dayOfWeek === 6) { // Saturday
             startHour = 7;
             endHour = 21; // Closes at 22:00, last session starts at 21:00

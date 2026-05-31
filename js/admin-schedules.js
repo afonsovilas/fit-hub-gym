@@ -48,6 +48,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (formScheduledDate && formScheduledTime && formScheduledAt) {
         formScheduledDate.addEventListener('change', function() {
+            const dateVal = this.value;
+            if (dateVal) {
+                const dateParts = dateVal.split('-');
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]) - 1;
+                const day = parseInt(dateParts[2]);
+                const selectedDate = new Date(year, month, day);
+                
+                if (selectedDate.getDay() === 0) { // Sunday
+                    if (typeof showToast === 'function') {
+                        showToast('O FitHub encontra-se encerrado aos Domingos. Por favor, selecione outro dia (Segunda a Sábado).', 'error');
+                    } else {
+                        alert('O FitHub encontra-se encerrado aos Domingos. Por favor, selecione outro dia (Segunda a Sábado).');
+                    }
+                    this.value = '';
+                    formScheduledTime.innerHTML = '<option value="">-- Selecione data --</option>';
+                    formScheduledAt.value = '';
+                    return;
+                }
+            }
             updateTimeOptions(this, formScheduledTime);
             updateHiddenDateTime(formScheduledDate, formScheduledTime, formScheduledAt);
         });
@@ -301,6 +321,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 3. Get opening hours limits
         const dayOfWeek = date.getDay();
+        if (dayOfWeek === 0) {
+            return {
+                success: false,
+                message: 'O FitHub encontra-se encerrado aos Domingos. Por favor, selecione outro dia (Segunda a Sábado).'
+            };
+        }
         const hours = date.getHours();
         const mins = date.getMinutes();
         const timeVal = hours * 100 + mins;
@@ -310,10 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
             open = 900;
             close = 2000;
             dayName = 'Feriado';
-        } else if (dayOfWeek === 0) {
-            open = 800;
-            close = 2100;
-            dayName = 'Domingo';
         } else if (dayOfWeek === 6) {
             open = 700;
             close = 2200;
@@ -387,14 +409,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday, 1-5 = Weekdays
+        if (dayOfWeek === 0) {
+            return []; // Sunday is closed!
+        }
         let startHour, endHour;
         
         if (isHoliday) {
             startHour = 9;
             endHour = 20;
-        } else if (dayOfWeek === 0) { // Sunday
-            startHour = 8;
-            endHour = 21;
         } else if (dayOfWeek === 6) { // Saturday
             startHour = 7;
             endHour = 22;
