@@ -106,23 +106,23 @@ require_once BASE_PATH . '/templates/navbar.php';
             <section class="profile-main">
                 <!-- Tabs Navigation Bar for Members -->
                 <div class="profile-tabs-nav" style="display: flex; gap: 8px; border-bottom: 2px solid #334155; padding-bottom: 0px; margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none;">
-                    <button type="button" class="tab-btn active" data-tab="dados-pessoais" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                    <button type="button" class="tab-btn active" data-tab="dados-pessoais">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         Dados Pessoais
                     </button>
-                    <button type="button" class="tab-btn" data-tab="aulas-grupo" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                    <button type="button" class="tab-btn" data-tab="aulas-grupo">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                         Aulas de Grupo
                     </button>
-                    <button type="button" class="tab-btn" data-tab="treino-personalizado" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                    <button type="button" class="tab-btn" data-tab="treino-personalizado">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18.5 5.5 1.5-1.5"/><path d="m5.5 18.5-1.5 1.5"/><path d="M8.5 2 2 8.5"/><path d="M22 15.5 15.5 22"/></svg>
-                        Treino Personalizado (PT)
+                        Treino PT
                     </button>
-                    <button type="button" class="tab-btn" data-tab="avaliacoes-historico" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                    <button type="button" class="tab-btn" data-tab="avaliacoes-historico">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></polygon></svg>
-                        Avaliações & Histórico
+                        Avaliações
                     </button>
-                    <button type="button" class="tab-btn" data-tab="nutricao" style="background: none; border: none; padding: 12px 20px; color: #94a3b8; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;">
+                    <button type="button" class="tab-btn" data-tab="nutricao">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c5.522 0 10 4.477 10 10s-4.478 10-10 10S2 17.523 2 12 6.478 2 12 2zm0 2C7.589 4 4 7.589 4 12s3.589 8 8 8 8-3.589 8-8-3.589-8-8-8zm-1 3h2v6h-2V7zm0 8h2v2h-2v-2z"/></svg>
                         Nutrição
                     </button>

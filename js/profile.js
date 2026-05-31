@@ -670,6 +670,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const ptForm = ptDateInput.closest('form');
 
         ptDateInput.addEventListener('change', function() {
+            const dateVal = this.value;
+            if (dateVal) {
+                const dateParts = dateVal.split('-');
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]) - 1;
+                const day = parseInt(dateParts[2]);
+                const selectedDate = new Date(year, month, day);
+                
+                if (selectedDate.getDay() === 0) { // Sunday
+                    if (typeof showToast === 'function') {
+                        showToast('O FitHub encontra-se encerrado aos Domingos. Por favor, selecione outro dia (Segunda a Sábado).', 'error');
+                    } else {
+                        alert('O FitHub encontra-se encerrado aos Domingos. Por favor, selecione outro dia (Segunda a Sábado).');
+                    }
+                    this.value = '';
+                    ptTimeSelect.innerHTML = '<option value="">-- Selecione data --</option>';
+                    ptHiddenInput.value = '';
+                    return;
+                }
+            }
             updateTimeOptions(this, ptTimeSelect);
             updateHiddenDateTime(ptDateInput, ptTimeSelect, ptHiddenInput);
         });

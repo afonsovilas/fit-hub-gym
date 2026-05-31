@@ -129,10 +129,10 @@ try {
                         <p class="time">07:00 - 22:00</p>
                         <p class="description">Aulas e treino disponíveis</p>
                     </div>
-                    <div class="hours-card">
-                        <h3>Domingo</h3>
-                        <p class="time">08:00 - 21:00</p>
-                        <p class="description">Treino livre e aulas especiais</p>
+                    <div class="hours-card" style="border-color: var(--color-danger); opacity: 0.85;">
+                        <h3 style="color: var(--color-danger);">Domingo</h3>
+                        <p class="time" style="color: var(--color-danger);">ENCERRADO</p>
+                        <p class="description">Instalações fechadas para manutenção</p>
                     </div>
                     <div class="hours-card holiday">
                         <h3>Feriados</h3>

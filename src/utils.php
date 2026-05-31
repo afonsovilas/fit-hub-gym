@@ -183,14 +183,17 @@ function validate_schedule_time(string $datetime_str, int $duration_min = 0): ar
     $day_of_week = (int) date('w', $timestamp); // 0 = Domingo, 6 = Sábado, 1-5 = Segunda a Sexta
     $time_str = date('H:i', $timestamp);
     
+    if ($day_of_week === 0) {
+        return [
+            'success' => false,
+            'message' => 'O FitHub encontra-se encerrado aos Domingos. Por favor, selecione outro dia (Segunda a Sábado).'
+        ];
+    }
+
     if ($is_holiday) {
         $open = '09:00';
         $close = '20:00';
         $day_name = 'Feriado';
-    } elseif ($day_of_week === 0) {
-        $open = '08:00';
-        $close = '21:00';
-        $day_name = 'Domingo';
     } elseif ($day_of_week === 6) {
         $open = '07:00';
         $close = '22:00';
